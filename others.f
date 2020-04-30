@@ -1,6 +1,6 @@
 c others.f for wcalprem.f
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-	subroutine pinput2( maxnlay,maxnzone,maxnr,
+	subroutine pinput2(parameter_file, maxnlay,maxnzone,maxnr,
      &                     re,ratc,ratl,
      &	                   tlen,np,omegai,imin,imax,
      &	                   nzone,vrmin,vrmax,rho,vsv,vsh,qmu,
@@ -9,6 +9,8 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c Parameter Input
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 	implicit none
+	
+	character, dimension(80), intent(in) :: parameter_file
 	integer maxnlay,maxnzone,maxnr
 	integer np
 	integer imin,imax
@@ -53,8 +55,10 @@ c	  if ( nlayer(i).gt.maxnlay )
 c     &	    pause 'nlayer is too large. (pinput)'
 c  130	continue
 	read(11,*) nzone
-	if ( nzone.gt.maxnzone )
-     &	  pause 'nzone is too large. (pinput)'
+	if ( nzone.gt.maxnzone ) then
+		write(*,*) 'nzone is too large. (pinput)'
+		return 1
+	endif
 	do 140 i=1,nzone
 	  read(11,*) vrmin(i),vrmax(i),
      &	             rho(1,i),rho(2,i),rho(3,i),rho(4,i),
@@ -67,8 +71,10 @@ c source parameter
 	call translat(eqlattmp,eqlattmp)
 	read(11,*) mt(1,1),mt(1,2),mt(1,3),mt(2,2),mt(2,3),mt(3,3)
 	read(11,*) nr
-	if ( nr.gt.maxnr )
-     &	  pause 'nr is too large. (pinput)'
+	if ( nr.gt.maxnr ) then
+		write(*,*) 'nr is too large. (pinput)'
+		return 1
+	endif
 	do 150 i=1,nr
 	  read(11,*) lat(i),lon(i)
 	  stlat = lat(i)
@@ -377,8 +383,10 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 	integer itmp
 c
 c checking the parameter
-	if ( (r0.lt.rmin).or.(r0.gt.rmax) )
-     &	  pause 'The source location is improper.(calspo)'
+	if ( (r0.lt.rmin).or.(r0.gt.rmax) ) then
+		write(*,*) 'The source location is improper.(calspo)'
+		return 1
+	endif
 c computing 'spo'
 	if ( r0.eq.rmax ) then
 	  spo = dble(nlayer) - 0.01d0
@@ -562,8 +570,9 @@ c
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 	subroutine calu( c0,lsq,bvec,u )
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-	real*8 lsq
-	complex*16 c0,bvec(3),u(3)
+	real*8, intent(in) :: lsq
+	complex*16, intent(in) :: c0, bvec(3)
+	complex*16, intent(out) :: u(3)
 c
 	u(1) = dcmplx( 0.d0 )
 	u(2) = u(2) + c0 * bvec(2) / dcmplx(lsq)

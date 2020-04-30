@@ -5,16 +5,18 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c Computing \int r^rpow con W_p^(w1dn) W_q^(w2dn) dr.
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-	integer maxrpow
-	parameter ( maxrpow = 2 )
-c
-	integer nlayer,vnp,rpow,w1dn,w2dn
-	real*8 vra(vnp),con(vnp),ra(*),m(*),work(*)
+	integer, parameter :: maxrpow = 2
+	integer, intent(in) :: nlayer,vnp,rpow,w1dn,w2dn
+	real*8, intent(in) :: vra(vnp),con(vnp),ra(nlayer)
+	real*8, dimension(4*nlayer), intent(out) :: m
+	real*8, dimension(4*nlayer) :: work
 	integer i,j,k,kk,l,nn,snp
 	real*8 a(2,2),b(2,2),c(5),rh
 c parameter check
-	if ( rpow .gt. maxrpow )
-     &	  pause 'Invalid arguments.(calmatc)'
+	if ( rpow .gt. maxrpow ) then
+		write(*,*) 'Invalid arguments.(calmatc)'
+		return 1
+	endif
 c computing of the matrix elements
 	snp = 1
 	do 140 i=1,nlayer
@@ -30,8 +32,9 @@ c computing of the matrix elements
 	      a(1,1) = -1.d0 / rh
 	      a(2,2) = 0.d0
 	      a(1,2) = 1.d0 / rh
-	    else
-	      pause 'Invalid arguments.(calmatc)'
+		else
+		  write(*,*) 'Invalid arguments.(calmatc)'
+		  return 1
 	    endif
 	  endif
 	  if ( w2dn .eq. 0 ) then
@@ -45,8 +48,9 @@ c computing of the matrix elements
 	      b(1,1) = -1.d0 / rh
 	      b(2,2) = 0.d0
 	      b(1,2) = 1.d0 / rh
-	    else
-	      pause 'Invalid arguments.(calmatc)'
+		else
+			write(*,*) 'Invalid arguments.(calmatc)'
+			return 1
 	    endif
 	  endif
 	  do 130 j=1,2
@@ -199,8 +203,10 @@ c
 	real*8 from,to,p(n),vra(vnp),con(vnp),pint
 	real*8 x1,x2,q(2),pq(maxn+1),psint
 c
-	if ( n.gt.maxn )
-     &	  pause 'Degrees of a polynomial is too large.(pinteg)'
+	if ( n.gt.maxn ) then
+		write(*,*) 'Degrees of a polynomial is too large.(pinteg)'
+		return 1
+	endif
 	if ( snp.ge.vnp ) snp = 1
 c
 	pint = 0.d0
@@ -244,8 +250,10 @@ c
 	integer i,j
 	real*8 a(maxn),b(maxn),dx,xx
 c
-	if ( n.gt.maxn )
-     &	  pause 'Degrees of a polynomial is too large.(polint)'
+	if ( n.gt.maxn ) then
+		write(*,*) 'Degrees of a polynomial is too large.(polint)'
+		return 1
+	endif
 c
 	a(1) = 1.d0
 	b(1) = 1.d0

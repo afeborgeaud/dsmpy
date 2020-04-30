@@ -1,4 +1,4 @@
-	program tish
+	subroutine tish(parameter_file)
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c  ************** tish.f ****************
 c Computation of SH synthetic seismograms 
@@ -10,17 +10,14 @@ c                                                 2002.10 K.Kawai
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c ----------------------------<<constants>>----------------------------
 	implicit none
-	real*8 pi,lmaxdivf,shallowdepth
-	integer maxnlay
-	integer maxnzone,maxnr,maxlmax,ilog
-	parameter ( pi=3.1415926535897932d0 )
-	parameter ( maxnlay = 88300 )
-	parameter ( maxnzone = 15 )
-	parameter ( maxnr = 600 )
-	parameter ( maxlmax = 80000 )
-	parameter ( ilog = 0 )
-	parameter ( lmaxdivf = 2.d4)
-	parameter ( shallowdepth = 100.d0 )
+	real*8, parameter :: pi=3.1415926535897932d0
+	integer, parameter :: maxnlay = 88300
+	integer, parameter :: maxnzone = 15
+	integer, parameter :: maxnr = 600
+	integer, parameter :: maxlmax = 80000
+	integer, parameter :: ilog = 0
+	real*8, parameter :: lmaxdivf = 2.d4
+	real*8, parameter :: shallowdepth = 100.d0
 c ----------------------------<<variables>>----------------------------
 c variable for the trial function
 	integer nnlayer,nlayer(maxnzone)
@@ -61,7 +58,7 @@ c variable for the matrix elements
 	complex*16 aa(4),ga(8),ga2(2,3),gdr(3)
 	complex*16 g( maxnlay+1 )
 c variable for the file
-	character*80 output(maxnr)
+	character, dimension(600,80) :: output(maxnr)
 c variable for grid spacing
 	real*8 tmpr(maxnlay+1)
 	real*8 gridpar(maxnzone),dzpar(maxnzone),vmin(maxnzone)
@@ -76,37 +73,27 @@ c other variables
 	complex*16 cwork( 4*maxnlay )
 	integer ltmp(2),iimax
 c
+   character, dimension(80), intent(in) :: parameter_file
+c
 	data lda/ 2 /
 	data eps/ -1.d0 /
-c	      efficiency inprovement
-      integer ::  mpios
-      integer :: outputmemory   ! MB
-      integer :: outputinterval
-      real(8) :: memoryperomega ! MB
-      integer :: outputindex, mpii
-      integer, allocatable, dimension (:) :: outputi
-      complex*16, allocatable, dimension(:,:,:) :: outputu
-c     when the values to be output use memory over outputmemory MB,
-c     they are written in output files. The interval is /utputinterval
-c     memoryperomega is the quantity of memory used for one omega step
-      character *2 :: char_rank
-      double precision :: ark, angel
-      data outputmemory /10/
+
+   integer :: outputindex, mpii
+   integer, dimension (imax) :: outputi
+   complex*16, dimension(3,nr,imax) :: outputu
+
+   character *2 :: char_rank
+   double precision :: ark, angel
       
       
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c *************** Inputting and computing the parameters ***************
 c --- inputting parameter ---
-	call pinput2( maxnlay,maxnzone,maxnr,re,ratc,ratl,
+	call pinput2(parameter_file, maxnlay,maxnzone,maxnr,re,ratc,ratl,
      &       tlen,np,omegai,imin,imax,
      &       nzone,vrmin,vrmax,rrho,vsv,vsh,qmu,
      &       r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output )
 
-cccccccccccccccccccccccccccccccc
-	  memoryperomega = 3*16 *nr*0.000001
-       outputinterval = outputmemory/memoryperomega != integer * nr     
-       allocate (outputi(outputinterval))
-      allocate (outputu(3,nr,outputinterval))
 ccccccccccccccccccccccccccccccccc
 
 c --- computing the required parameters ---
@@ -488,8 +475,7 @@ c              close(11)
               write(11,*) i,llog,nnlayer
               close(11)
            endif
-   	   if (outputindex .ge. outputinterval .or.
-     $          i .eq. imax) then
+   	   if (i .eq. imax) then
 	      write(*,*) "kakikomimasu"
 c              write (*,*) my_rank, outputindex
 	      do ir = 1 ,nr
@@ -514,5 +500,6 @@ c
 c
 	write(*,*) "Ivalice looks to the horizon"
 
-	stop
-	end
+   stop
+   
+   end subroutine tish
