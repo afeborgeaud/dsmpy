@@ -8,6 +8,9 @@ How to build:
 ```python
 python -m numpy.f2py -c parameters.f90 tish.f90 others.f90 calmat.f90 trialf.f90 dclisb.f90 dclisb3.f90 -m tish
 ```
+
+or
+
 2) Run the testing script. It will first build the module.
 ```python
 python test_tish.py
