@@ -1,6 +1,6 @@
 subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
    nzone,vrmin,vrmax,rrho,vsv,vsh,qmu, &
-   r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
+   r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output,outputu, write_to_file)
 !------------------------------------------------------------------------
 !  ************** tish.f ****************
 ! Computation of SH synthetic seismograms 
@@ -14,6 +14,8 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       implicit none
 
 ! ----------------------------<<variables>>----------------------------
+! write to files?
+      logical, intent(in) :: write_to_file
 ! variable for the trial function
       integer nnlayer,nlayer(maxnzone)
       integer l,m
@@ -73,7 +75,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
 
       integer :: outputindex, mpii
       integer, dimension (imax+1) :: outputi
-      complex*16, dimension(3,nr,imax+1) :: outputu
+      complex*16, dimension(3,nr,imax+1), intent(out) :: outputu
 
 ! --- computing the required parameters ---
 ! computing and checking the parameters
@@ -89,16 +91,19 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
          return
       endif
 ! ************************** Files Handling **************************
-      do ir=1,nr
-         open(unit=11,file=output(ir),status='replace', &
-            access='stream', form='unformatted', convert='big_endian')
-         write(11) tlen
-         write(11) np,1,3
-         write(11) omegai,lat(ir),lon(ir)
-!        write(11,*) theta(ir)*1.8d2/pi,phi(ir)*1.8d2/pi
-         write(11) eqlat,eqlon,r0
-         close(11)
-      enddo
+      if (write_to_file) then
+         do ir=1,nr
+            open(unit=11,file=output(ir),status='replace', &
+               access='stream', form='unformatted', convert='big_endian')
+            write(11) tlen
+            write(11) np,1,3
+            write(11) omegai,lat(ir),lon(ir)
+   !        write(11,*) theta(ir)*1.8d2/pi,phi(ir)*1.8d2/pi
+            write(11) eqlat,eqlon,r0
+            close(11)
+         enddo
+      endif
+
       if(ilog.eq.1) then
          open(unit=11,file='llog.log',status='unknown')
          close(11)
@@ -421,26 +426,18 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
 ! ************************** Files Handling **************************
          outputi(outputindex)=i
          do ir=1,nr
-            outputu(1,ir,outputindex) =u (1,ir)
-!		write (*,*) u(1,ir), ir
-            outputu(2, ir, outputindex)= u (2,ir)	 
-!	      outputu (2, ir, outputindex)=
-!	1	   cmplx(dble(u (2,ir)), dimag(u(2,ir)))
-	         outputu(3, ir, outputindex)= u(3,ir)
-!              open( unit=11,file=output(ir),
-!     &             position='append',status='old')
-!              write(11,*) i,dble(u(1,ir)),dimag(u(1,ir))
-!              write(11,*) dble(u(2,ir)),dimag(u(2,ir))
-!              write(11,*) dble(u(3,ir)),dimag(u(3,ir))
-!              close(11)
+            outputu(1,ir,outputindex) = u(1,ir)
+            outputu(2, ir, outputindex) = u(2,ir)	 
+	         outputu(3, ir, outputindex) = u(3,ir)
+
          enddo
          if(ilog.eq.1) then
             open(unit=11,file='llog.log',position='append',status='old')
             write(11,*) i,llog,nnlayer
             close(11)
          endif
-!
-   	   if (i .eq. imax) then
+!        
+   	   if (write_to_file .and. i .eq. imax) then
 	         write(*,*) "kakikomimasu"
 !              write (*,*) my_rank, outputindex
 	         do ir = 1 ,nr
@@ -461,7 +458,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       enddo                   ! omega-loop
 !     
 !
-      write(*,*) "Ivalice looks to the horizon"
+      !write(*,*) "Ivalice looks to the horizon"
 
       return
    
@@ -499,6 +496,8 @@ program main
    real(dp) :: eqlat
    real(dp) :: eqlon
    character*80 :: output(maxnr)
+   complex*16, allocatable, dimension(:,:,:) :: outputu
+   logical :: write_to_file = .true.
 
    ! read input parameters
    call get_command_argument(1, parameter_file)
@@ -507,11 +506,13 @@ program main
       nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
       r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
 
+   allocate(outputu(3,nr,imax+1))
+
    ! main loop
    write(*,*) 'Enter main loop'
    call tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
-      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
+      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output,outputu, write_to_file)
    write(*,*) 'Done!'
 
 end program main
