@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------
-*                           TRIAL FUNCTION                             *
+!                           TRIAL FUNCTION                             *
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 	subroutine calbvec( l,theta,phi,plm,bvec )
@@ -51,7 +51,7 @@
 !
 	if ( (m.lt.0).or.(m.gt.l).or.(dabs(x).gt.1.d0) ) then
 		write(*,*) 'bad arguments'
-		return 1
+		return
 	endif
 	if ( l.eq.m ) then
 	  pmm = 1.d0

@@ -5,9 +5,12 @@
 !------------------------------------------------------------------------
 ! Computing \int r^rpow con W_p^(w1dn) W_q^(w2dn) dr.
 !------------------------------------------------------------------------
+	use parameters
+
 	integer, parameter :: maxrpow = 2
 	integer, intent(in) :: nlayer,vnp,rpow,w1dn,w2dn
-	real*8, intent(in) :: vra(vnp),con(vnp),ra(nlayer)
+	real*8, intent(in) :: vra(vnp),con(vnp)
+	real(dp), dimension(maxnlay+maxnzone+1), intent(in) :: ra
 	real*8, dimension(4*nlayer), intent(out) :: m
 	real*8, dimension(4*nlayer) :: work
 	integer i,j,k,kk,l,nn,snp
@@ -15,7 +18,7 @@
 ! parameter check
 	if ( rpow .gt. maxrpow ) then
 		write(*,*) 'Invalid arguments.(calmatc)'
-		return 1
+		return
 	endif
 ! computing of the matrix elements
 	snp = 1
@@ -34,7 +37,7 @@
 	      a(1,2) = 1.d0 / rh
 		else
 		  write(*,*) 'Invalid arguments.(calmatc)'
-		  return 1
+		  return
 	    endif
 	  endif
 	  if ( w2dn .eq. 0 ) then
@@ -50,7 +53,7 @@
 	      b(1,2) = 1.d0 / rh
 		else
 			write(*,*) 'Invalid arguments.(calmatc)'
-			return 1
+			return
 	    endif
 	  endif
 	  do 130 j=1,2
@@ -178,7 +181,7 @@
 !
 	if (n+m-1.ne.l) then
 		write(*,*) 'Invalid arguments.(pmulti)'
-		return 1
+		return
 	endif
 	do 100 i=1,l
 	  c(i)=0.d0
@@ -207,7 +210,7 @@
 !
 	if ( n.gt.maxn ) then
 		write(*,*) 'Degrees of a polynomial is too large.(pinteg)'
-		return 1
+		return
 	endif
 	if ( snp.ge.vnp ) snp = 1
 !
@@ -254,7 +257,7 @@
 !
 	if ( n.gt.maxn ) then
 		write(*,*) 'Degrees of a polynomial is too large.(polint)'
-		return 1
+		return
 	endif
 !
 	a(1) = 1.d0

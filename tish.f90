@@ -1,4 +1,6 @@
-      program tish(parameter_file)
+subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
+   nzone,vrmin,vrmax,rrho,vsv,vsh,qmu, &
+   r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
 !------------------------------------------------------------------------
 !  ************** tish.f ****************
 ! Computation of SH synthetic seismograms 
@@ -8,92 +10,70 @@
 !
 !                                                 2002.10 K.Kawai
 !------------------------------------------------------------------------
-! ----------------------------<<constants>>----------------------------
+      use parameters
       implicit none
-      real*8, parameter :: pi=3.1415926535897932d0
-      integer, parameter :: maxnlay = 88300
-      integer, parameter :: maxnzone = 15
-      integer, parameter :: maxnr = 600
-      integer, parameter :: maxlmax = 80000
-      integer, parameter :: ilog = 0
-      real*8, parameter :: lmaxdivf = 2.d4
-      real*8, parameter :: shallowdepth = 100.d0
+
 ! ----------------------------<<variables>>----------------------------
 ! variable for the trial function
       integer nnlayer,nlayer(maxnzone)
       integer l,m
-      real*8 ra(maxnlay+maxnzone+1),gra(3),plm(3,0:3,maxnr)
+      real(dp) ra(maxnlay+maxnzone+1),gra(3),plm(3,0:3,maxnr)
       complex*16 bvec(3,-2:2,maxnr)
-      c variable for the structure
+! variable for the structure
       integer nzone
       integer ndc,vnp
-      real*8 rmin,rmax
-      real*8 vrmin(maxnzone),vrmax(maxnzone)
-      real*8 rrho(4,maxnzone),vsv(4,maxnzone),vsh(4,maxnzone)
-      real*8 qmu(maxnzone)
-      real*8 vra(maxnlay+2*maxnzone+1)
-      real*8 rho(maxnlay+2*maxnzone+1)
-      real*8 ecL(maxnlay+2*maxnzone+1)
-      real*8 ecN(maxnlay+2*maxnzone+1)
-      real*8 gvra(3),grho(3),gecL(3),gecN(3)
+      real(dp) rmin,rmax
+      real(dp) vrmin(maxnzone),vrmax(maxnzone)
+      real(dp) rrho(4,maxnzone),vsv(4,maxnzone),vsh(4,maxnzone)
+      real(dp) qmu(maxnzone)
+      real(dp) vra(maxnlay+2*maxnzone+1)
+      real(dp) rho(maxnlay+2*maxnzone+1)
+      real(dp) ecL(maxnlay+2*maxnzone+1)
+      real(dp) ecN(maxnlay+2*maxnzone+1)
+      real(dp) gvra(3),grho(3),gecL(3),gecN(3)
       complex*16 coef(maxnzone)
 ! variable for the periodic range
       integer np,imin,imax
-      real*8 tlen,omega,omegai
+      real(dp) tlen,omega,omegai
       complex*16 u(3,maxnr)
 ! variable for the source
       integer spn,ns
-      real*8 r0,mt(3,3),spo,mu0,eqlat,eqlon
+      real(dp) r0,mt(3,3),spo,mu0,eqlat,eqlon
 ! variable for the station
       integer nr,ir
-      real*8 theta(maxnr),phi(maxnr)
-      real*8 lat(maxnr),lon(maxnr)
+      real(dp) theta(maxnr),phi(maxnr)
+      real(dp) lat(maxnr),lon(maxnr)
 ! variable for the matrix elements
       complex*16 a0( 2,maxnlay+1 ), a2( 2,maxnlay+1 )
       complex*16  a( 2,maxnlay+1 )
-      real*8 t( 4*maxnlay )
-      real*8 h1( 4*maxnlay ),h2( 4*maxnlay )
-            real*8 h3( 4*maxnlay ),h4( 4*maxnlay )
-      real*8 gt(8),gh1(8),gh2(8),gh3(8),gh4(8)
+      real(dp) t( 4*maxnlay )
+      real(dp) h1( 4*maxnlay ),h2( 4*maxnlay )
+            real(dp) h3( 4*maxnlay ),h4( 4*maxnlay )
+      real(dp) gt(8),gh1(8),gh2(8),gh3(8),gh4(8)
       complex*16 aa(4),ga(8),ga2(2,3),gdr(3)
       complex*16 g( maxnlay+1 )
 ! variable for the file
-      character, dimension(600,80) :: output(maxnr)
+      character*80 :: output(maxnr)
 ! variable for grid spacing
-      real*8 tmpr(maxnlay+1)
-      real*8 gridpar(maxnzone),dzpar(maxnzone),vmin(maxnzone)
-      real*8 re,ratc,ratl,maxamp
+      real(dp) tmpr(maxnlay+1)
+      real(dp) gridpar(maxnzone),dzpar(maxnzone),vmin(maxnzone)
+      real(dp) re,ratc,ratl,maxamp
       integer kc,lsuf,ismall,llog
 ! variable for the stack point
       integer isp(maxnzone),jsp(maxnzone),ins
 ! other variables
       integer i,j,ii,jj,nn,lda,ier
-      real*8 eps,work( 4*maxnlay ),lsq
+      real(dp) eps,work( 4*maxnlay ),lsq
       complex*16 dr(maxnlay+1),z(maxnlay+1)
       complex*16 cwork( 4*maxnlay )
       integer ltmp(2),iimax
-! file for input parameters
-      character, dimension(80), intent(in) :: parameter_file
 
       data lda/ 2 /
       data eps/ -1.d0 /
 
       integer :: outputindex, mpii
-      integer, dimension (imax) :: outputi
-      complex*16, dimension(3,nr,imax) :: outputu
-
-      character *2 :: char_rank
-      double precision :: ark, angel
-      
-!------------------------------------------------------------------------
-! *************** Inputting and computing the parameters ***************
-! --- inputting parameter ---
-      call pinput2(parameter_file, maxnlay,maxnzone,maxnr,re,ratc,ratl &
-            tlen,np,omegai,imin,imax, &
-            nzone,vrmin,vrmax,rrho,vsv,vsh,qmu, &
-            r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output )
-
-!cccccccccccccccccccccccccccccccc
+      integer, dimension (imax+1) :: outputi
+      complex*16, dimension(3,nr,imax+1) :: outputu
 
 ! --- computing the required parameters ---
 ! computing and checking the parameters
@@ -102,20 +82,21 @@
       ndc = nzone - 1
       do ir=1,nr
          theta(ir)= theta(ir) / 1.8d2 * pi
-         phi(ir)= phi(ir)   / 1.8d2 * pi
+         phi(ir)= phi(ir) / 1.8d2 * pi
       enddo
       if ( (r0 < rmin) .or. (r0 > rmax) ) then
          write(*,*) 'Location of the source is improper.'
-         return 1
+         return
       endif
 ! ************************** Files Handling **************************
       do ir=1,nr
-         open(unit=11,file=output(ir),status='unknown')
-         write(11,*) tlen
-         write(11,*) np
-         write(11,*) omegai,lat(ir),lon(ir)
+         open(unit=11,file=output(ir),status='replace', &
+            access='stream', form='unformatted', convert='big_endian')
+         write(11) tlen
+         write(11) np,1,3
+         write(11) omegai,lat(ir),lon(ir)
 !        write(11,*) theta(ir)*1.8d2/pi,phi(ir)*1.8d2/pi
-         write(11,*) eqlat,eqlon,r0
+         write(11) eqlat,eqlon,r0
          close(11)
       enddo
       if(ilog.eq.1) then
@@ -135,7 +116,7 @@
 ! --- checking the parameter
          if ( nnlayer.gt.maxnlay ) then
             write(*,*) 'The number of grid points is too large.'
-            return 1
+            return
          endif
 ! computing the stack points
          call calsp( ndc,nlayer,isp,jsp )
@@ -284,7 +265,7 @@
 ! --- checking the parameter
       if ( nnlayer.gt.maxnlay ) then
          write(*,*) 'The number of grid points is too large.'
-         return 1
+         return
       endif
 ! computing the stack points
       call calsp( ndc,nlayer,isp,jsp )
@@ -432,12 +413,13 @@
                      do ir=1,nr
                         call calu( g(nn),lsq,bvec(1,m,ir),u(1,ir) )
                      enddo
+                     
                   endif
                enddo          ! m-loop
             enddo             ! l-loop
          endif
 ! ************************** Files Handling **************************
-         outputi (outputindex)=i
+         outputi(outputindex)=i
          do ir=1,nr
             outputu(1,ir,outputindex) =u (1,ir)
 !		write (*,*) u(1,ir), ir
@@ -462,12 +444,13 @@
 	         write(*,*) "kakikomimasu"
 !              write (*,*) my_rank, outputindex
 	         do ir = 1 ,nr
-               open(unit=10,file=output(ir),position='append',status='unknown')
+               open(unit=10,file=output(ir),position='append',status='old', &
+                  access='stream', form='unformatted', convert='big_endian')
                do mpii= 1, outputindex
-                  write(10,*) outputi(mpii),dble(outputu(1,ir,mpii)), &
+                  write(10) outputi(mpii),dble(outputu(1,ir,mpii)), &
                      dimag(outputu(1,ir,mpii))
-		            write(10,*) dble(outputu(2,ir,mpii)),dimag(outputu(2,ir,mpii))
-		            write(10,*) dble(outputu(3,ir,mpii)),dimag(outputu(3,ir,mpii))
+		            write(10) dble(outputu(2,ir,mpii)),dimag(outputu(2,ir,mpii))
+		            write(10) dble(outputu(3,ir,mpii)),dimag(outputu(3,ir,mpii))
                enddo
                close(10)
             enddo
@@ -480,6 +463,55 @@
 !
       write(*,*) "Ivalice looks to the horizon"
 
-      stop
+      return
    
-      end program tish
+   end subroutine tish
+
+program main
+
+   use parameters
+   implicit none
+
+   character(len=80) :: parameter_file
+
+   integer np
+   integer imin
+   integer imax
+   integer nzone
+   integer nr
+   real(dp) :: tlen
+   real(dp) :: omegai
+   real(dp) :: re
+   real(dp) :: ratc
+   real(dp) :: ratl
+   real(dp) :: vrmin(maxnzone)
+   real(dp) :: vrmax(maxnzone)
+   real(dp) :: qmu(maxnzone)
+   real(dp) :: rho(4,maxnzone)
+   real(dp) :: vsv(4,maxnzone)
+   real(dp) :: vsh(4,maxnzone)
+   real(dp) :: r0
+   real(dp) :: mt(3,3)
+   real(dp) :: lat(maxnr)
+   real(dp) :: lon(maxnr)
+   real(dp) :: theta(maxnr)
+   real(dp) :: phi(maxnr)
+   real(dp) :: eqlat
+   real(dp) :: eqlon
+   character*80 :: output(maxnr)
+
+   ! read input parameters
+   call get_command_argument(1, parameter_file)
+   call pinput_fromfile(parameter_file, &
+      re,ratc,ratl,tlen,np,omegai,imin,imax, &
+      nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
+      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
+
+   ! main loop
+   write(*,*) 'Enter main loop'
+   call tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
+      nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
+      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
+   write(*,*) 'Done!'
+
+end program main

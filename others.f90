@@ -1,10 +1,7 @@
-! others.f for wcalprem.f
-!------------------------------------------------------------------------
 subroutine pinput2(parameter_file, maxnlay,maxnzone,maxnr, &
-                          re,ratc,ratl, &
-     	                   tlen,np,omegai,imin,imax, &
-     	                   nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
-     	                   r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
+      re,ratc,ratl,tlen,np,omegai,imin,imax, &
+      nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
+      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
 !------------------------------------------------------------------------
 ! Parameter Input
 !------------------------------------------------------------------------
@@ -25,8 +22,8 @@ subroutine pinput2(parameter_file, maxnlay,maxnzone,maxnr, &
       character*80, dimension(maxnr), intent(out) :: output
       real*8 :: stlat,stlon,eqlattmp
       integer i,j,io
-	character*80 :: line
-	character*80, dimension(MAX_LINES) :: lines
+      character*80 :: line
+      character*80, dimension(MAX_LINES) :: lines
 !
 ! reading the parameter file
       j = 0
@@ -35,8 +32,8 @@ subroutine pinput2(parameter_file, maxnlay,maxnzone,maxnr, &
       do while (io > 0)
        read(11, '(a80)', iostat=io) line
       	if (line(1:1) /= 'c' .and. line(1:3) /= 'end') then
-      		lines(j) = line
-      		j = j + 1
+                  lines(j) = line
+                  j = j + 1
       	endif
       enddo
 
@@ -50,8 +47,8 @@ subroutine pinput2(parameter_file, maxnlay,maxnzone,maxnr, &
       read(lines(6),*) imin,imax
       read(lines(7),*) nzone
       if (nzone.gt.maxnzone) then
-      	write(*,*) 'nzone is too large. (pinput)'
-      	return 1
+            write(*,*) 'nzone is too large. (pinput)'
+            return
       endif
 ! structure
       do i=1,nzone
@@ -63,37 +60,121 @@ subroutine pinput2(parameter_file, maxnlay,maxnzone,maxnr, &
 ! source parameter
       read(lines(nzone+8),*) r0,eqlat,eqlon
       eqlattmp = eqlat
-      call translat(eqlattmp,eqlattmp)
+      call translat(eqlat,eqlattmp)
       read(lines(nzone+9),*) mt(1,1),mt(1,2),mt(1,3),mt(2,2),mt(2,3),mt(3,3)
       read(lines(nzone+10),*) nr
       if (nr > maxnr) then
       	write(*,*) 'nr is too large. (pinput)'
-      	return 1
+      	return
       endif
       do i=1,nr
       	read(lines(nzone+10+i),*) lat(i),lon(i)
       	stlat = lat(i)
       	stlon = lon(i)
-      	call translat(stlat,stlat)
+      	call translat(lat(i),stlat)
       	call calthetaphi(eqlattmp,eqlon,stlat,stlon,theta(i),phi(i))
       enddo
       do i=1,nr
-      	read(lines(nzone+10+nr+i),'a(80)') output(i)
+      	read(lines(nzone+10+nr+i),'(a80)') output(i)
       enddo
 !
       return
       end
+!------------------------------------------------------------------------
+subroutine pinput_fromfile(parameter_file, &
+      re,ratc,ratl,tlen,np,omegai,imin,imax, &
+      nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
+      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
+!------------------------------------------------------------------------
+! Parameter Input
+!------------------------------------------------------------------------
+      use parameters
+      implicit none
+
+      integer, parameter :: MAX_LINES = 10000
+      character*80, intent(in) :: parameter_file
+      integer, intent(out) :: np
+      integer, intent(out) :: imin,imax
+      integer, intent(out) :: nzone,nr
+      real*8, intent(out) :: tlen,omegai,re,ratc,ratl
+      real*8, dimension(maxnzone), intent(out) :: vrmin,vrmax,qmu
+      real*8, dimension(4,maxnzone), intent(out) :: rho,vsv,vsh
+      real*8, intent(out) :: r0,mt(3,3)
+      real*8, dimension(maxnr), intent(out) :: theta,phi,lat,lon
+      real*8, intent(out) :: eqlat,eqlon
+      character*80, dimension(maxnr), intent(out) :: output
+      real*8 :: stlat,stlon,eqlattmp
+      integer i,j,io
+      character*80 :: line
+      character*80, dimension(MAX_LINES) :: lines
 !
+! reading the parameter file
+      j = 1
+      io = 0
+      open(unit=11, file=parameter_file, status='old',action='read')
+      do while (io == 0)
+            read(11, '(a80)', iostat=io) line
+            if (line(1:1) /= 'c' .and. line(1:3) /= 'end') then
+                  lines(j) = line
+                  j = j + 1
+            endif
+      enddo
+      close(11)
+
+      read(lines(1),*) tlen,np
+      read(lines(2),*) re		! relative error (vertical grid)
+      read(lines(3),*) ratc		! ampratio (vertical grid cut-off)
+      read(lines(4),*) ratl		! ampratio (for l-cutoff)
+      read(lines(5),*) omegai	! omegai
+      omegai = - dlog(omegai) / tlen
+!
+      read(lines(6),*) imin,imax
+      read(lines(7),*) nzone
+      if (nzone > maxnzone) then
+            write(*,*) 'nzone is too large. (pinput)'
+            return
+      endif
+! structure
+      do i=1,nzone
+            read(lines(7+3*(i-1)+1),*) vrmin(i),vrmax(i), &
+                  rho(1,i),rho(2,i),rho(3,i),rho(4,i)
+            read(lines(7+3*(i-1)+2),*) vsv(1,i),vsv(2,i),vsv(3,i), &
+                  vsv(4,i)
+            read(lines(7+3*(i-1)+3),*) vsh(1,i),vsh(2,i),vsh(3,i), &
+                  vsh(4,i),qmu(i)
+      enddo
+! source parameter
+      read(lines(3*nzone+8),*) r0,eqlat,eqlon
+      call translat(eqlat,eqlattmp)
+      read(lines(3*nzone+9),*) mt(1,1),mt(1,2),mt(1,3), &
+            mt(2,2),mt(2,3),mt(3,3)
+      read(lines(3*nzone+10),*) nr
+      if (nr > maxnr) then
+            write(*,*) 'nr is too large. (pinput)'
+            return
+      endif
+      do i=1,nr
+            read(lines(3*nzone+10+i),*) lat(i),lon(i)
+            stlat = lat(i)
+            stlon = lon(i)
+            call translat(lat(i),stlat)
+            call calthetaphi(eqlattmp,eqlon,stlat,stlon,theta(i),phi(i))
+      enddo
+      do i=1,nr
+            read(lines(3*nzone+10+nr+i),'(a80)') output(i)
+      enddo
+
+      return
+      end
 !------------------------------------------------------------------------
       subroutine calthetaphi(ievla,ievlo,istla,istlo,theta,phi)
 !------------------------------------------------------------------------
       implicit none
-      real*8 pi
-      parameter ( pi = 3.1415926535897932d0 )
+      real*8, parameter :: pi = 3.1415926535897932d0
 !	
-      real*8 ievla,ievlo,istla,istlo
+      real*8, intent(in) :: ievla,ievlo,istla,istlo
+      real*8, intent(out) :: theta,phi
       real*8 evla,evlo,stla,stlo
-      real*8 theta,phi
       real*8 gcarc,az
       real*8 tc,ts
 !
@@ -130,26 +211,29 @@ subroutine pinput2(parameter_file, maxnlay,maxnzone,maxnr, &
       subroutine translat(geodetic,geocentric)
 !------------------------------------------------------------------------
       implicit none
-      real*8 flattening,pi
-!      parameter ( flattening = 1.d0 / 297.d0 )
-      parameter ( flattening = 1.d0 / 298.25d0)
+
+      real*8, parameter :: flattening = 1.d0 / 298.25d0
 ! specfem flattening is f = 1/299.8
 !      parameter ( flattening = 1.d0 / 299.8d0)
-      parameter ( pi = 3.1415926535897932d0 )
-      real*8 geocentric, geodetic
-      
+!      parameter ( flattening = 1.d0 / 297.d0 )
+      real*8, parameter :: pi = 3.1415926535897932d0
+      real*8, intent(in) :: geodetic
+      real*8, intent(out) :: geocentric
       real*8 tmp
       integer flag
 !      read(5,*) geodetic
+
+      tmp = geodetic
+
       flag = 0
       if(geodetic .gt. 90.d0) then
-         geodetic = 1.8d2 - geodetic
+            tmp = 1.8d2 - geodetic
          flag = 1
       endif
 !
-      geodetic = geodetic / 1.8d2 * pi
+      tmp = tmp / 1.8d2 * pi
       geocentric = datan( (1.d0 - flattening) * (1.d0 - flattening) &
-          * dtan(geodetic) )
+          * dtan(tmp) )
       geocentric = geocentric * 1.8d2 / pi
 !      if(geocentric .lt. 0.d0 ) geocentric = 1.8d2 + geocentric
       if(flag .eq. 1) then
@@ -162,8 +246,7 @@ subroutine pinput2(parameter_file, maxnlay,maxnzone,maxnr, &
       subroutine calgrid( nzone,vrmin,vrmax,vs,rmin,rmax, &
      	                    imax,lmin,tlen,vmin,gridpar,dzpar )
 !------------------------------------------------------------------------
-      real*8 pi
-      parameter ( pi=3.1415926535897932d0 )
+      real*8, parameter :: pi=3.1415926535897932d0
 !
       integer nzone,imax,lmin
       real*8 vrmin(*),vrmax(*),vs(4,*)
@@ -377,7 +460,7 @@ subroutine pinput2(parameter_file, maxnlay,maxnzone,maxnr, &
 ! checking the parameter
       if ( (r0.lt.rmin).or.(r0.gt.rmax) ) then
       	write(*,*) 'The source location is improper.(calspo)'
-      	return 1
+      	return
       endif
 ! computing 'spo'
       if ( r0.eq.rmax ) then
@@ -526,7 +609,6 @@ subroutine pinput2(parameter_file, maxnlay,maxnzone,maxnr, &
 !
       return
       end
-      c
 !------------------------------------------------------------------------
       subroutine calcoef( nzone,omega,q,coef )
 !------------------------------------------------------------------------
