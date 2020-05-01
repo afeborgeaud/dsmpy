@@ -1,25 +1,29 @@
 # makefile for tish
-PROGS = tish
-FC = gfortran
+PROGS = mpi-tish
+FC	= mpif90
+FC2=ifort
 FFLAGS	= -O
 
-SRC = calmat.f90 trialf.f90 others.f90 dclisb.f90 dclisb3.f90 tish.f90 parameters.f90
-OBJS	= $(SRC:.f90=.o)
-.SUFFIXES:
+SRC = calmat.f trialf.f others.f dclisb.f dclisb3.f formpi.f mpi-tish.f
+SRC2 = calmat.f trialf.f others.f dclisb.f dclisb3.f tish.f
+OBJS	= $(SRC:.f=.o)
+OBJS2 =$(SRC2:.f=.o)
+.SUFFIXES: .f .o
 
-all:$(PROGS)
+all:$(PROGS) tish
 
-tish: $(OBJS)
-	$(FC) $(FFLAGS) -o $@ $(OBJS)
+mpi-tish: $(OBJS)
+	$(FC) $(FFLAGS) -o $@ $(OBJS) 
 
-parameters.mod: parameters.o parameters.f90
-	$(FC) -c $(FFLAGS) parameters.f90
+tish: $(OBJS2)
+	$(FC2) $(FFLAGS) -o $@ $(OBJS2)
 
-parameters.o: parameters.f90
-	$(FC) -c $(FFLAGS) parameters.f90
+mpi-tish.o: mpi-tish.f
+	$(FC) $(FFLAGS) -c mpi-tish.f -o $@
 
-%.f90:
-	$(FC) $(FFLAGS) -c $<
+
+.f.o:
+	$(FC2) $(FFLAGS) -c $< 
 
 clean:
-	rm -f $(OBJS) $(PROGS)
+	rm -f $(OBJS) $(OBJS2) $(PROGS) tish work
