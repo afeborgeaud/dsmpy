@@ -1,27 +1,27 @@
       SUBROUTINE DCLISB(A, N, NUD, N1, NP, B, EPS, DR, Z, IER)
-************************************************************************
-*  SIMULTANEOUS LINEAR EQUATIONS WITH REAL SYMMETRIC POSITIVE DEFINITE *
-*      BAND MATRIX BY CHOLESKY METHOD.                                 *
-*  PARAMETERS                                                          *
-*    (1) A : 2-DIM. ARRAY CONTAINING THE MATRIX.                       *
-*    (2) N : ORDER OF THE MATRIX.                                      *
-*    (3) NUD : SIZE OF BAND'S HALF WIDTH.                              *
-*    (4) N1 : ROW SIZE OF THE ARRAY A IN THE 'DIMENSION' STATEMENT.    *
-*    (5) B : 1-DIM. ARRAY CONTAINING THE RIGHT HAND SIDE VECTOR.       *
-*    (6) EPS : PARAMETER TO CHECK SINGURARITY OFF THE MATRIX           *
-*              STANDARD VALUE = 1.0D-14                                *
-*    (7) DR : 1-DIM. WORKING ARRAY.                                    *
-*    (8) Z : 1-DIM. WORKING ARRAY.                                     *
-*    (9) IER : ERROR CODE.                                             *
-*  COPY RIGHT   T. OGUNI   JULY 30 1989   VERSION 1.0                  *
-************************************************************************  
+!------------------------------------------------------------------------
+!  SIMULTANEOUS LINEAR EQUATIONS WITH REAL SYMMETRIC POSITIVE DEFINITE *
+!      BAND MATRIX BY CHOLESKY METHOD.                                 *
+!  PARAMETERS                                                          *
+!    (1) A : 2-DIM. ARRAY CONTAINING THE MATRIX.                       *
+!    (2) N : ORDER OF THE MATRIX.                                      *
+!    (3) NUD : SIZE OF BAND'S HALF WIDTH.                              *
+!    (4) N1 : ROW SIZE OF THE ARRAY A IN THE 'DIMENSION' STATEMENT.    *
+!    (5) B : 1-DIM. ARRAY CONTAINING THE RIGHT HAND SIDE VECTOR.       *
+!    (6) EPS : PARAMETER TO CHECK SINGURARITY OFF THE MATRIX           *
+!              STANDARD VALUE = 1.0D-14                                *
+!    (7) DR : 1-DIM. WORKING ARRAY.                                    *
+!    (8) Z : 1-DIM. WORKING ARRAY.                                     *
+!    (9) IER : ERROR CODE.                                             *
+!  COPY RIGHT   T. OGUNI   JULY 30 1989   VERSION 1.0                  *
+!------------------------------------------------------------------------  
        DOUBLE COMPLEX A(N1,N), B(N), DR(N), Z(N)
        REAL*8 EPS
        INTEGER N, NUD, N1, NP, IER
        DOUBLE COMPLEX XX, S, SUM, AU, T
        REAL*8 EPS1
        INTEGER I ,M, J, K1, MJ, I1, K
-C  CHECK THE INPUT DATA
+!  CHECK THE INPUT DATA
       IER = 0
       EPS1 = 1.0D-14
       M = NUD + 1
@@ -31,7 +31,7 @@ C  CHECK THE INPUT DATA
        RETURN
       ENDIF
       IF (EPS .LE. 0.0) EPS = EPS1
-C  MODIFIED CHOLESKY DECOMPOSITION
+!  MODIFIED CHOLESKY DECOMPOSITION
       J = 1
       IF (CDABS(A(M,1)) .LE. EPS) THEN
        IER = 1
@@ -88,9 +88,9 @@ C  MODIFIED CHOLESKY DECOMPOSITION
         DR(J) = DCMPLX(1.0D0) / T
    30  CONTINUE
       ENDIF
-C SUBTITUTION
+! SUBTITUTION
        ENTRY DCSBSUB(A, N, NUD, N1, NP, B, EPS, DR, Z, IER)
-C  FORWARD SUBSTITUTION
+!  FORWARD SUBSTITUTION
       M = NUD + 1
       IF (M .LT. 3) THEN
        Z(NP) = B(NP)
@@ -112,11 +112,11 @@ C  FORWARD SUBSTITUTION
  80     Z(J) = B(J) - SUM
        DO 90 J=N-1,N
  90     Z(J) = Z(J) * DR(J)
-C
+!
        B(N) = Z(N)
        B(N-1) = Z(N-1) - A(M-1,N) * Z(N)
       ENDIF
-C
+!
       RETURN
       END
     
