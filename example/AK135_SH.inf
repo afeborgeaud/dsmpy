@@ -1,5 +1,5 @@
 c tlen npts
-3276.8 64
+3276.8 512
 c relative error (see GT95 eq. 6.2)
 0.01 re
 c ampratio using in grid cut-off (1.d-10 is recommended)
@@ -8,7 +8,7 @@ c ampratio using in l-cutoff (see KTG04 fig.8)
 1.0E-5 ratl
 c artificial damping for wrap-around (see GO94 5.1)
 0.01
-0 64
+0 512
 9 nzone
 c  --- Radius(km) ---  --- Density (g/cm^3) ---
 c                      ---   Vsv     (km/s) ---
