@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 class SpcTime:
     
@@ -36,14 +37,14 @@ class SpcTime:
         return (n >> 1) 
     
     def to_time_domain(self, spc):
-        nnp = self.npts
+        nnp = self.npts // 2
         uspc = np.pad(spc, pad_width=(0, nnp-len(spc)), mode='constant',
             constant_values=0)
-        uspc_conj = np.pad(np.flip(spc), pad_width=(nnp-len(spc), 0), mode='constant',
+        uspc_conj = np.pad(np.conjugate(np.flip(spc)), pad_width=(nnp-len(spc), 0), mode='constant',
             constant_values=0)
         uspc = np.concatenate((uspc, uspc_conj))
 
-        ureal = np.real(np.fft.ifft(uspc)[:nnp])
+        ureal = np.real(np.fft.ifft(uspc))[:]
 
         return ureal.astype(np.float64)
 
