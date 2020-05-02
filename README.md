@@ -23,3 +23,7 @@ inputs = tish.pinput_fromfile('AK135_SH.inf')
 write_to_file = False
 u = tish.tish(*inputs, write_to_file) # u.shape = (3,nr,imax+1)
 ```
+
+**spc**
+Dependencies:
+- fftw3 (http://www.fftw.org/download.html)
