@@ -1,10 +1,19 @@
 import spctime
 import numpy as np
-import tish
 import matplotlib.pyplot as plt
+import os
+import sys
+
+try:
+    import tish
+except ModuleNotFoundError:
+    sys.path.append('../../lib')
+    import tish
+
+rootdsm = os.path.abspath('../../src_f90/tish/example/dsm_accuracy_check/')
 
 def get_u_pydsm():
-    inputs = tish.pinput_fromfile('../example/dsm_accuracy_check/AK135_SH.inf')
+    inputs = tish.pinput_fromfile(os.path.join(rootdsm, 'AK135_SH.inf'))
     spc = tish.tish(*inputs, False)
 
     tlen = inputs[3]
@@ -20,7 +29,7 @@ def get_u_pydsm():
     return u, tlen
 
 def get_u_dsm():
-    u = np.loadtxt('../example/dsm_accuracy_check/sac/109C_TA.200702131456A.T.txt')
+    u = np.loadtxt(os.path.join(rootdsm, 'sac/109C_TA.200702131456A.T.txt'))
     return u
 
 def plot(udsm, upydsm, tlen):
