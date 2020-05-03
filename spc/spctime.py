@@ -40,7 +40,7 @@ class SpcTime:
         nnp = self.npts // 2
         uspc = np.pad(spc, pad_width=(0, nnp-len(spc)), mode='constant',
             constant_values=0)
-        uspc_conj = np.pad(np.conjugate(np.flip(spc)), pad_width=(nnp-len(spc), 0), mode='constant',
+        uspc_conj = np.pad(np.flip(spc[1:]).conjugate(), pad_width=(nnp-len(spc)+1, 0), mode='constant',
             constant_values=0)
         uspc = np.concatenate((uspc, uspc_conj))
 
@@ -49,8 +49,8 @@ class SpcTime:
         return ureal.astype(np.float64)
 
     def apply_growing_exponential(self, u):
-        c = self.omegai * self.tlen / self.npts
-        x = np.linspace(0, c, self.npts)
+        c = self.omegai * self.tlen
+        x = np.linspace(0, c, self.npts, endpoint=False)
         a = np.exp(x)
         return u * a
 
