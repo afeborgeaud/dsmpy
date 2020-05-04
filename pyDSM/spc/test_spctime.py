@@ -14,7 +14,7 @@ rootdsm = os.path.abspath('../../src_f90/tish/example/dsm_accuracy_check/')
 
 def get_u_pydsm():
     inputs = tish.pinput_fromfile(os.path.join(rootdsm, 'AK135_SH.inf'))
-    spc = tish.tish(*inputs, False)
+    spcs = tish.tish(*inputs, False)
 
     tlen = inputs[3]
     nspc = inputs[4]
@@ -23,8 +23,7 @@ def get_u_pydsm():
 
     spct = spctime.SpcTime(tlen, nspc, sampling_hz, omegai)
 
-    spc3 = spc[2, 0 , :]
-    u = spct.spctime(spc3)
+    u = spct.spctime(spcs)
 
     return u, tlen
 
@@ -52,7 +51,8 @@ if __name__ == '__main__':
     udsm = get_u_dsm()
 
     print('Computing waveform using pyDSM (np=512)')
-    upydsm, tlen = get_u_pydsm()
+    upydsms, tlen = get_u_pydsm()
+    upydsm = upydsms[2, 0]
 
     filename = './waveform_accuracy.pdf'
     print('Saving DSM and pyDSM waveform comparison in {}'.format(filename))

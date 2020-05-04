@@ -10,6 +10,7 @@ class SpcTime:
         self.npts = self.find_npts()
         self.lsmooth = self.find_lsmooth()
         self.omegai = omegai
+        self.ncomp = 3
 
     def find_npts(self):
         npts = int(self.tlen * self.sampling_hz)
@@ -44,7 +45,7 @@ class SpcTime:
             constant_values=0)
         uspc = np.concatenate((uspc, uspc_conj))
 
-        ureal = np.real(np.fft.ifft(uspc))[:]
+        ureal = np.real(np.fft.ifft(uspc))
 
         return ureal.astype(np.float64)
 
@@ -52,14 +53,23 @@ class SpcTime:
         c = self.omegai * self.tlen
         x = np.linspace(0, c, self.npts, endpoint=False)
         a = np.exp(x)
-        return u * a
+        np.multiply(u, a, out=u)
 
     def apply_amplitude_correction(self, u):
         c = self.npts * 1e3 / self.tlen
-        return u * c
+        u *= c
 
-    def spctime(self, spc):
-        u = self.to_time_domain(spc)
-        u = self.apply_growing_exponential(u)
-        u = self.apply_amplitude_correction(u)
+    def spctime(self, spcs):
+        ''' spcs is the output of pyDSM.
+            spcs.shape = (3, nr, imax)
+            return:
+            u: time-domain version of spcs
+        '''
+        nr = spcs.shape[1]
+        u = np.zeros((3, nr, self.npts))
+        for icomp in range(3):
+            for ir in range(nr):
+                u[icomp,ir,:] = self.to_time_domain(spcs[icomp,ir])
+                self.apply_growing_exponential(u[icomp,ir])
+                self.apply_amplitude_correction(u[icomp,ir])
         return u
