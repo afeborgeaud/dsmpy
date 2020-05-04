@@ -2,8 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class SpcTime:
-    
-    def __init__(self, tlen, nspc, sampling_hz, omegai):
+    def __init__(self, tlen, nspc, sampling_hz, omegai, sourcetimefunction=None):
         self.tlen = tlen
         self.nspc = nspc
         self.sampling_hz = sampling_hz
@@ -11,6 +10,7 @@ class SpcTime:
         self.lsmooth = self.find_lsmooth()
         self.omegai = omegai
         self.ncomp = 3
+        self.sourcetimefunction = sourcetimefunction
 
     def find_npts(self):
         npts = int(self.tlen * self.sampling_hz)
@@ -59,6 +59,10 @@ class SpcTime:
         c = self.npts * 1e3 / self.tlen
         u *= c
 
+    def convolve(self, spc):
+        if self.sourcetimefunction is not None:
+            spc *= self.sourcetimefunction
+
     def spctime(self, spcs):
         ''' spcs is the output of pyDSM.
             spcs.shape = (3, nr, imax)
@@ -69,7 +73,20 @@ class SpcTime:
         u = np.zeros((3, nr, self.npts))
         for icomp in range(3):
             for ir in range(nr):
+                self.convolve(spcs[icomp,ir])
                 u[icomp,ir,:] = self.to_time_domain(spcs[icomp,ir])
                 self.apply_growing_exponential(u[icomp,ir])
                 self.apply_amplitude_correction(u[icomp,ir])
         return u
+
+class SourceTimeFunction:
+    @staticmethod
+    def triangle(half_duration, dsm_input):
+        deltaF = 1 / dsm_input.get_tlen()
+        constant = 2 * np.pi * deltaF * half_duration
+        nspc = dsm_input.get_nspc()
+        stf = np.zeros(nspc+1, dtype=np.complex128)
+        for i in range(nspc):
+            omega_tau = (i + 1) * constant
+            stf[i] = complex((2 - 2 * np.cos(omega_tau)) / (omega_tau * omega_tau))
+        return stf
