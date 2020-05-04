@@ -8,7 +8,7 @@ subroutine pinput2(parameter_file, maxnlay,maxnzone,maxnr, &
       implicit none
 
       integer, parameter :: MAX_LINES = 10000
-      character*80, intent(in) :: parameter_file
+      character*160, intent(in) :: parameter_file
       integer, intent(in) :: maxnlay,maxnzone,maxnr
       integer, intent(out) :: np
       integer, intent(out) :: imin,imax
@@ -92,7 +92,7 @@ subroutine pinput_fromfile(parameter_file, &
       implicit none
 
       integer, parameter :: MAX_LINES = 10000
-      character*80, intent(in) :: parameter_file
+      character*160, intent(in) :: parameter_file
       integer, intent(out) :: np
       integer, intent(out) :: imin,imax
       integer, intent(out) :: nzone,nr

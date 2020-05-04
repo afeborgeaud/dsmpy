@@ -1,39 +1,25 @@
-import spctime
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
-
-try:
-    import tish
-except ModuleNotFoundError:
-    sys.path.append('../../lib')
-    import tish
-
-rootdsm = os.path.abspath('../../src_f90/tish/example/dsm_accuracy_check/')
+from pyDSM import dsm
+from pyDSM.spc import spctime
+from pyDSM.lib import tish
+from pyDSM import rootdsm
 
 def get_u_pydsm():
-    inputs = tish.pinput_fromfile(os.path.join(rootdsm, 'AK135_SH.inf'))
-    spcs = tish.tish(*inputs, False)
-
-    tlen = inputs[3]
-    nspc = inputs[4]
-    omegai = inputs[5]
-    sampling_hz = 20
-
-    spct = spctime.SpcTime(tlen, nspc, sampling_hz, omegai)
-
-    u = spct.spctime(spcs)
-
-    return u, tlen
+    parameter_file = os.path.join(rootdsm, 'AK135_SH_64.inf')
+    inputs = dsm.DSMinput(parameter_file)
+    outputs = dsm.compute(inputs)
+    outputs.to_time_domain()
+    return outputs.u, outputs.ts
 
 def get_u_dsm():
-    u = np.loadtxt(os.path.join(rootdsm, 'sac/109C_TA.200702131456A.T.txt'))
+    u = np.loadtxt(os.path.join(rootdsm, 'sac_64/109C_TA.200702131456A.T.txt'))
     return u
 
-def plot(udsm, upydsm, tlen):
+def plot(ts, udsm, upydsm):
     fig, (ax0, ax1) = plt.subplots(2,1, figsize=(10,8))
-    ts = np.linspace(0, tlen, len(udsm))
     ax0.plot(ts, udsm, label='dsm')
     ax0.plot(ts, upydsm, label='pydsm', color='red')
 
@@ -51,12 +37,12 @@ if __name__ == '__main__':
     udsm = get_u_dsm()
 
     print('Computing waveform using pyDSM (np=512)')
-    upydsms, tlen = get_u_pydsm()
+    upydsms, ts = get_u_pydsm()
     upydsm = upydsms[2, 0]
 
-    filename = './waveform_accuracy.pdf'
+    filename = 'figures/waveform_accuracy.pdf'
     print('Saving DSM and pyDSM waveform comparison in {}'.format(filename))
-    _ = plot(udsm, upydsm, tlen)
+    _ = plot(ts, udsm, upydsm)
     plt.savefig(filename, bbox_inches='tight')
 
     assert(np.allclose(udsm, upydsm, rtol=1e-10))

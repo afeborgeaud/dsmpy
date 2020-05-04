@@ -469,7 +469,7 @@ program main
    use parameters
    implicit none
 
-   character(len=80) :: parameter_file
+   character(len=160) :: parameter_file
 
    integer np
    integer imin
