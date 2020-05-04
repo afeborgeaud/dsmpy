@@ -8,9 +8,10 @@ def plot(outputs):
     nr = outputs.get_nr()
     fig, axes = plt.subplots(nr, 1)
     for ir, ax in enumerate(axes.ravel()):
-        ax.plot(ts, u[2, ir])
+        ax.plot(ts, outputs.u[2, ir], label=outputs.stations[ir].name)
         ax.set(xlabel='Time (s)',
             ylabel='Ground vel.')
+    fig.set_title(outputs.event.eventID)
 
 if __name__ == '__main__':
     parameter_file = rootdsm + '/AK135_SH_64.inf'

@@ -13,6 +13,8 @@ class DSMoutput:
     def __init__(self, spcs, dsm_input):
         self.spcs = spcs
         self.input = dsm_input
+        self.stations = dsm_input.input_parameters.get_station_list()
+        self.event = dsm_input.input_parameters.get_event()
     
     def to_time_domain(self):
         spct = spctime.SpcTime(self.input.get_tlen(), 
@@ -53,6 +55,27 @@ class InputParameters:
             self.theta, self.phi, self.lat, self.lon, self.output)
         return inputs
 
+    def get_station_list(self):
+        stations = []
+        print(self.output[0]))
+        for i in range(self.nr):
+            name, net = self.output[i].tostring().split('/')[-1].split['.'][0].split('_')
+            station = Station(name, net, self.lat[i], self.lon[i])
+            stations.append(station)
+        return tuple(stations)
+
+    def get_event(self):
+        eventID = self.output[0].tostring().split('/')[-1].split('.')[1]
+        if eventID[-2:] == 'SH':
+            eventID = eventID[:-2]
+        elif eventID[-3:] == 'PSV':
+            eventID = eventID[:-3]
+        else:
+            raise RuntimeError('{}'.format(eventID))
+        event = Event(eventID, self.eqlat, self.eqlon,
+            6371. - self.r0, self.mt)
+        return event
+
 class DSMinput:
     def __init__(self, parameterfile, sourcetimefunction=None, samplingHz=20):
         self.parameterfile = parameterfile
@@ -72,7 +95,22 @@ class DSMinput:
     
     def get_omegai(self):
         return self.input_parameters.omegai
+
+class Station:
+    def __init__(self, name, network, latitude, longitude):
+        self.name = name
+        self.network = network
+        self.latitude = latitude
+        self.longitude = longitude
     
+class Event:
+    def __init__(self, eventID, latitude, longitude, depth, mt):
+        self.eventID = eventID
+        self.latitude = latitude
+        self.longitude = longitude
+        self.depth = depth
+        self.mt = mt
+
 
 def compute(dsm_input, write_to_file=False):
     spcs = tish.tish(*dsm_input.input_parameters.get_inputs(),
