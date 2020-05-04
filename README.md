@@ -19,4 +19,4 @@ ts = outputs.ts # time points
 ```
 
 Dependencies (soon):
-- fftw3 (http://www.fftw.org/download.html)
+- fftw3
