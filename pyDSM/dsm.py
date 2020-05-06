@@ -71,11 +71,18 @@ class InputParameters:
         return event
 
 class DSMinput:
-    def __init__(self, parameterfile, samplingHz=20):
+    def __init__(self, parameterfile, samplingHz=None):
         self.parameterfile = parameterfile
         self.sourcetimefunction = None
-        self.samplingHz = samplingHz
         self.input_parameters = self.pinput()
+        self.set_samplingHz(samplingHz)
+
+    def set_samplingHz(self, samplingHz):
+        if samplingHz is not None:
+            self.samplingHz = samplingHz
+        else:
+            Tmin = self.input_parameters.tlen / self.input_parameters.imax
+            self.samplingHz = 40 / Tmin # TODO: check this scaling
 
     def set_sourcetimefunction(self, sourcetimefunction):
         self.sourcetimefunction = sourcetimefunction
