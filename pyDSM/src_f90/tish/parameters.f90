@@ -1,6 +1,6 @@
 module parameters
     integer, parameter :: dp = kind(1.d0)
-    real(dp), parameter :: pi=3.1415926535897932d0
+    real(dp), parameter :: pi=4.d0*atan(1.d0)
 
     integer, parameter :: maxnzone = 15
     integer, parameter :: maxnr = 600

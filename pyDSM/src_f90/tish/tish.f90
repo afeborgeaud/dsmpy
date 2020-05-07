@@ -20,7 +20,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       integer nnlayer,nlayer(maxnzone)
       integer l,m
       real(dp) ra(maxnlay+maxnzone+1),gra(3),plm(3,0:3,maxnr)
-      complex*16 bvec(3,-2:2,maxnr)
+      complex(dp) bvec(3,-2:2,maxnr)
 ! variable for the structure
       integer nzone
       integer ndc,vnp
@@ -33,11 +33,11 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       real(dp) ecL(maxnlay+2*maxnzone+1)
       real(dp) ecN(maxnlay+2*maxnzone+1)
       real(dp) gvra(3),grho(3),gecL(3),gecN(3)
-      complex*16 coef(maxnzone)
+      complex(dp) coef(maxnzone)
 ! variable for the periodic range
       integer np,imin,imax
       real(dp) tlen,omega,omegai
-      complex*16 u(3,maxnr)
+      complex(dp) u(3,maxnr)
 ! variable for the source
       integer spn,ns
       real(dp) r0,mt(3,3),spo,mu0,eqlat,eqlon
@@ -46,14 +46,14 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       real(dp) theta(maxnr),phi(maxnr)
       real(dp) lat(maxnr),lon(maxnr)
 ! variable for the matrix elements
-      complex*16 a0( 2,maxnlay+1 ), a2( 2,maxnlay+1 )
-      complex*16  a( 2,maxnlay+1 )
+      complex(dp) a0( 2,maxnlay+1 ), a2( 2,maxnlay+1 )
+      complex(dp)  a( 2,maxnlay+1 )
       real(dp) t( 4*maxnlay )
       real(dp) h1( 4*maxnlay ),h2( 4*maxnlay )
             real(dp) h3( 4*maxnlay ),h4( 4*maxnlay )
       real(dp) gt(8),gh1(8),gh2(8),gh3(8),gh4(8)
-      complex*16 aa(4),ga(8),ga2(2,3),gdr(3)
-      complex*16 g( maxnlay+1 )
+      complex(dp) aa(4),ga(8),ga2(2,3),gdr(3)
+      complex(dp) g( maxnlay+1 )
 ! variable for the file
       character*80 :: output(maxnr)
 ! variable for grid spacing
@@ -66,8 +66,8 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
 ! other variables
       integer i,j,ii,jj,nn,lda,ier
       real(dp) eps,work( 4*maxnlay ),lsq
-      complex*16 dr(maxnlay+1),z(maxnlay+1)
-      complex*16 cwork( 4*maxnlay )
+      complex(dp) dr(maxnlay+1),z(maxnlay+1)
+      complex(dp) cwork( 4*maxnlay )
       integer ltmp(2),iimax
 
       data lda/ 2 /
@@ -75,7 +75,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
 
       integer :: outputindex, mpii
       integer, dimension (imax+1) :: outputi
-      complex*16, dimension(3,nr,imax+1), intent(out) :: outputu
+      complex(dp), dimension(3,nr,imax+1), intent(out) :: outputu
 
 ! --- computing the required parameters ---
 ! computing and checking the parameters
@@ -495,8 +495,8 @@ program main
    real(dp) :: phi(maxnr)
    real(dp) :: eqlat
    real(dp) :: eqlon
-   character*80 :: output(maxnr)
-   complex*16, allocatable, dimension(:,:,:) :: outputu
+   character(len=80) :: output(maxnr)
+   complex(dp), allocatable, dimension(:,:,:) :: outputu
    logical :: write_to_file = .true.
 
    ! read input parameters
