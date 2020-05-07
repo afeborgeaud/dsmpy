@@ -20,13 +20,13 @@ if __name__ == '__main__':
     parameter_file = rootdsm + '/AK135_SH_64.inf'
     half_duration = 2.
 
-    inputs = dsm.DSMinput(parameter_file)
+    inputs = dsm.PyDSMinput(parameter_file)
     stf = SourceTimeFunction.triangle(half_duration, inputs)
     inputs.set_sourcetimefunction(stf)
     outputs_4 = dsm.compute(inputs)
     outputs_4.to_time_domain()
 
-    inputs = dsm.DSMinput(parameter_file, samplingHz=20)
+    inputs = dsm.PyDSMinput(parameter_file, samplingHz=20)
     stf = SourceTimeFunction.triangle(half_duration, inputs)
     inputs.set_sourcetimefunction(stf)
     outputs_20 = dsm.compute(inputs)

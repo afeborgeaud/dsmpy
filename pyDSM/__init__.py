@@ -3,7 +3,7 @@ import os
 import subprocess
 import shutil
 import glob
-from pyDSM.definitions import ROOT_DIR
+from pydsm.definitions import ROOT_DIR
 
 def build_module(module_name='tish'):
     code = ("import sys; sys.path = {}; import numpy.f2py as f2py2e; " 
@@ -33,20 +33,21 @@ def build_module(module_name='tish'):
         os.chdir(cwd)
 
 try:
-    import pyDSM.lib.tish
+    import pydsm.lib.tish
 except ModuleNotFoundError:
     try:
         cwd = os.getcwd()
         path = os.path.join(cwd, '../lib')
         sys.path.append(path)
-        import pyDSM.lib.tish
+        import pydsm.lib.tish
     except ModuleNotFoundError:
         print("Compiling tish.so from Fortran sources")
         build_module()
         try:
-            import pyDSM.lib.tish
+            import pydsm.lib.tish
         except ModuleNotFoundError:
             raise RuntimeError("Failed to import tish.so")
 
 #
-rootdsm = os.path.join(ROOT_DIR, 'src_f90/tish/example/dsm_accuracy_check/')
+rootdsm = os.path.join(ROOT_DIR, 
+    'src_f90/tish/example/dsm_accuracy_check/')

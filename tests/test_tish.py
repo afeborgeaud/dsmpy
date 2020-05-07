@@ -5,13 +5,13 @@ import subprocess
 import os
 import glob
 import shutil
-from pyDSM.lib import tish
+from pydsm._tish import _tish, _pinput
 
 def test_tish():
-    inputs = tish.pinput_fromfile(
+    inputs = _pinput(
         '../pyDSM/src_f90/tish/example/dsm_accuracy_check/AK135_SH_64.inf')
     write_to_file = False
-    u = tish.tish(*inputs, write_to_file)
+    u = _tish(*inputs, write_to_file)
     error_re = abs(u[2, 0, -1].real + 4.7034875e-10) / 4.7034875e-10
     error_im = abs(u[2, 0, -1].imag + 1.7664374e-11) / 1.7664374e-11
     assert error_re < 1e-7

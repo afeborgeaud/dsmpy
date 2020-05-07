@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class SpcTime:
-    def __init__(self, tlen, nspc, sampling_hz, omegai, sourcetimefunction=None):
+    def __init__(self, tlen, nspc, sampling_hz, omegai,
+        source_time_function=None):
         self.tlen = tlen
         self.nspc = nspc
         self.sampling_hz = sampling_hz
@@ -10,7 +11,7 @@ class SpcTime:
         self.lsmooth = self.find_lsmooth()
         self.omegai = omegai
         self.ncomp = 3
-        self.sourcetimefunction = sourcetimefunction
+        self.source_time_function = source_time_function
 
     def find_npts(self):
         npts = int(self.tlen * self.sampling_hz)
@@ -41,12 +42,12 @@ class SpcTime:
         nnp = self.npts // 2
         uspc = np.pad(spc, pad_width=(0, nnp-len(spc)), mode='constant',
             constant_values=0)
-        uspc_conj = np.pad(np.flip(spc[1:]).conjugate(), pad_width=(nnp-len(spc)+1, 0), mode='constant',
+        uspc_conj = np.pad(np.flip(spc[1:]).conjugate(),
+            pad_width=(nnp-len(spc)+1, 0), mode='constant',
             constant_values=0)
         uspc = np.concatenate((uspc, uspc_conj))
 
         ureal = np.real(np.fft.ifft(uspc))
-
         return ureal.astype(np.float64)
 
     def apply_growing_exponential(self, u):
@@ -60,8 +61,8 @@ class SpcTime:
         u *= c
 
     def convolve(self, spc):
-        if self.sourcetimefunction is not None:
-            spc *= self.sourcetimefunction
+        if self.source_time_function is not None:
+            spc *= self.source_time_function
 
     def spctime(self, spcs):
         ''' spcs is the output of pyDSM.
@@ -88,5 +89,6 @@ class SourceTimeFunction:
         stf = np.zeros(nspc+1, dtype=np.complex128)
         for i in range(nspc):
             omega_tau = (i + 1) * constant
-            stf[i] = complex((2 - 2 * np.cos(omega_tau)) / (omega_tau * omega_tau))
+            stf[i] = complex((2 - 2 * np.cos(omega_tau)) 
+                / (omega_tau * omega_tau))
         return stf
