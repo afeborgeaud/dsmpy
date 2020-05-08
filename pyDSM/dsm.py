@@ -9,13 +9,15 @@ class PyDSMOutput:
         self.input = dsm_input
         self.stations = dsm_input.stations
         self.event = dsm_input.event
+        self.components = ('Z', 'R', 'T')
+        self.dt = 1 / self.input.sampling_hz
     
     def to_time_domain(self):
         spct = spctime.SpcTime(self.input.tlen, self.input.nspc, 
             self.input.sampling_hz, self.input.omegai, 
             self.input.source_time_function)
-        u = spct.spctime(self.spcs)
-        self.u = u
+        us = spct.spctime(self.spcs)
+        self.us = us
         self.ts = np.linspace(0, self.input.tlen,
             spct.npts, endpoint=False)
 

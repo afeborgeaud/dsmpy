@@ -12,7 +12,7 @@ def get_u_pydsm():
         sampling_hz=20)
     outputs = dsm.compute(inputs)
     outputs.to_time_domain()
-    return outputs.u, outputs.ts
+    return outputs.us, outputs.ts
 
 def get_u_dsm():
     u = np.loadtxt(os.path.join(rootdsm,

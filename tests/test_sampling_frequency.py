@@ -17,7 +17,7 @@ if __name__ == '__main__':
             sampling_hz=sampling_hz)
         outputs = dsm.compute(inputs)
         outputs.to_time_domain()
-        u = outputs.u[2,0]
+        u = outputs.us[2,0]
         E = trapz(u**2, dx=1/sampling_hz**2)
         Es.append(E)
     
