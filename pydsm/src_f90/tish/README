@@ -1,0 +1,24 @@
+-------- Documentation for tish version 1.7.1 --------
+
+**********  Welcome to the DSM world.  **********
+
+This is a package for SH computation 
+for transversely isotropic spherically symmetric media 
+in a frequency domain.
+You need FORTRAN77 to run this program.
+
+
+CONFIGURATION:
+	% make
+
+USAGE:
+	% tish < (parameter filename)
+
+
+As this is a pre-release version, there should be many defects.
+If you have any question, request or complaint, please feel
+free to contact to
+  kenji@geo.titech.ac.jp
+
+
+                                          Kenji Kawai
