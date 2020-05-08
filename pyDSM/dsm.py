@@ -101,8 +101,8 @@ class PyDSMInput(DSMInput):
             *dsm_input.get_inputs_for_tipsv())
         self.source_time_function = source_time_function
         self.sampling_hz = self.find_optimal_sampling_hz(sampling_hz)
-        self.stations = self._parse_stations
-        self.event = self._parse_event
+        self.stations = self._parse_stations()
+        self.event = self._parse_event()
 
     @classmethod
     def input_from_file(self, parameter_file,
