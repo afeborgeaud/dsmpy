@@ -23,7 +23,7 @@ inputs = dsm.PyDSMInput.input_from_file(parameter_file)
 outputs = dsm.compute(inputs)
 outputs.to_time_domain()
 us = outputs.us    # us.shape = (3,nr,tlen)
-ts = outputs.ts    # time points len(ts) = tlen
+ts = outputs.ts    # len(ts) = tlen
 stations = outputs.stations        # len(stations) = nr
 components = outputs.components    # len(components) = 3
 ```
