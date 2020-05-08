@@ -17,13 +17,15 @@ Compiled using numpy.f2py
 
 ## Usage
 ```python
-from pyDSM import dsm, rootdsm
+from pydsm import dsm, rootdsm
 parameter_file = rootdsm + 'AK135_SH.inf'
-inputs = dsm.DSMinput(parameter_file)
+inputs = dsm.PyDSMInput.input_from_file(parameter_file)
 outputs = dsm.compute(inputs)
 outputs.to_time_domain()
-u = outputs.u # u.shape = (3,nr,imax+1)
-ts = outputs.ts # time points
+us = outputs.us    # us.shape = (3,nr,tlen)
+ts = outputs.ts    # time points len(ts) = tlen
+stations = outputs.stations        # len(stations) = nr
+components = outputs.components    # len(components) = 3
 ```
 
 Dependencies (soon):
