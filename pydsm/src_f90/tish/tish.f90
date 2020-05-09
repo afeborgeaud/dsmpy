@@ -3,7 +3,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
    r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output,outputu, write_to_file)
 !------------------------------------------------------------------------
 !  ************** tish.f ****************
-! Computation of SH synthetic seismograms 
+! Computation of SH synthetic seismograms
 ! in transversely isotropic media for anisotropic PREM
 ! using modified DSM operators & modified source representation.
 ! Synthetics for shallow events can be computed.
@@ -169,7 +169,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
          call calt( 2, gh3, work, gh3 )
          call calhl( 2,3,gvra,gecN, gra,work )
          call calt( 2, gh4, work, gh4 )
-!     
+!
          nn = nnlayer + 1
          ns = isp(spn) + dint(spo)
          ins = 4 * ns - 3
@@ -208,7 +208,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                   if(ltmp(ii).gt.l) ltmp(ii) = l
                   exit
                endif
-!     
+!
                do jj=1,maxnlay+1 ! initialize
                   tmpr(jj) = 0.d0
                enddo
@@ -248,11 +248,11 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                                  ,g(kc),eps,dr,z,ier)
                         endif
                      endif
-!     
+!
                      if( mod(l,100).eq.0) then
                         call calcutd(nzone,nlayer,tmpr,ratc,nn,ra,kc)
                      endif
-!     
+!
                      call calamp(g(nn),l,lsuf,maxamp,ismall,ratl)
                   endif
                enddo          ! m-loop
@@ -260,7 +260,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
          enddo		! omega-loop
          iimax = dble(max(ltmp(1),ltmp(2))) * tlen / lmaxdivf
       endif			! option for shallow events
-!     
+!
 ! computing of the number and the location of grid points
       call calgrid( nzone,vrmin,vrmax,vsv,rmin,rmax, &
             iimax,1,tlen,vmin,gridpar,dzpar )
@@ -319,7 +319,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       call calt( 2, gh3, work, gh3 )
       call calhl( 2,3,gvra,gecN, gra,work )
       call calt( 2, gh4, work, gh4 )
-!     
+!
 ! ******************** Computing the displacement *********************
       outputindex =1
       nn = nnlayer + 1
@@ -365,7 +365,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                   if(llog.gt.l) llog = l
                   cycle
                endif
-!     
+!
                do jj=1,maxnlay+1 ! initialize
                   tmpr(jj) = 0.d0
                enddo
@@ -409,16 +409,16 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                                  ,g(kc),eps,dr,z,ier)
                         endif
                      endif
-!     
+!
                      if( mod(l,100).eq.0) then
                         call calcutd(nzone,nlayer,tmpr,ratc,nn,ra,kc)
                      endif
-!     
+!
                      call calamp(g(nn),l,lsuf,maxamp,ismall,ratl)
                      do ir=1,nr
                         call calu( g(nn),lsq,bvec(1,m,ir),u(1,ir) )
                      enddo
-                     
+
                   endif
                enddo          ! m-loop
             enddo             ! l-loop
@@ -427,7 +427,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
          outputi(outputindex)=i
          do ir=1,nr
             outputu(1,ir,outputindex) = u(1,ir)
-            outputu(2, ir, outputindex) = u(2,ir)	 
+            outputu(2, ir, outputindex) = u(2,ir)
 	         outputu(3, ir, outputindex) = u(3,ir)
 
          enddo
@@ -436,7 +436,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
             write(11,*) i,llog,nnlayer
             close(11)
          endif
-!        
+!
    	   if (write_to_file .and. i .eq. imax) then
 	         write(*,*) "kakikomimasu"
 !              write (*,*) my_rank, outputindex
@@ -453,15 +453,15 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
             enddo
             outputindex = 0
          endif
-	   
+
          outputindex = outputindex + 1
       enddo                   ! omega-loop
-!     
+!
 !
       !write(*,*) "Ivalice looks to the horizon"
 
       return
-   
+
    end subroutine tish
 
 program main
