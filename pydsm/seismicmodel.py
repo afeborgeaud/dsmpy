@@ -36,7 +36,12 @@ class SeismicModel:
         self._qkappa = qkappa
 
     @classmethod
-    def prem():
+    def prem(cls):
+        """Return the Preliminary Reference Earth Model (PREM).
+
+        References:
+            Dziewonski and Anderson (1981)
+        """
         vrmin = 
         vrmax =
         rho =
@@ -47,12 +52,17 @@ class SeismicModel:
         eta = 
         qmu = 
         qkappa = 
-        return SeismicModel(
+        return cls(
             vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa)
 
     @classmethod
-    def ak135():
+    def ak135(cls):
+        """Return model AK135.
+
+        References:
+            Kennett et al. (1995)
+        """
         vrmin =
         vrmax =
         rho =
@@ -63,12 +73,16 @@ class SeismicModel:
         eta = 
         qmu = 
         qkappa = 
-        return SeismicModel(
+        return cls(
             vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa)
 
     @classmethod
-    def iasp91():
+    def iasp91(cls):
+        """Return model IAS91.
+
+        References:
+        """
         vrmin =
         vrmax =
         rho =
@@ -79,6 +93,6 @@ class SeismicModel:
         eta = 
         qmu = 
         qkappa = 
-        return SeismicModel(
+        return cls(
             vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa)
