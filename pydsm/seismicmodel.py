@@ -1,5 +1,3 @@
-
-
 class SeismicModel:
     """Represent a seismic Earth model for computation using DSM.
 
@@ -42,16 +40,16 @@ class SeismicModel:
         References:
             Dziewonski and Anderson (1981)
         """
-        vrmin = 
+        vrmin =
         vrmax =
         rho =
         vpv =
-        vph = 
-        vsv = 
-        vsh = 
-        eta = 
-        qmu = 
-        qkappa = 
+        vph =
+        vsv =
+        vsh =
+        eta =
+        qmu =
+        qkappa =
         return cls(
             vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa)
@@ -67,12 +65,12 @@ class SeismicModel:
         vrmax =
         rho =
         vpv =
-        vph = 
-        vsv = 
-        vsh = 
-        eta = 
-        qmu = 
-        qkappa = 
+        vph =
+        vsv =
+        vsh =
+        eta =
+        qmu =
+        qkappa =
         return cls(
             vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa)
@@ -87,12 +85,12 @@ class SeismicModel:
         vrmax =
         rho =
         vpv =
-        vph = 
-        vsv = 
-        vsh = 
-        eta = 
-        qmu = 
-        qkappa = 
+        vph =
+        vsv =
+        vsh =
+        eta =
+        qmu =
+        qkappa =
         return cls(
             vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa)

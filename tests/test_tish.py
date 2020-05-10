@@ -9,6 +9,7 @@ from pydsm._tish import _tish, _pinput
 from pydsm import rootdsm
 import time
 
+
 def test_tish():
     parameter_file = rootdsm + 'AK135_SH_64.inf'
     inputs = _pinput(parameter_file)
@@ -22,6 +23,7 @@ def test_tish():
     assert error_re < 1e-7
     assert error_im < 1e-7
     print("All passed")
+
 
 if __name__ == '__main__':
     test_tish()

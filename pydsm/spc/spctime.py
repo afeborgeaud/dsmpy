@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 class SpcTime:
     def __init__(self, tlen, nspc, sampling_hz, omegai,
-        source_time_function=None):
+                 source_time_function=None):
         self.tlen = tlen
         self.nspc = nspc
         self.sampling_hz = sampling_hz
@@ -30,21 +31,21 @@ class SpcTime:
         return i
 
     def setBitNumber(self, n):
-        n |= n>>1
-        n |= n>>2
-        n |= n>>4  
-        n |= n>>8
-        n |= n>>16
+        n |= n >> 1
+        n |= n >> 2
+        n |= n >> 4
+        n |= n >> 8
+        n |= n >> 16
         n = n + 1
-        return (n >> 1) 
-    
+        return (n >> 1)
+
     def to_time_domain(self, spc):
         nnp = self.npts // 2
-        uspc = np.pad(spc, pad_width=(0, nnp-len(spc)), mode='constant',
-            constant_values=0)
+        uspc = np.pad(spc, pad_width=(0, nnp - len(spc)), mode='constant',
+                      constant_values=0)
         uspc_conj = np.pad(np.flip(spc[1:]).conjugate(),
-            pad_width=(nnp-len(spc)+1, 0), mode='constant',
-            constant_values=0)
+                           pad_width=(nnp - len(spc) + 1, 0), mode='constant',
+                           constant_values=0)
         uspc = np.concatenate((uspc, uspc_conj))
 
         ureal = np.real(np.fft.ifft(uspc))
@@ -74,11 +75,12 @@ class SpcTime:
         u = np.zeros((3, nr, self.npts))
         for icomp in range(3):
             for ir in range(nr):
-                self.convolve(spcs[icomp,ir])
-                u[icomp,ir,:] = self.to_time_domain(spcs[icomp,ir])
-                self.apply_growing_exponential(u[icomp,ir])
-                self.apply_amplitude_correction(u[icomp,ir])
+                self.convolve(spcs[icomp, ir])
+                u[icomp, ir, :] = self.to_time_domain(spcs[icomp, ir])
+                self.apply_growing_exponential(u[icomp, ir])
+                self.apply_amplitude_correction(u[icomp, ir])
         return u
+
 
 class SourceTimeFunction:
     @staticmethod
@@ -86,9 +88,9 @@ class SourceTimeFunction:
         deltaF = 1 / dsm_input.get_tlen()
         constant = 2 * np.pi * deltaF * half_duration
         nspc = dsm_input.get_nspc()
-        stf = np.zeros(nspc+1, dtype=np.complex128)
+        stf = np.zeros(nspc + 1, dtype=np.complex128)
         for i in range(nspc):
             omega_tau = (i + 1) * constant
-            stf[i] = complex((2 - 2 * np.cos(omega_tau)) 
-                / (omega_tau * omega_tau))
+            stf[i] = complex((2 - 2 * np.cos(omega_tau))
+                             / (omega_tau * omega_tau))
         return stf
