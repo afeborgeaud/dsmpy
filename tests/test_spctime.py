@@ -4,11 +4,11 @@ import os
 import sys
 from pydsm import dsm
 from pydsm.spc import spctime
-from pydsm import rootdsm
+from pydsm import rootdsm_sh
 
 
 def get_u_pydsm():
-    parameter_file = os.path.join(rootdsm, 'AK135_SH_64.inf')
+    parameter_file = os.path.join(rootdsm_sh, 'AK135_SH_64.inf')
     inputs = dsm.PyDSMInput.input_from_file(parameter_file,
                                             sampling_hz=20)
     outputs = dsm.compute(inputs)
@@ -17,7 +17,7 @@ def get_u_pydsm():
 
 
 def get_u_dsm():
-    u = np.loadtxt(os.path.join(rootdsm,
+    u = np.loadtxt(os.path.join(rootdsm_sh,
                                 'sac_64/109C_TA.200702131456A.T.txt'))
     return u
 

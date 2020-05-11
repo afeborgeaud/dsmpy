@@ -1,6 +1,7 @@
 subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
    nzone,vrmin,vrmax,rrho,vpv,vph,vsv,vsh,eta,qmu,qkappa, &
-   r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output,write_to_file)
+   r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output,write_to_file, &
+   outputu)
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !c  ************** tipsv.f ****************
 !c Computation of PSV synthetic seismograms
@@ -130,7 +131,7 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
 
     data lda/ 4 /
     data eps/ -1.d0 /
-    complex(kind(0d0)) :: outputu(3,nr,imin:imax)
+    complex(kind(0d0)), intent(out) :: outputu(3,nr,imin:imax)
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !c *************** Inputting and computing the parameters ***************
@@ -779,21 +780,23 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
     enddo                   ! omega-loop
 
 !c ************************** Files Handling **************************
+if (write_to_file) then
     write(*,*) "kakikomimasu"
-do ir=1,nr
-    open(unit=10,file=trim(output(ir)),status='unknown',form='unformatted',access='stream',convert='big_endian')
-    write(10) tlen,np,1,3,omegai,lat(ir),lon(ir),eqlat,eqlon,r0
+    do ir=1,nr
+        open(unit=10,file=trim(output(ir)),status='unknown',form='unformatted',access='stream',convert='big_endian')
+        write(10) tlen,np,1,3,omegai,lat(ir),lon(ir),eqlat,eqlon,r0
 
-    do i= imin, imax
-        write(10) i, dble(outputu(1,ir,i)), dimag(outputu(1,ir,i))
-        write(10) dble(outputu(2,ir,i)), dimag(outputu(2,ir,i))
-        write(10) dble(outputu(3,ir,i)), dimag(outputu(3,ir,i))
+        do i= imin, imax
+            write(10) i, dble(outputu(1,ir,i)), dimag(outputu(1,ir,i))
+            write(10) dble(outputu(2,ir,i)), dimag(outputu(2,ir,i))
+            write(10) dble(outputu(3,ir,i)), dimag(outputu(3,ir,i))
+        enddo
+        close(10)
     enddo
-    close(10)
-enddo
+    write(*,*) "Ivalice looks to the horizon"
+endif
 
     !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    write(*,*) "Ivalice looks to the horizon"
     return
  end subroutine tipsv
 
@@ -829,6 +832,7 @@ enddo
    real(dp) :: eqlat
    real(dp) :: eqlon
    character(len=80) :: output(maxnr)
+   complex(dp), allocatable :: outputu(:,:,:)
    logical :: write_to_file = .true.
 
    ! read input parameters
@@ -840,11 +844,14 @@ enddo
       nzone,vrmin,vrmax,rho,vpv,vph,vsv,vsh,eta,qmu,qkappa, &
       r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
 
+   allocate(outputu(3,nr,imin:imax))
+
    ! main loop
    write(*,*) 'Enter main loop'
    call tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       nzone,vrmin,vrmax,rho,vpv,vph,vsv,vsh,eta,qmu,qkappa,&
-      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output, write_to_file)
+      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output, write_to_file,&
+      outputu)
    write(*,*) 'Done!'
 
 end program main

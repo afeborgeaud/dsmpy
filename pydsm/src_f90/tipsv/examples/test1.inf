@@ -102,7 +102,7 @@ c parameter for the station
      -51.6753 -58.0637 lat,lon (deg)
      49.6753  58.0637 lat,lon (deg)
 c parameter for the data file
-examples/ABC.20090101PSV.spc
-examples/XYZ.20090101PSV.spc
+ABC_DSM.20090101PSV.spc
+XYZ_DSM.20090101PSV.spc
 c
 end

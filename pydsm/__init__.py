@@ -7,15 +7,20 @@ from pydsm.definitions import ROOT_DIR
 
 
 def build_module(module_name='tish'):
+    libroot = os.path.join(ROOT_DIR, 'lib/')
+    try:
+        os.mkdir(libroot)
+    except FileExistsError:
+        pass
     if module_name == 'tish':
-        _build_tish()
+        _build_tish(libroot)
     elif module_name == 'tipsv':
-        _build_tipsv()
+        _build_tipsv(libroot)
     else:
         raise RuntimeError('invalid module name')
 
 
-def _build_tish():
+def _build_tish(libroot):
     code = ("import sys; sys.path = {}; import numpy.f2py as f2py2e; "
             "f2py2e.main()".format(sys.path))
     sources = ['parameters.f90', 'tish.f90',
@@ -23,7 +28,6 @@ def _build_tish():
                'dclisb.f90', 'dclisb3.f90']
     f2py_opts = ['-c', '-m', 'tish'] + sources
     root = os.path.join(ROOT_DIR, 'src_f90/tish/')
-    libroot = os.path.join(ROOT_DIR, 'lib/')
     cwd = os.getcwd()
 
     try:
@@ -43,7 +47,7 @@ def _build_tish():
         os.chdir(cwd)
 
 
-def _build_tipsv():
+def _build_tipsv(libroot):
     code = ("import sys; sys.path = {}; import numpy.f2py as f2py2e; "
             "f2py2e.main()".format(sys.path))
     sources = ['parameters.f90', 'tipsv.f90',
@@ -51,7 +55,6 @@ def _build_tipsv():
                'dcsymbdl.f90', 'glu2.f90', 'rk3.f90']
     f2py_opts = ['-c', '-m', 'tipsv'] + sources
     root = os.path.join(ROOT_DIR, 'src_f90/tipsv/')
-    libroot = os.path.join(ROOT_DIR, 'lib/')
     cwd = os.getcwd()
 
     try:
@@ -104,5 +107,7 @@ except ModuleNotFoundError:
             raise RuntimeError("Failed to import tish.so")
 
 #
-rootdsm = os.path.join(ROOT_DIR,
-                       'src_f90/tish/example/dsm_accuracy_check/')
+rootdsm_sh = os.path.join(
+    ROOT_DIR, 'src_f90/tish/example/dsm_accuracy_check/')
+rootdsm_psv = os.path.join(
+    ROOT_DIR, 'src_f90/tipsv/examples/')

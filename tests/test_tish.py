@@ -6,12 +6,12 @@ import os
 import glob
 import shutil
 from pydsm._tish import _tish, _pinput
-from pydsm import rootdsm
+from pydsm import rootdsm_sh
 import time
 
 
 def test_tish():
-    parameter_file = rootdsm + 'AK135_SH_64.inf'
+    parameter_file = rootdsm_sh + 'AK135_SH_64.inf'
     inputs = _pinput(parameter_file)
     write_to_file = False
     start = time.time()
