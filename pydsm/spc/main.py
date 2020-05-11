@@ -1,9 +1,10 @@
 import numpy as np
-from pyDSM import dsm
-from pyDSM import rootdsm
-from pyDSM.spc.spctime import SourceTimeFunction
+from pydsm import dsm
+from pydsm import rootdsm
+from pydsm.spc.spctime import SourceTimeFunction
 
 import matplotlib.pyplot as plt
+
 
 def plot(outputs):
     nr = outputs.get_nr()
@@ -15,6 +16,7 @@ def plot(outputs):
     axes[-1].set_xlabel('Time (s)')
     fig.suptitle(outputs.event.eventID)
     return fig, axes
+
 
 if __name__ == '__main__':
     parameter_file = rootdsm + '/AK135_SH_64.inf'

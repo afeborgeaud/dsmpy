@@ -3,9 +3,11 @@
 
 from pydsm.lib import tish
 
+
 def _pinput(parameter_file):
     inputs = tish.pinput_fromfile(parameter_file)
     return inputs
+
 
 def _tish(
         re, ratc, ratl, tlen, nspc, omegai,
