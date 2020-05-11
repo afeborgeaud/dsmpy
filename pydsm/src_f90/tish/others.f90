@@ -22,15 +22,15 @@ subroutine pinput2(parameter_file, maxnlay,maxnzone,maxnr, &
       character*80, dimension(maxnr), intent(out) :: output
       real*8 :: stlat,stlon,eqlattmp
       integer i,j,io
-      character*80 :: line
-      character*80, dimension(MAX_LINES) :: lines
+      character*160 :: line
+      character*160, dimension(MAX_LINES) :: lines
 !
 ! reading the parameter file
       j = 0
       io = 0
       open(unit=11, file=parameter_file, status='old',action='read')
       do while (io > 0)
-       read(11, '(a80)', iostat=io) line
+       read(11, '(a160)', iostat=io) line
       	if (line(1:1) /= 'c' .and. line(1:3) /= 'end') then
                   lines(j) = line
                   j = j + 1

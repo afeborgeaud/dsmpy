@@ -157,7 +157,8 @@ class PyDSMInput(DSMInput):
         return event
 
 class Station:
-    def __init__(self, name, network, latitude, longitude):
+    def __init__(self, name: str, network: str,
+            latitude: float, longitude: float):
         self.name = name
         self.network = network
         self.latitude = latitude
@@ -166,6 +167,22 @@ class Station:
         return self.name + '_' + self.network
     
 class Event:
+    """Represent an earthquake point-source.
+
+    Attributes
+    ----------
+    eventID: str
+        GCMT event name
+    latitude: float
+        centroid geographic latitude [-90, 90] in degree
+    longitude: float
+        centroid longitude [-180, 180] in degree
+    depth: float
+        centroid depth in km
+    mt: ndarray(3, 3)
+        moment tensor
+    """
+
     def __init__(self, eventID, latitude, longitude, depth, mt):
         self.eventID = eventID
         self.latitude = latitude
