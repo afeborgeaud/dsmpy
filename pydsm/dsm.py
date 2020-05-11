@@ -219,7 +219,7 @@ def compute(dsm_input, mode=0, write_to_file=False):
     #print('compute PSV')
     #psv_spcs = _tipsv(*dsm_input.get_inputs_for_tipsv(),
     #    write_to_file)
-    spcs = sh_spcs + psv_spcs
+    #spcs = sh_spcs + psv_spcs
     spcs = sh_spcs
     dsm_output = PyDSMOutput(spcs, dsm_input)
     return dsm_output
