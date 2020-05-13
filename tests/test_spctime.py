@@ -2,9 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
-from pydsm import dsm
+from pydsm import dsm, rootdsm_sh
 from pydsm.spc import spctime
-from pydsm import rootdsm_sh
 
 
 def get_u_pydsm():
