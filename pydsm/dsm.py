@@ -470,11 +470,23 @@ def compute_parallel(
 
     return spcs_gathered
 
+# TODO implements mode when tipsv ready
+# TODO check write_to_file
 def compute_dataset_parallel(
         dataset, comm, mode=0, write_to_file=False):
     """Compute spectra using DSM with data parallelization.
+
+    Args:
+        dataset (Dataset): dataset of events & stations
+        comm (MPI.COMM_WORLD): MPI communicator
+        mode (int): P-SV + SH (0) or SH (1) or P_SV (2)
+        write_to_file (bool): write output in Kibrary format
+    
+    Returns:
+        outputs ([PyDSMOutput]): list of PyDSMOutput with one
+            entry for each event in dataset
     """
-    #comm = MPI.COMM_WORLD
+
     rank = comm.Get_rank()
     n_cores = comm.Get_size()
     
