@@ -1,5 +1,6 @@
 import sys
 from pydsm._tish import _tish
+from pydsm._tish import _pinput as _pinput_sh
 from pydsm._tipsv import _pinput, _tipsv
 from pydsm.spc import spctime
 import numpy as np
@@ -7,25 +8,38 @@ from mpi4py import MPI
 import time
 
 class PyDSMOutput:
-    def __init__(self, spcs, dsm_input):
+    def __init__(
+            self, spcs, stations, event, source_time_function,
+            sampling_hz, tlen, nspc, omegai):
         self.spcs = spcs
-        self.input = dsm_input
-        self.stations = dsm_input.stations
-        self.event = dsm_input.event
+        self.stations = stations
+        self.event = event
+        self.source_time_function = source_time_function
+        self.sampling_hz = sampling_hz
+        self.tlen = tlen
+        self.nspc = nspc
+        self.omegai = omegai
         self.components = ('Z', 'R', 'T')
-        self.dt = 1 / self.input.sampling_hz
+        self.dt = 1 / self.sampling_hz
+
+    @classmethod
+    def output_from_pydsm_input(cls, spcs, pydsm_input):
+        return cls(
+            spcs, pydsm_input.stations, pydsm_input.event,
+            pydsm_input.source_time_function, pydsm_input.sampling_hz,
+            pydsm_input.tlen, pydsm_input.nspc, pydsm_input.omegai)
 
     def to_time_domain(self):
-        spct = spctime.SpcTime(self.input.tlen, self.input.nspc,
-                               self.input.sampling_hz, self.input.omegai,
-                               self.input.source_time_function)
+        spct = spctime.SpcTime(self.tlen, self.nspc,
+                               self.sampling_hz, self.omegai,
+                               self.source_time_function)
         us = spct.spctime(self.spcs)
         self.us = us
-        self.ts = np.linspace(0, self.input.tlen,
+        self.ts = np.linspace(0, self.tlen,
                               spct.npts, endpoint=False)
 
     def get_nr(self):
-        return self.input.nr
+        return len(self.stations)
 
 
 class DSMInput:
@@ -61,19 +75,41 @@ class DSMInput:
             max_nzone=len(self.vrmin), max_nr=len(self.lat))
 
     @classmethod
-    def input_from_file(cls, parameter_file):
-        inputs = _pinput(parameter_file)
-
-        (re, ratc, ratl,
-        tlen, nspc, omegai,
-        imin, imax, nzone) = inputs[:9]
-        (vrmin, vrmax, rho,
-        vpv, vph, vsv, vsh,
-        eta, qmu, qkappa) = inputs[9:19]
-        r0, eqlat, eqlon, mt = inputs[19:23]
-        nr = inputs[23]
-        (theta, phi, lat,
-        lon, output) = inputs[24:]
+    def input_from_file(cls, parameter_file, mode=0):
+        """Build a DSMInput object from a DSM input file.
+        Args:
+            parameter_file (str): path of a DSM input file
+            mode (int): P-SV input file (0) or SH input file (1)
+        Return:
+            DSMInput
+        """
+        if mode == 0:
+            inputs = _pinput(parameter_file)
+            (re, ratc, ratl,
+            tlen, nspc, omegai,
+            imin, imax, nzone) = inputs[:9]
+            (vrmin, vrmax, rho,
+            vpv, vph, vsv, vsh,
+            eta, qmu, qkappa) = inputs[9:19]
+            r0, eqlat, eqlon, mt = inputs[19:23]
+            nr = inputs[23]
+            (theta, phi, lat,
+            lon, output) = inputs[24:]
+        elif mode == 1:
+            inputs = _pinput_sh(parameter_file)
+            (re, ratc, ratl,
+            tlen, nspc, omegai,
+            imin, imax, nzone) = inputs[:9]
+            (vrmin, vrmax, rho,
+            vsv, vsh, qmu) = inputs[9:15]
+            r0, eqlat, eqlon, mt = inputs[15:19]
+            nr = inputs[19]
+            (theta, phi, lat,
+            lon, output) = inputs[20:]
+            vpv = None
+            vph = None
+            eta = None
+            qkappa = None
 
         return cls(
             re, ratc, ratl, tlen, nspc,
@@ -146,8 +182,21 @@ class PyDSMInput(DSMInput):
 
     @classmethod
     def input_from_file(cls, parameter_file,
-                        sampling_hz=None, source_time_function=None):
-        dsm_input = DSMInput.input_from_file(parameter_file)
+                        sampling_hz=None, source_time_function=None,
+                        mode=0):
+        """Build a PyDSMInput object from a DSM input file.
+        
+        Args:
+            parameter_file (str): path of a DSM input file
+            sampling_hz (float): sampling frequency 
+                for time-domain waveforms
+            source_time_function (ndarray): source time function
+                in frequency domain
+            mode (int): P-SV input file (0) or SH input file (1)
+        Returns:
+            PyDSMInput object
+        """
+        dsm_input = DSMInput.input_from_file(parameter_file, mode)
         pydsm_input = cls(dsm_input, sampling_hz,
                                  source_time_function)
         return pydsm_input
@@ -230,6 +279,9 @@ class Event:
         self.depth = depth
         self.mt = mt
 
+    def __repr__(self):
+        return self.eventID
+
 def compute(pydsm_input, mode=0, write_to_file=False):
     """Compute spectra using DSM.
 
@@ -240,7 +292,7 @@ def compute(pydsm_input, mode=0, write_to_file=False):
             as specified in dsm_input.output
 
     Returns:
-        dsm_output (DSMOutput): object containing spectra and
+        dsm_output (PyDSMOutput): object containing spectra and
             statations/source information
     
     Note:
@@ -257,14 +309,14 @@ def compute(pydsm_input, mode=0, write_to_file=False):
     #    write_to_file)
     #spcs = sh_spcs + psv_spcs
     spcs = sh_spcs
-    dsm_output = PyDSMOutput(spcs, pydsm_input)
+    dsm_output = PyDSMOutput.output_from_pydsm_input(spcs, pydsm_input)
     return dsm_output
 
 def compute_parallel(
-        pydsm_input, mode=0, write_to_file=False):
+        pydsm_input, comm, mode=0, write_to_file=False):
     """Compute spectra using DSM with data parallelization.
     """
-    comm = MPI.COMM_WORLD
+    #comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     n_cores = comm.Get_size()
     
@@ -376,7 +428,8 @@ def compute_parallel(
     spcs_local = _tish(*input_local.get_inputs_for_tish(),
                          write_to_file=False)
     end_time = time.time()
-    print('{} paths: processor {} in {} s'.format(input_local.nr, rank, end_time - start_time))
+    print('{} paths: processor {} in {} s'
+        .format(input_local.nr, rank, end_time - start_time))
     
     # TODO change the order of outputu in DSM 
     # to have nr as the last dimension
@@ -403,7 +456,210 @@ def compute_parallel(
                  MPI.DOUBLE_COMPLEX],
                 root=0)
 
-    return spcs_gathered, comm
+    return spcs_gathered
+
+def compute_dataset_parallel(
+        dataset, comm, mode=0, write_to_file=False):
+    """Compute spectra using DSM with data parallelization.
+    """
+    #comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    n_cores = comm.Get_size()
+    
+    if rank == 0:
+        scalar_dict = dataset.input_master._get_scalar_dict()
+    else:
+        scalar_dict = None
+    scalar_dict = comm.bcast(scalar_dict, root=0)
+
+    if rank == 0:
+        rho = dataset.input_master.rho
+        vpv = dataset.input_master.vpv
+        vph = dataset.input_master.vph
+        vsv = dataset.input_master.vsv
+        vsh = dataset.input_master.vsh
+        eta = dataset.input_master.eta
+        qmu = dataset.input_master.qmu
+        qkappa = dataset.input_master.qkappa
+        vrmin = dataset.input_master.vrmin
+        vrmax = dataset.input_master.vrmax
+        mt = dataset.input_master.mt
+    else:
+        rho = np.empty((4, scalar_dict['max_nzone']),
+                        dtype=np.float64, order='F')
+        vpv = np.empty((4, scalar_dict['max_nzone']),
+                        dtype=np.float64, order='F')
+        vph = np.empty((4, scalar_dict['max_nzone']),
+                        dtype=np.float64, order='F')
+        vsv = np.empty((4, scalar_dict['max_nzone']),
+                        dtype=np.float64, order='F')
+        vsh = np.empty((4, scalar_dict['max_nzone']),
+                        dtype=np.float64, order='F')
+        eta = np.empty((4, scalar_dict['max_nzone']),
+                        dtype=np.float64, order='F')
+        qmu = np.empty(scalar_dict['max_nzone'],
+                        dtype=np.float64, order='F')
+        qkappa = np.empty(scalar_dict['max_nzone'],
+                        dtype=np.float64, order='F')
+        vrmin = np.empty(scalar_dict['max_nzone'],
+                        dtype=np.float64, order='F')
+        vrmax = np.empty(scalar_dict['max_nzone'],
+                        dtype=np.float64, order='F')
+        mt = np.empty((3, 3), dtype=np.float64, order='F')
+
+    comm.Bcast(rho, root=0)
+    comm.Bcast(vpv, root=0)
+    comm.Bcast(vph, root=0)
+    comm.Bcast(vsv, root=0)
+    comm.Bcast(vsh, root=0)
+    comm.Bcast(eta, root=0)
+    comm.Bcast(qmu, root=0)
+    comm.Bcast(qkappa, root=0)
+    comm.Bcast(vrmin, root=0)
+    comm.Bcast(vrmax, root=0)
+
+    if rank == 0:
+        sendcounts_sta, displacements_sta = dataset.get_chunks_station(
+            n_cores)
+        sendcounts_eq, displacements_eq = dataset.get_chunks_eq(n_cores)
+        sendcounts_mt, displacements_mt = dataset.get_chunks_mt(n_cores)
+        lons = dataset.lons
+        lats = dataset.lats
+        phis = dataset.phis
+        thetas = dataset.thetas
+        eqlats = dataset.eqlats
+        eqlons = dataset.eqlons
+        r0s = dataset.r0s
+        mts = dataset.mts
+    else:
+        sendcounts_sta = None
+        displacements_sta = None
+        sendcounts_eq = None
+        displacements_eq = None
+        sendcounts_mt = None
+        displacements_mt = None
+        lons = None
+        lats = None
+        phis = None
+        thetas = None
+        eqlats = None
+        eqlons = None
+        r0s = None
+        mts = None
+    
+    nr = np.empty(1, dtype=np.int64)
+    comm.Scatter(sendcounts_sta, nr, root=0)
+
+    print('rank {}: nr={}'.format(rank, nr))
+    
+    lon_local = np.empty(nr, dtype=np.float64)
+    lat_local = np.empty(nr, dtype=np.float64)
+    phi_local = np.empty(nr, dtype=np.float64)
+    theta_local = np.empty(nr, dtype=np.float64)
+    eqlon = np.empty((), np.float64)
+    eqlat = np.empty((), np.float64)
+    r0 = np.empty((), np.float64)
+    mt = np.empty((3, 3), np.float64)
+
+    # stations
+    comm.Scatterv(
+        [lons, sendcounts_sta, displacements_sta, MPI.DOUBLE],
+        lon_local, root=0)
+    comm.Scatterv(
+        [lats, sendcounts_sta, displacements_sta, MPI.DOUBLE],
+        lat_local, root=0)
+    comm.Scatterv(
+        [phis, sendcounts_sta, displacements_sta, MPI.DOUBLE],
+        phi_local, root=0)
+    comm.Scatterv(
+        [thetas, sendcounts_sta, displacements_sta, MPI.DOUBLE],
+        theta_local, root=0)
+    # events
+    comm.Scatterv(
+        [eqlats, sendcounts_eq, displacements_eq, MPI.DOUBLE],
+        eqlat, root=0)
+    comm.Scatterv(
+        [eqlons, sendcounts_eq, displacements_eq, MPI.DOUBLE],
+        eqlon, root=0)
+    comm.Scatterv(
+        [r0s, sendcounts_eq, displacements_eq, MPI.DOUBLE],
+        r0, root=0)
+    # mts
+    comm.Scatterv(
+        [mts, sendcounts_mt, displacements_mt, MPI.DOUBLE],
+        mt, root=0)
+
+    lat_local = np.pad(lat_local, (0, scalar_dict['max_nr']-nr[0]),
+                       mode='constant', constant_values=0)
+    lon_local = np.pad(lon_local, (0, scalar_dict['max_nr']-nr[0]),
+                       mode='constant', constant_values=0)
+    phi_local = np.pad(phi_local, (0, scalar_dict['max_nr']-nr[0]),
+                       mode='constant', constant_values=0)
+    theta_local = np.pad(theta_local, (0, scalar_dict['max_nr']-nr[0]),
+                       mode='constant', constant_values=0)
+
+    scalar_dict['nr'] = nr[0]
+    scalar_dict['eqlat'] = eqlat
+    scalar_dict['eqlon'] = eqlon
+    scalar_dict['r0'] = r0
+    input_local = DSMInput.input_from_dict_and_arrays(
+        scalar_dict, vrmin, vrmax, rho, vpv, vph,
+        vsv, vsh, eta, qmu, qkappa, mt, lat_local,
+        lon_local, phi_local, theta_local)
+
+    start_time = time.time()
+    spcs_local = _tish(*input_local.get_inputs_for_tish(),
+                         write_to_file=False)
+    end_time = time.time()
+    print('{} paths: processor {} in {} s'
+          .format(input_local.nr, rank, end_time - start_time))
+    
+    # TODO change the order of outputu in DSM 
+    # to have nr as the last dimension
+    spcs_local = np.array(spcs_local.transpose(0, 2, 1), order='F')
+
+    if rank == 0:
+        nspcs = dataset.input_master.nspc
+        spcs_gathered = np.empty((3, nspcs+1, dataset.nr),
+                                dtype=np.complex128, order='F')
+    else:
+        spcs_gathered = None
+
+    if rank == 0:
+        counts_spcs = tuple([3 * size * (nspcs+1)
+                              for size in sendcounts_sta])
+        displacements_spcs = tuple([3 * i * (nspcs+1)
+                              for i in displacements_sta])
+    else:
+        counts_spcs = None
+        displacements_spcs = None
+
+    comm.Barrier()
+    comm.Gatherv(spcs_local, 
+                [spcs_gathered, counts_spcs, displacements_spcs,
+                 MPI.DOUBLE_COMPLEX],
+                root=0)
+
+    if rank == 0:
+        splits = dataset.nrs.cumsum()
+        splits = np.concatenate([[0], splits])
+        outputs = []
+        for i in range(len(splits)-1):
+            start, end = splits[i], splits[i+1]
+            output = PyDSMOutput(
+                spcs_gathered[:, :, start:end], 
+                dataset.stations[start:end],
+                dataset.events[i], 
+                dataset.source_time_functions[i],
+                dataset.input_master.sampling_hz,
+                dataset.input_master.tlen,
+                dataset.input_master.nspc,
+                dataset.input_master.omegai)
+            outputs.append(output)
+    else:
+        outputs = None
+
+    return outputs
 
 def _get_chunk_start_indices(nr, n_cores):
     chunk_size = nr // n_cores
