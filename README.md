@@ -13,7 +13,7 @@ Compiled using numpy.f2py
 *Warning: at the moment, the pydsm folder must be named `pydsm' for the imports to work (not, e.g., pydsm-master)*
 
 ## Test
-- test scripts are in pyDSM/tests
+- test scripts are in pydsm/tests
 
 ## Usage
 ```python
