@@ -670,7 +670,7 @@ def compute_dataset_parallel(
             outputs.append(output)
     else:
         outputs = None
-
+    
     return outputs
 
 def _get_chunk_start_indices(nr, n_cores):

@@ -32,6 +32,6 @@ if __name__ == '__main__':
             np.save(filename, output.spcs)
     #elif rank == 0:
             if i == 0:
-                spcs_n1 = np.load('spcs_n1.npy')
-                assert np.allclose(spcs_n1, output.spcs, rtol=1e-17)
-                print("Same!")
+                 spcs_n2 = np.load('20090101_0_n2.npy')
+                 assert np.allclose(spcs_n2, output.spcs, rtol=1e-17)
+                 print("Same!")

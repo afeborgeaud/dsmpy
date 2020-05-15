@@ -46,7 +46,7 @@ class Dataset:
         for i in range(len(dividers)):
             counts_.append(Dataset._split(self.nrs[i], counts[i]))
         counts = np.concatenate(counts_)
-        displacements = counts.cumsum() - counts[0]
+        displacements = np.concatenate([[0], counts.cumsum()[:-1]])
         return counts, displacements
 
     def get_chunks_eq(self, n_cores):
