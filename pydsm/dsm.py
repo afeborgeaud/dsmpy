@@ -46,7 +46,7 @@ class DSMInput:
     def __init__(
             self, re, ratc, ratl, tlen, nspc, omegai, imin, imax, nzone,
             vrmin, vrmax, rho, vpv, vph, vsv, vsh, eta, qmu, qkappa,
-            r0, eqlat, eqlon, mt, nr, theta, phi, lat, lon, output):
+            r0, eqlat, eqlon, mt, nr, theta, phi, lat, lon, output, mode=0):
         (self.re, self.ratc,
         self.ratl, self.omegai) = re, ratc, ratl, omegai
 
@@ -65,6 +65,8 @@ class DSMInput:
         (self.nr, self.theta, self.phi, self.lat,
         self.lon, self.output) = (nr, theta, phi,
                                  lat, lon, output)
+        
+        self.mode = mode
 
     def _get_scalar_dict(self):
         return dict(
@@ -115,7 +117,7 @@ class DSMInput:
             re, ratc, ratl, tlen, nspc,
             omegai, imin, imax, nzone, vrmin, vrmax,
             rho, vpv, vph, vsv, vsh, eta, qmu, qkappa, r0, eqlat, eqlon,
-            mt, nr, theta, phi, lat, lon, output)
+            mt, nr, theta, phi, lat, lon, output, mode)
 
     @classmethod
     def input_from_arrays(cls, event, stations,
@@ -140,14 +142,23 @@ class DSMInput:
     def get_inputs_for_tish(self):
         # TODO modify fortran? Else, have to take care of case
         # number of core layers != 2
-        nzone = self.nzone - 2
-        vrmin = np.pad(self.vrmin[2:], (0,2), constant_values=0)
-        vrmax = np.pad(self.vrmax[2:], (0,2), constant_values=0)
-        qmu = np.pad(self.qmu[2:], (0,2), constant_values=0)
-        npad = ((0, 0), (0, 2))
-        rho = np.pad(self.rho[:,2:], npad, constant_values=0)
-        vsv = np.pad(self.vsv[:,2:], npad, constant_values=0)
-        vsh = np.pad(self.vsh[:,2:], npad, constant_values=0)
+        if self.mode == 0:
+            nzone = self.nzone - 2
+            vrmin = np.pad(self.vrmin[2:], (0,2), constant_values=0)
+            vrmax = np.pad(self.vrmax[2:], (0,2), constant_values=0)
+            qmu = np.pad(self.qmu[2:], (0,2), constant_values=0)
+            npad = ((0, 0), (0, 2))
+            rho = np.pad(self.rho[:,2:], npad, constant_values=0)
+            vsv = np.pad(self.vsv[:,2:], npad, constant_values=0)
+            vsh = np.pad(self.vsh[:,2:], npad, constant_values=0)
+        elif self.mode == 1:
+            nzone = self.nzone
+            vrmin = self.vrmin
+            vrmax = self.vrmax
+            qmu = self.qmu
+            rho = self.rho
+            vsv = self.vsv
+            vsh = self.vsh
 
         inputs = (self.re, self.ratc, self.ratl, self.tlen,
                   self.nspc, self.omegai, self.imin, self.imax,
@@ -172,13 +183,14 @@ class DSMInput:
 class PyDSMInput(DSMInput):
     def __init__(
             self, dsm_input, sampling_hz=None,
-            source_time_function=None):
+            source_time_function=None, mode=0):
         super().__init__(
             *dsm_input.get_inputs_for_tipsv())
         self.source_time_function = source_time_function
         self.sampling_hz = self.find_optimal_sampling_hz(sampling_hz)
         self.stations = self._parse_stations()
         self.event = self._parse_event()
+        self.mode = mode
 
     @classmethod
     def input_from_file(cls, parameter_file,
@@ -198,7 +210,7 @@ class PyDSMInput(DSMInput):
         """
         dsm_input = DSMInput.input_from_file(parameter_file, mode)
         pydsm_input = cls(dsm_input, sampling_hz,
-                                 source_time_function)
+                          source_time_function, mode)
         return pydsm_input
 
     @classmethod
