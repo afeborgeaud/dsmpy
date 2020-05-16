@@ -1,13 +1,28 @@
 import sys
-from pydsm._tish import _tish
+from pydsm._tish import _tish, _calthetaphi
+from pydsm._tish import parameters as tish_parameters
 from pydsm._tish import _pinput as _pinput_sh
 from pydsm._tipsv import _pinput, _tipsv
 from pydsm.spc import spctime
 import numpy as np
 from mpi4py import MPI
 import time
+import functools
 
 class PyDSMOutput:
+    """Output from pydsm compute methods.
+
+    Args:
+        spcs (ndarray[3, nr, nspc+1]): array of spectra computed by DSM
+        stations (ndarray[nr]): array of stations
+        event (Event): earthquake information
+        source_time_function (SourceTimeFunction): source time function
+            in frequency domain
+        sampling_hz (int): sampling frequency for time-domain waveforms
+        tlen (float): length of time series (must be 2**n/10)
+        nspc (int): number of frequency points (must be 2**n)
+        omegai (float): 
+    """
     def __init__(
             self, spcs, stations, event, source_time_function,
             sampling_hz, tlen, nspc, omegai):
@@ -43,6 +58,8 @@ class PyDSMOutput:
 
 
 class DSMInput:
+    """Input parameters for Fortran DSM.
+    """
     def __init__(
             self, re, ratc, ratl, tlen, nspc, omegai, imin, imax, nzone,
             vrmin, vrmax, rho, vpv, vph, vsv, vsh, eta, qmu, qkappa,
@@ -121,8 +138,98 @@ class DSMInput:
 
     @classmethod
     def input_from_arrays(cls, event, stations,
-                          seismicmodel, tlen, nspc):
-        pass  # TODO
+                          seismic_model, tlen, nspc):
+        """Build a DSMInput from user-friendly arguments
+        
+        Args:
+            event (Event): earthquake information
+            stations (list(Station)): seismic stations
+            seismic_model (SeismicModel): Earth structure model 
+                (e.g. PREM)
+            tlen (float): time length of synthetics 
+                (must be 2**n/10)
+            nspc (int): number of frequency points for synthetics
+                (must be 2**n)
+            Returns:
+            dsm_input (DSMInput): DSMInput object
+        """
+        # structure parameters
+        # TODO change maxnzone requirements in DSM
+        maxnzone = tish_parameters['maxnzone']
+        nzone = seismic_model._nzone
+        vrmin = np.pad(seismic_model._vrmin, (0, maxnzone-nzone),
+                       mode='constant', constant_values=0)
+        vrmax = np.pad(seismic_model._vrmax, (0, maxnzone-nzone),
+                       mode='constant', constant_values=0)
+        rho = np.pad(seismic_model._rho, ((0, 0), (0, maxnzone-nzone)),
+                       mode='constant', constant_values=0)
+        vpv = np.pad(seismic_model._vpv, ((0, 0), (0, maxnzone-nzone)),
+                       mode='constant', constant_values=0)
+        vph = np.pad(seismic_model._vph, ((0, 0), (0, maxnzone-nzone)),
+                       mode='constant', constant_values=0)
+        vsv = np.pad(seismic_model._vsv, ((0, 0), (0, maxnzone-nzone)),
+                       mode='constant', constant_values=0)
+        vsh = np.pad(seismic_model._vsh, ((0, 0), (0, maxnzone-nzone)),
+                       mode='constant', constant_values=0)
+        eta = np.pad(seismic_model._eta, ((0, 0), (0, maxnzone-nzone)),
+                       mode='constant', constant_values=0)
+        qmu = np.pad(seismic_model._qmu, (0, maxnzone-nzone),
+                       mode='constant', constant_values=0)
+        qkappa = np.pad(seismic_model._qkappa, (0, maxnzone-nzone),
+                       mode='constant', constant_values=0)
+
+        # source parameters
+        eqlat = event.latitude
+        eqlon = event.longitude
+        r0 = 6371. - event.depth
+        mt = event.mt
+
+        # receiver parameters
+        nr = len(stations)
+        maxnr = tish_parameters['maxnr']
+        lat = np.array([station.latitude for station in stations],
+                        dtype=np.float64)
+        lon = np.array([station.longitude for station in stations],
+                        dtype=np.float64)
+        f = functools.partial(_calthetaphi, eqlat=eqlat, eqlon=eqlon)
+        theta_phi = [f(stalat, stalon) 
+                     for stalat, stalon in zip(lat, lon)]
+        theta = np.array([x[0] for x in theta_phi])
+        phi = np.array([x[1] for x in theta_phi])
+
+        # TODO change maxnr requirements in DSM
+        lat = np.pad(lat, (0, maxnr-nr),
+                       mode='constant', constant_values=0)
+        lon = np.pad(lon, (0, maxnr-nr),
+                       mode='constant', constant_values=0)
+        theta = np.pad(theta, (0, maxnr-nr),
+                       mode='constant', constant_values=0)
+        phi = np.pad(phi, (0, maxnr-nr),
+                       mode='constant', constant_values=0)
+
+        output = np.empty((tish_parameters['maxnr'], 80), dtype='S1')
+        for i, station in enumerate(stations):
+            string = (station.name + '_' + station.network
+                + '.' + event.eventID + 'SH.spc')
+            arr = np.array([e for e in string], dtype='S1')
+            arr = np.pad(
+                arr, (0, 80-len(arr)),
+                mode='constant', constant_values='')
+            output[i, :] = arr
+
+        # parameters for DSM computation (advanced)
+        re = 0.01
+        ratc = 1e-10
+        ratl = 1e-5
+        omegai = 0.0014053864092981234
+        imin = 0
+        imax = nspc
+
+        return cls(re, ratc, ratl, tlen, nspc, omegai, imin, imax,
+                   nzone, vrmin, vrmax, rho, vpv, vph, vsv, vsh,
+                   eta, qmu, qkappa, r0, eqlat, eqlon, mt, nr, theta,
+                   phi, lat, lon, output, mode=0)
+
 
     @classmethod
     def input_from_dict_and_arrays(
@@ -181,6 +288,15 @@ class DSMInput:
 
 
 class PyDSMInput(DSMInput):
+    """Input parameters for pydsm compute methods.
+
+    Args:
+        dsm_input (DSMInput): input parameters for Fortran DSM
+        sampling_hz (int): sampling frequency for time-domain waveforms
+        source_time_function (SourceTimeFunction): source-time function
+            in frequency domain
+        mode (int): P-SV + SH (0) or SH only (1) or P-SV only (2)
+    """
     def __init__(
             self, dsm_input, sampling_hz=None,
             source_time_function=None, mode=0):
@@ -216,13 +332,29 @@ class PyDSMInput(DSMInput):
     @classmethod
     def input_from_arrays(
             cls, event, stations,
-            seismicmodel, tlen, nspc, source_time_function,
+            seismic_model, tlen, nspc, source_time_function,
             sampling_hz):
-        dsm_input = super().input_from_arrays(event, stations,
-                                              seismicmodel, tlen, nspc)
-        pydsm_input = cls(dsm_input, sampling_hz,
-                                 source_time_function)
-        return pydsm_input
+        """Build a PyDSMInput from user-friendly arguments
+        
+        Args:
+            event (Event): earthquake information
+            stations (list(Station)): seismic stations
+            seismic_model (SeismicModel): Earth structure model 
+                (e.g. PREM)
+            tlen (float): time length of synthetics 
+                (must be 2**n/10)
+            nspc (int): number of frequency points for synthetics
+                (must be 2**n)
+            source_time_function (SourceTimeFunction): source time
+                function in frequency domain
+            sampling_hz: sampling frequency for time-domain synthetics
+        Returns:
+            pydsm_input (PyDSMInput): PyDSMInput object
+        """
+        dsm_input = DSMInput.input_from_arrays(event, stations,
+                                              seismic_model, tlen, nspc)
+        return cls(dsm_input, sampling_hz,
+                   source_time_function, mode=0)
 
     def find_optimal_sampling_hz(self, sampling_hz):
         if sampling_hz is not None:
@@ -260,6 +392,20 @@ class PyDSMInput(DSMInput):
 
 
 class Station:
+    """Represent a seismic station.
+
+    Args:
+        name (str): station name
+        network (str): network code
+        latitude (float): geographic latitude
+        longitude (float): geographic longitude
+
+    Attributes:
+        name (str): station name
+        network (str): network code
+        latitude (float): geographic latitude
+        longitude (float): geographic longitude
+    """
     def __init__(self, name: str, network: str,
             latitude: float, longitude: float):
         self.name = name
@@ -275,6 +421,15 @@ class Event:
     """Represent an earthquake point-source.
 
     Args:
+        eventID (str): GCMT event name
+        latitude (float) centroid geographic latitude 
+            [-90, 90] in degree
+        longitude (float) centroid longitude 
+            [-180, 180] in degree
+        depth (float) centroid depth in km
+        mt (ndarray(3, 3)) moment tensor
+    
+    Attributes:
         eventID (str): GCMT event name
         latitude (float) centroid geographic latitude 
             [-90, 90] in degree
