@@ -61,6 +61,9 @@ class PyDSMOutput:
 class DSMInput:
     """Input parameters for Fortran DSM.
     """
+    default_params = dict(
+        re=0.01, ratc=1e-10, ratl=1e-5, omegai=0.0014053864092981234)
+
     def __init__(
             self, re, ratc, ratl, tlen, nspc, omegai, imin, imax, nzone,
             vrmin, vrmax, rho, vpv, vph, vsv, vsh, eta, qmu, qkappa,
@@ -219,10 +222,10 @@ class DSMInput:
             output[i, :] = arr
 
         # parameters for DSM computation (advanced)
-        re = 0.01
-        ratc = 1e-10
-        ratl = 1e-5
-        omegai = 0.0014053864092981234
+        re = DSMInput.default_params['re']
+        ratc = DSMInput.default_params['ratc']
+        ratl = DSMInput.default_params['ratl']
+        omegai = DSMInput.default_params['omegai']
         imin = 0
         imax = nspc
 
@@ -230,7 +233,6 @@ class DSMInput:
                    nzone, vrmin, vrmax, rho, vpv, vph, vsv, vsh,
                    eta, qmu, qkappa, r0, eqlat, eqlon, mt, nr, theta,
                    phi, lat, lon, output, mode=0)
-
 
     @classmethod
     def input_from_dict_and_arrays(
@@ -651,7 +653,9 @@ def compute_parallel(
 # TODO implements mode when tipsv ready
 # TODO check write_to_file
 def compute_dataset_parallel(
-        dataset, comm, mode=0, write_to_file=False):
+        dataset, seismic_model,
+        tlen, nspc, sampling_hz,
+        comm, mode=0, write_to_file=False):
     """Compute spectra using DSM with data parallelization.
 
     Args:
@@ -669,45 +673,50 @@ def compute_dataset_parallel(
     n_cores = comm.Get_size()
     
     if rank == 0:
-        scalar_dict = dataset.input_master._get_scalar_dict()
+        scalar_dict = dict(DSMInput.default_params)
+        scalar_dict.update(tish_parameters)
+        scalar_dict['tlen'] = tlen
+        scalar_dict['nspc'] = nspc
+        scalar_dict['sampling_hz'] = sampling_hz
+        scalar_dict['imin'] = 0
+        scalar_dict['imax'] = nspc
+        scalar_dict['nzone'] = seismic_model._nzone
     else:
         scalar_dict = None
     scalar_dict = comm.bcast(scalar_dict, root=0)
 
     if rank == 0:
-        rho = dataset.input_master.rho
-        vpv = dataset.input_master.vpv
-        vph = dataset.input_master.vph
-        vsv = dataset.input_master.vsv
-        vsh = dataset.input_master.vsh
-        eta = dataset.input_master.eta
-        qmu = dataset.input_master.qmu
-        qkappa = dataset.input_master.qkappa
-        vrmin = dataset.input_master.vrmin
-        vrmax = dataset.input_master.vrmax
-        mt = dataset.input_master.mt
+        rho = seismic_model.get_rho()
+        vpv = seismic_model.get_vpv()
+        vph = seismic_model.get_vph()
+        vsv = seismic_model.get_vsv()
+        vsh = seismic_model.get_vsh()
+        eta = seismic_model.get_eta()
+        qmu = seismic_model.get_qmu()
+        qkappa = seismic_model.get_qkappa()
+        vrmin = seismic_model.get_vrmin()
+        vrmax = seismic_model.get_vrmax()
     else:
-        rho = np.empty((4, scalar_dict['max_nzone']),
+        rho = np.empty((4, scalar_dict['maxnzone']),
                         dtype=np.float64, order='F')
-        vpv = np.empty((4, scalar_dict['max_nzone']),
+        vpv = np.empty((4, scalar_dict['maxnzone']),
                         dtype=np.float64, order='F')
-        vph = np.empty((4, scalar_dict['max_nzone']),
+        vph = np.empty((4, scalar_dict['maxnzone']),
                         dtype=np.float64, order='F')
-        vsv = np.empty((4, scalar_dict['max_nzone']),
+        vsv = np.empty((4, scalar_dict['maxnzone']),
                         dtype=np.float64, order='F')
-        vsh = np.empty((4, scalar_dict['max_nzone']),
+        vsh = np.empty((4, scalar_dict['maxnzone']),
                         dtype=np.float64, order='F')
-        eta = np.empty((4, scalar_dict['max_nzone']),
+        eta = np.empty((4, scalar_dict['maxnzone']),
                         dtype=np.float64, order='F')
-        qmu = np.empty(scalar_dict['max_nzone'],
+        qmu = np.empty(scalar_dict['maxnzone'],
                         dtype=np.float64, order='F')
-        qkappa = np.empty(scalar_dict['max_nzone'],
+        qkappa = np.empty(scalar_dict['maxnzone'],
                         dtype=np.float64, order='F')
-        vrmin = np.empty(scalar_dict['max_nzone'],
+        vrmin = np.empty(scalar_dict['maxnzone'],
                         dtype=np.float64, order='F')
-        vrmax = np.empty(scalar_dict['max_nzone'],
+        vrmax = np.empty(scalar_dict['maxnzone'],
                         dtype=np.float64, order='F')
-        mt = np.empty((3, 3), dtype=np.float64, order='F')
 
     comm.Bcast(rho, root=0)
     comm.Bcast(vpv, root=0)
@@ -791,13 +800,13 @@ def compute_dataset_parallel(
         [mts, sendcounts_mt, displacements_mt, MPI.DOUBLE],
         mt, root=0)
 
-    lat_local = np.pad(lat_local, (0, scalar_dict['max_nr']-nr[0]),
+    lat_local = np.pad(lat_local, (0, scalar_dict['maxnr']-nr[0]),
                        mode='constant', constant_values=0)
-    lon_local = np.pad(lon_local, (0, scalar_dict['max_nr']-nr[0]),
+    lon_local = np.pad(lon_local, (0, scalar_dict['maxnr']-nr[0]),
                        mode='constant', constant_values=0)
-    phi_local = np.pad(phi_local, (0, scalar_dict['max_nr']-nr[0]),
+    phi_local = np.pad(phi_local, (0, scalar_dict['maxnr']-nr[0]),
                        mode='constant', constant_values=0)
-    theta_local = np.pad(theta_local, (0, scalar_dict['max_nr']-nr[0]),
+    theta_local = np.pad(theta_local, (0, scalar_dict['maxnr']-nr[0]),
                        mode='constant', constant_values=0)
 
     scalar_dict['nr'] = nr[0]
@@ -821,16 +830,16 @@ def compute_dataset_parallel(
     spcs_local = np.array(spcs_local.transpose(0, 2, 1), order='F')
 
     if rank == 0:
-        nspcs = dataset.input_master.nspc
-        spcs_gathered = np.empty((3, nspcs+1, dataset.nr),
+        nspc = scalar_dict['nspc']
+        spcs_gathered = np.empty((3, nspc+1, dataset.nr),
                                 dtype=np.complex128, order='F')
     else:
         spcs_gathered = None
 
     if rank == 0:
-        counts_spcs = tuple([3 * size * (nspcs+1)
+        counts_spcs = tuple([3 * size * (nspc+1)
                               for size in sendcounts_sta])
-        displacements_spcs = tuple([3 * i * (nspcs+1)
+        displacements_spcs = tuple([3 * i * (nspc+1)
                               for i in displacements_sta])
     else:
         counts_spcs = None
@@ -853,10 +862,10 @@ def compute_dataset_parallel(
                 dataset.stations[start:end],
                 dataset.events[i], 
                 dataset.source_time_functions[i],
-                dataset.input_master.sampling_hz,
-                dataset.input_master.tlen,
-                dataset.input_master.nspc,
-                dataset.input_master.omegai)
+                scalar_dict['sampling_hz'],
+                scalar_dict['tlen'],
+                scalar_dict['nspc'],
+                scalar_dict['omegai'])
             outputs.append(output)
     else:
         outputs = None

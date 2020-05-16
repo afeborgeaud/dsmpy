@@ -1,4 +1,5 @@
 import numpy as np
+from pydsm._tish import parameters
 
 class SeismicModel:
     """Represent a seismic Earth model for computation using DSM.
@@ -35,6 +36,47 @@ class SeismicModel:
         self._qmu = qmu
         self._qkappa = qkappa
         self._nzone = rho.shape[1]
+
+    def get_rho(self):
+        return np.pad(
+            self._rho, ((0, 0), (0, parameters['maxnzone']-self._nzone)),
+            mode='constant', constant_values=0)
+    def get_vpv(self):
+        return np.pad(
+            self._vpv, ((0, 0), (0, parameters['maxnzone']-self._nzone)),
+            mode='constant', constant_values=0)
+    def get_vph(self):
+        return np.pad(
+            self._vph, ((0, 0), (0, parameters['maxnzone']-self._nzone)),
+            mode='constant', constant_values=0)
+    def get_vsv(self):
+        return np.pad(
+            self._vsv, ((0, 0), (0, parameters['maxnzone']-self._nzone)),
+            mode='constant', constant_values=0)
+    def get_vsh(self):
+        return np.pad(
+            self._vsh, ((0, 0), (0, parameters['maxnzone']-self._nzone)),
+            mode='constant', constant_values=0)
+    def get_eta(self):
+        return np.pad(
+            self._eta, ((0, 0), (0, parameters['maxnzone']-self._nzone)),
+            mode='constant', constant_values=0)
+    def get_vrmin(self):
+        return np.pad(
+            self._vrmin, (0, parameters['maxnzone']-self._nzone),
+            mode='constant', constant_values=0)
+    def get_vrmax(self):
+        return np.pad(
+            self._vrmax, (0, parameters['maxnzone']-self._nzone),
+            mode='constant', constant_values=0)
+    def get_qmu(self):
+        return np.pad(
+            self._qmu, (0, parameters['maxnzone']-self._nzone),
+            mode='constant', constant_values=0)
+    def get_qkappa(self):
+        return np.pad(
+            self._qkappa, (0, parameters['maxnzone']-self._nzone),
+            mode='constant', constant_values=0)
 
     @classmethod
     def ak135(cls):

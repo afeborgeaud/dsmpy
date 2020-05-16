@@ -3,39 +3,58 @@ import numpy as np
 from obspy import read
 import pandas as pd
 from pydsm.dsm import Event, Station, MomentTensor
+from pydsm._tish import _calthetaphi
 
 class Dataset:
     """Represent a dataset of events and stations.
     """
-    def __init__(self, pydsm_inputs):
-        self.input_master = pydsm_inputs[0]
-        self.lats = np.concatenate([input.lat[:input.nr]
-                                    for input in pydsm_inputs])
-        self.lons = np.concatenate([input.lon[:input.nr]
-                                    for input in pydsm_inputs])
-        self.phis = np.concatenate([input.phi[:input.nr]
-                                    for input in pydsm_inputs])
-        self.thetas = np.concatenate([input.theta[:input.nr]
-                                    for input in pydsm_inputs])
-        self.eqlats = np.array([input.eqlat for input in pydsm_inputs])
-        self.eqlons = np.array([input.eqlon for input in pydsm_inputs])
-        self.r0s = np.array([input.r0 for input in pydsm_inputs])
-        self.mts = np.concatenate([input.mt for input in pydsm_inputs])
-        self.nrs = np.array([input.nr for input in pydsm_inputs])
+    def __init__(
+            self, lats, lons, phis, thetas, eqlats, eqlons,
+            r0s, mts, nrs, stations, events, source_time_functions):
+        self.lats = lats
+        self.lons = lons
+        self.phis = phis
+        self.thetas = thetas
+        self.eqlats = eqlats
+        self.eqlons = eqlons
+        self.r0s = r0s
+        self.mts = mts
+        self.nrs = nrs
         self.nr = len(self.lats)
-
-        self.stations = np.concatenate([input.stations
-                                        for input in pydsm_inputs])
-        self.events = np.array([input.event
-                                for input in pydsm_inputs])
-        self.source_time_functions = np.array([input.source_time_function
-                                              for input in pydsm_inputs])
+        self.stations = stations
+        self.events = events
+        self.source_time_functions = source_time_functions
 
     @classmethod
     def dataset_from_files(cls, parameter_files):
         pydsm_inputs = [PyDSMInput.input_from_file(file)
                             for file in parameter_files]
-        return Dataset(pydsm_inputs)
+        
+        lats = np.concatenate([input.lat[:input.nr]
+                               for input in pydsm_inputs])
+        lons = np.concatenate([input.lon[:input.nr]
+                               for input in pydsm_inputs])
+        phis = np.concatenate([input.phi[:input.nr]
+                               for input in pydsm_inputs])
+        thetas = np.concatenate([input.theta[:input.nr]
+                                for input in pydsm_inputs])
+        eqlats = np.array([input.eqlat for input in pydsm_inputs])
+        eqlons = np.array([input.eqlon for input in pydsm_inputs])
+        r0s = np.array([input.r0 for input in pydsm_inputs])
+        mts = np.concatenate([input.mt for input in pydsm_inputs])
+        nrs = np.array([input.nr for input in pydsm_inputs])
+        nr = len(lats)
+
+        stations = np.concatenate([input.stations
+                                        for input in pydsm_inputs])
+        events = np.array([input.event
+                                for input in pydsm_inputs])
+        source_time_functions = np.array([input.source_time_function
+                                              for input in pydsm_inputs])
+
+        return cls(
+            lats, lons, phis, thetas, eqlats, eqlons,
+            r0s, mts, nrs, stations, events, source_time_functions)
 
     @classmethod
     def dataset_from_sac(cls, sac_files):
@@ -68,23 +87,32 @@ class Dataset:
         ))
         dataset_info.sort_values(by='evids', inplace=True)
 
+        theta_phi = [_calthetaphi(stalat, stalon, eqlat, eqlon) 
+                     for stalat, stalon, eqlat, eqlon 
+                     in zip(lats, lons, eqlats, eqlons)]
+        thetas = np.array([x[0] for x in theta_phi])
+        phis = np.array([x[1] for x in theta_phi])
+
         nr = len(headers)
         nrs = dataset_info.groupby('evids').count().lats.values
         evids = dataset_info.evids.unique()
         eqlats = dataset_info.eqlats.unique()
         eqlons = dataset_info.eqlons.unique()
         eqdeps = dataset_info.eqdeps.unique()
+        r0s = 6371. - eqdeps
         mts = [MomentTensor(0, 0, 0, 0, 0, 0) for i in range(len(evids))]
         events = [
             Event(id, lat, lon, depth, mt)
-            for id, lat, lon, depth in zip(evids, eqlats, eqlons, eqdeps, mts)]
+            for id, lat, lon, depth, mt 
+            in zip(evids, eqlats, eqlons, eqdeps, mts)]
         stations = dataset_info.apply(
             lambda x: Station(x.names, x.nets, x.lats, x.lons),
             axis=1).values
         source_time_functions = np.empty(nr, dtype=np.object)
 
-
-        return dataset_info
+        return cls(
+            lats, lons, phis, thetas, eqlats, eqlons,
+            r0s, mts, nrs, stations, events, source_time_functions)
 
     def get_chunks_station(self, n_cores):
         chunk_size = self.nr // n_cores
