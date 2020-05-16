@@ -8,6 +8,7 @@ import numpy as np
 from mpi4py import MPI
 import time
 import functools
+import warnings
 
 class PyDSMOutput:
     """Output from pydsm compute methods.
@@ -448,6 +449,28 @@ class Event:
 
     def __repr__(self):
         return self.eventID
+
+class MomentTensor:
+    """Represent a point-source moment tensor."""
+    def __init__(self, Mrr, Mrt, Mrp, Mtt, Mtp, Mpp):
+        self.Mrr = Mrr
+        self.Mrt = Mrt
+        self.Mrp = Mrp
+        self.Mtt = Mtt
+        self.Mtp = Mtp
+        self.Mpp = Mpp
+        if np.abs(np.array([Mrr, Mrt, Mrp, Mtt, Mtp, Mpp])).max() > 1e4:
+            warnings.warn("Moment tensor should be in units of 10**25 dyne cm")
+
+    def to_array(self):
+        mt = np.zeros((3, 3), dtype=np.float64)
+        mt[0, 0] = self.Mrr
+        mt[0, 1] = self.Mrt
+        mt[0, 2] = self.Mrp
+        mt[1, 1] = self.Mtt
+        mt[1, 2] = self.Mtp
+        mt[2, 2] = self.Mpp
+        return mt
 
 def compute(pydsm_input, mode=0, write_to_file=False):
     """Compute spectra using DSM.

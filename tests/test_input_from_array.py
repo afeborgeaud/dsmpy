@@ -11,16 +11,11 @@ def get_ref_pydsm_input():
 if __name__ == '__main__':
     seismic_model = SeismicModel.ak135()
 
-    mt = np.zeros((3,3), dtype=np.float64)
-    mt[0,0] = -0.193
-    mt[0,1] = 0.0998
-    mt[0,2] = -0.148
-    mt[1,1] = 0.0571
-    mt[1,2] = -0.141
-    mt[2,2] = 0.136
+    mt = dsm.MomentTensor(Mrr=-0.193, Mrt=0.0998, Mrp=-0.148,
+                                 Mtt=0.0571, Mtp=-0.141, Mpp=0.136)
 
     event = dsm.Event('', -1.600000023841858, -78.05000305175781,
-                      6371-6195.2, mt)
+                      6371-6195.2, mt.to_array())
     stations = [
         dsm.Station('109C', 'TA', 32.88890075683594, -117.1051025390625)]
     tlen = 3276.8
