@@ -4,11 +4,13 @@ from pydsm._tish import parameters as tish_parameters
 from pydsm._tish import _pinput as _pinput_sh
 from pydsm._tipsv import _pinput, _tipsv
 from pydsm.spc import spctime
+from pydsm import root_resources
 import numpy as np
 from mpi4py import MPI
 import time
 import functools
 import warnings
+from obspy import read_events
 
 class PyDSMOutput:
     """Output from pydsm compute methods.
@@ -214,7 +216,7 @@ class DSMInput:
         output = np.empty((tish_parameters['maxnr'], 80), dtype='S1')
         for i, station in enumerate(stations):
             string = (station.name + '_' + station.network
-                + '.' + event.eventID + 'SH.spc')
+                + '.' + event.event_id + 'SH.spc')
             arr = np.array([e for e in string], dtype='S1')
             arr = np.pad(
                 arr, (0, 80-len(arr)),
@@ -381,15 +383,15 @@ class PyDSMInput(DSMInput):
         return tuple(stations)
 
     def _parse_event(self):
-        eventID = self.output[0].tostring(). \
+        event_id = self.output[0].tostring(). \
             decode('utf-8').split('/')[-1].split('.')[1]
-        if eventID[-2:] == 'SH':
-            eventID = eventID[:-2]
-        elif eventID[-3:] == 'PSV':
-            eventID = eventID[:-3]
+        if event_id[-2:] == 'SH':
+            event_id = event_id[:-2]
+        elif event_id[-3:] == 'PSV':
+            event_id = event_id[:-3]
         else:
-            raise RuntimeError('{}'.format(eventID))
-        event = Event(eventID, self.eqlat, self.eqlon,
+            raise RuntimeError('{}'.format(event_id))
+        event = Event(event_id, self.eqlat, self.eqlon,
                       6371. - self.r0, self.mt)
         return event
 
@@ -424,7 +426,7 @@ class Event:
     """Represent an earthquake point-source.
 
     Args:
-        eventID (str): GCMT event name
+        event_id (str): GCMT event name
         latitude (float) centroid geographic latitude 
             [-90, 90] in degree
         longitude (float) centroid longitude 
@@ -433,7 +435,7 @@ class Event:
         mt (ndarray(3, 3)) moment tensor
     
     Attributes:
-        eventID (str): GCMT event name
+        event_id (str): GCMT event name
         latitude (float) centroid geographic latitude 
             [-90, 90] in degree
         longitude (float) centroid longitude 
@@ -442,15 +444,35 @@ class Event:
         mt (ndarray(3, 3)) moment tensor
     """
 
-    def __init__(self, eventID, latitude, longitude, depth, mt):
-        self.eventID = eventID
+    def __init__(self, event_id, latitude, longitude, depth, mt):
+        self.event_id = event_id
         self.latitude = latitude
         self.longitude = longitude
         self.depth = depth
         self.mt = mt
 
+    @classmethod
+    def event_from_catalog(cls, cat, event_id):
+        """Build Event from GCMT catalog
+        Args:
+            cat (ndarray): event catalog.
+                see pydsm.utils.cmtcatalog.read_catalog()
+            event_id (str): GCMT event identifier
+                (e.g., '201906291959A')
+        Returns:
+            event (Event): Event object
+        """
+        event = None
+        try:
+            event = cat[cat == event_id][0]
+        except:
+            warnings.warn('Event {} not found'.format(event_id))
+        return event
+
     def __repr__(self):
-        return self.eventID
+        return self.event_id
+    def __eq__(self, event_id):
+        return self.event_id == event_id
 
 class MomentTensor:
     """Represent a point-source moment tensor."""

@@ -4,6 +4,8 @@ from obspy import read
 import pandas as pd
 from pydsm.dsm import Event, Station, MomentTensor
 from pydsm._tish import _calthetaphi
+from pydsm import root_resources
+from pydsm.utils.cmtcatalog import read_catalog
 
 class Dataset:
     """Represent a dataset of events and stations.
@@ -100,7 +102,14 @@ class Dataset:
         eqlons = dataset_info.eqlons.unique()
         eqdeps = dataset_info.eqdeps.unique()
         r0s = 6371. - eqdeps
-        mts = [MomentTensor(0, 0, 0, 0, 0, 0) for i in range(len(evids))]
+
+        # read event catalog
+        cat = read_catalog()
+        events_ = cat[np.isin(cat, evids)]
+        if len(events_) != len(evids):
+            raise RuntimeError('Some events not in the catalog')
+        mts = np.array([e.mt for e in events_])
+
         events = [
             Event(id, lat, lon, depth, mt)
             for id, lat, lon, depth, mt 
@@ -109,6 +118,9 @@ class Dataset:
             lambda x: Station(x.names, x.nets, x.lats, x.lons),
             axis=1).values
         source_time_functions = np.empty(nr, dtype=np.object)
+
+        lons = np.array(lons)
+        lats = np.array(lats)
 
         return cls(
             lats, lons, phis, thetas, eqlats, eqlons,
