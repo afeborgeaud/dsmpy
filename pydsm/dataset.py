@@ -12,7 +12,7 @@ class Dataset:
     """
     def __init__(
             self, lats, lons, phis, thetas, eqlats, eqlons,
-            r0s, mts, nrs, stations, events, source_time_functions):
+            r0s, mts, nrs, stations, events):
         self.lats = lats
         self.lons = lons
         self.phis = phis
@@ -25,7 +25,6 @@ class Dataset:
         self.nr = len(self.lats)
         self.stations = stations
         self.events = events
-        self.source_time_functions = source_time_functions
 
     @classmethod
     def dataset_from_files(cls, parameter_files, mode=0):
@@ -51,12 +50,10 @@ class Dataset:
                                         for input in pydsm_inputs])
         events = np.array([input.event
                                 for input in pydsm_inputs])
-        source_time_functions = np.array([input.source_time_function
-                                              for input in pydsm_inputs])
 
         return cls(
             lats, lons, phis, thetas, eqlats, eqlons,
-            r0s, mts, nrs, stations, events, source_time_functions)
+            r0s, mts, nrs, stations, events)
 
     @classmethod
     def dataset_from_sac(cls, sac_files):
@@ -115,8 +112,8 @@ class Dataset:
 
         events = [
             Event(id, lat, lon, depth, mt, source_time_function)
-            for id, lat, lon, depth, mt 
-            in zip(evids, eqlats, eqlons, eqdeps, mts)]
+            for id, lat, lon, depth, mt, source_time_function
+            in zip(evids, eqlats, eqlons, eqdeps, mts, source_time_functions)]
         stations = dataset_info.apply(
             lambda x: Station(x.names, x.nets, x.lats, x.lons),
             axis=1).values
@@ -126,7 +123,7 @@ class Dataset:
 
         return cls(
             lats, lons, phis, thetas, eqlats, eqlons,
-            r0s, mts, nrs, stations, events, source_time_functions)
+            r0s, mts, nrs, stations, events)
 
     def get_chunks_station(self, n_cores):
         chunk_size = self.nr // n_cores
