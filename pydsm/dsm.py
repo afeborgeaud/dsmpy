@@ -108,7 +108,7 @@ class DSMInput:
         """Build a DSMInput object from a DSM input file.
         Args:
             parameter_file (str): path of a DSM input file
-            mode (int): P-SV input file (0) or SH input file (1)
+            mode (int): computation mode. 0: both, 1: P-SV, 2: SH
         Return:
             DSMInput
         """
@@ -258,7 +258,7 @@ class DSMInput:
     def get_inputs_for_tish(self):
         # TODO modify fortran? Else, have to take care of case
         # number of core layers != 2
-        if self.mode == 0:
+        if self.mode == 0 or self.mode == 1:
             nzone = self.nzone - 2
             vrmin = np.pad(self.vrmin[2:], (0, 2), constant_values=0)
             vrmax = np.pad(self.vrmax[2:], (0, 2), constant_values=0)
@@ -267,7 +267,7 @@ class DSMInput:
             rho = np.pad(self.rho[:, 2:], npad, constant_values=0)
             vsv = np.pad(self.vsv[:, 2:], npad, constant_values=0)
             vsh = np.pad(self.vsh[:, 2:], npad, constant_values=0)
-        elif self.mode == 1:
+        else:
             nzone = self.nzone
             vrmin = self.vrmin
             vrmax = self.vrmax
@@ -304,7 +304,7 @@ class PyDSMInput(DSMInput):
         sampling_hz (int): sampling frequency for time-domain waveforms
         source_time_function (SourceTimeFunction): SourceTimeFunction
             object
-        mode (int): P-SV + SH (0) or SH only (1) or P-SV only (2)
+        mode (int): computation mode. 0: both, 1: P-SV, 2: SH
     """
 
     def __init__(
@@ -329,7 +329,7 @@ class PyDSMInput(DSMInput):
                 for time-domain waveforms
             source_time_function (SourceTimeFunction): 
                 SourceTimeFunction object
-            mode (int): P-SV input file (0) or SH input file (1)
+            mode (int): computation mode. 0: both, 1: P-SV, 2: SH
         Returns:
             PyDSMInput object
         """
@@ -528,15 +528,29 @@ def compute(pydsm_input, mode=0, write_to_file=False):
         or SH results in non-physical waves and should be avoided.
         See Kawai et al. (2006) for details.
     """
-    print('compute SH')
-    sh_spcs = _tish(*pydsm_input.get_inputs_for_tish(),
-                    write_to_file)
-    # FIXME memory error in tipsv.tipsv
-    # print('compute PSV')
-    # psv_spcs = _tipsv(*pydsm_input.get_inputs_for_tipsv(),
-    #    write_to_file)
-    # spcs = sh_spcs + psv_spcs
-    spcs = sh_spcs
+    if mode not in {0, 1, 2}:
+        raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
+                           .format(mode))
+    if mode == 0:
+        print('compute PSV')
+        spcs = _tipsv(
+            *pydsm_input.get_inputs_for_tipsv(),
+            write_to_file)
+        print('compute SH')
+        spcs += _tish(
+            *pydsm_input.get_inputs_for_tish(),
+            write_to_file)
+    elif mode == 1:
+        print('compute PSV')
+        spcs = _tipsv(
+            *pydsm_input.get_inputs_for_tipsv(),
+            write_to_file)
+    else:
+        print('compute SH')
+        spcs = _tish(
+            *pydsm_input.get_inputs_for_tish(),
+            write_to_file)
+    
     dsm_output = PyDSMOutput.output_from_pydsm_input(spcs, pydsm_input)
     return dsm_output
 
@@ -698,7 +712,7 @@ def compute_dataset_parallel(
     Args:
         dataset (Dataset): dataset of events & stations
         comm (MPI.COMM_WORLD): MPI communicator
-        mode (int): P-SV + SH (0) or SH (1) or P_SV (2)
+        mode (int): computation mode. 0: both, 1: P-SV, 2: SH
         write_to_file (bool): write output in Kibrary format
     
     Returns:
