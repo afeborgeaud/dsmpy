@@ -17,8 +17,8 @@ Compiled using numpy.f2py
 
 ## Usage
 ```python
-from pydsm import dsm, rootdsm
-parameter_file = rootdsm + 'AK135_SH.inf'
+from pydsm import dsm, rootdsm_sh
+parameter_file = rootdsm_sh + 'AK135_SH.inf'
 inputs = dsm.PyDSMInput.input_from_file(parameter_file)
 outputs = dsm.compute(inputs)
 outputs.to_time_domain()
