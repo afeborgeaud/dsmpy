@@ -27,6 +27,8 @@ def _mt_from_tensor(tensor):
     mt[1, 1] = tensor.m_tt
     mt[1, 2] = tensor.m_tp
     mt[2, 2] = tensor.m_pp
+    # unit conversion. DSM in units of 10**25 [dyne cm]
+    mt *= 1e-18
     return mt
     # return np.array(
     #     [tensor.m_rr, tensor.m_rt, tensor.m_rp,

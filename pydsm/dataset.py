@@ -28,8 +28,8 @@ class Dataset:
         self.source_time_functions = source_time_functions
 
     @classmethod
-    def dataset_from_files(cls, parameter_files):
-        pydsm_inputs = [PyDSMInput.input_from_file(file)
+    def dataset_from_files(cls, parameter_files, mode=0):
+        pydsm_inputs = [PyDSMInput.input_from_file(file, mode=mode)
                             for file in parameter_files]
         
         lats = np.concatenate([input.lat[:input.nr]

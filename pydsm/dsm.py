@@ -56,6 +56,9 @@ class PyDSMOutput:
         self.ts = np.linspace(0, self.tlen,
                               spct.npts, endpoint=False)
 
+    def set_source_time_function(self, source_time_function):
+        self.source_time_function = source_time_function
+
     def get_nr(self):
         return len(self.stations)
 
@@ -880,7 +883,7 @@ def compute_dataset_parallel(
         for i in range(len(splits)-1):
             start, end = splits[i], splits[i+1]
             output = PyDSMOutput(
-                spcs_gathered[:, :, start:end], 
+                spcs_gathered[:, :, start:end].transpose(0, 2, 1), 
                 dataset.stations[start:end],
                 dataset.events[i], 
                 dataset.source_time_functions[i],
