@@ -19,20 +19,19 @@ class PyDSMOutput:
         spcs (ndarray[3, nr, nspc+1]): array of spectra computed by DSM
         stations (ndarray[nr]): array of stations
         event (Event): earthquake information
-        source_time_function (SourceTimeFunction): source time function
-            in frequency domain
+        source_time_function (SourceTimeFunction): SourceTimeFunction
+            object
         sampling_hz (int): sampling frequency for time-domain waveforms
         tlen (float): length of time series (must be 2**n/10)
         nspc (int): number of frequency points (must be 2**n)
         omegai (float): 
     """
     def __init__(
-            self, spcs, stations, event, source_time_function,
+            self, spcs, stations, event,
             sampling_hz, tlen, nspc, omegai):
         self.spcs = spcs
         self.stations = stations
         self.event = event
-        self.source_time_function = source_time_function
         self.sampling_hz = sampling_hz
         self.tlen = tlen
         self.nspc = nspc
@@ -44,20 +43,20 @@ class PyDSMOutput:
     def output_from_pydsm_input(cls, spcs, pydsm_input):
         return cls(
             spcs, pydsm_input.stations, pydsm_input.event,
-            pydsm_input.source_time_function, pydsm_input.sampling_hz,
+            pydsm_input.sampling_hz,
             pydsm_input.tlen, pydsm_input.nspc, pydsm_input.omegai)
 
     def to_time_domain(self):
         spct = spctime.SpcTime(self.tlen, self.nspc,
                                self.sampling_hz, self.omegai,
-                               self.source_time_function)
+                               self.event.source_time_function)
         us = spct.spctime(self.spcs)
         self.us = us
         self.ts = np.linspace(0, self.tlen,
                               spct.npts, endpoint=False)
 
     def set_source_time_function(self, source_time_function):
-        self.source_time_function = source_time_function
+        self.event.source_time_function = source_time_function
 
     def get_nr(self):
         return len(self.stations)
@@ -294,23 +293,21 @@ class DSMInput:
             self.output)
         return inputs
 
-
 class PyDSMInput(DSMInput):
     """Input parameters for pydsm compute methods.
 
     Args:
         dsm_input (DSMInput): input parameters for Fortran DSM
         sampling_hz (int): sampling frequency for time-domain waveforms
-        source_time_function (SourceTimeFunction): source-time function
-            in frequency domain
+        source_time_function (SourceTimeFunction): SourceTimeFunction
+            object
         mode (int): P-SV + SH (0) or SH only (1) or P-SV only (2)
     """
     def __init__(
             self, dsm_input, sampling_hz=None,
-            source_time_function=None, mode=0):
+            mode=0):
         super().__init__(
             *dsm_input.get_inputs_for_tipsv())
-        self.source_time_function = source_time_function
         self.sampling_hz = self.find_optimal_sampling_hz(sampling_hz)
         self.stations = self._parse_stations()
         self.event = self._parse_event()
@@ -326,21 +323,21 @@ class PyDSMInput(DSMInput):
             parameter_file (str): path of a DSM input file
             sampling_hz (float): sampling frequency 
                 for time-domain waveforms
-            source_time_function (ndarray): source time function
-                in frequency domain
+            source_time_function (SourceTimeFunction): 
+                SourceTimeFunction object
             mode (int): P-SV input file (0) or SH input file (1)
         Returns:
             PyDSMInput object
         """
         dsm_input = DSMInput.input_from_file(parameter_file, mode)
-        pydsm_input = cls(dsm_input, sampling_hz,
-                          source_time_function, mode)
+        pydsm_input = cls(dsm_input, sampling_hz, mode)
+        pydsm_input.set_source_time_function(source_time_function)
         return pydsm_input
 
     @classmethod
     def input_from_arrays(
             cls, event, stations,
-            seismic_model, tlen, nspc, source_time_function,
+            seismic_model, tlen, nspc,
             sampling_hz):
         """Build a PyDSMInput from user-friendly arguments
         
@@ -353,16 +350,15 @@ class PyDSMInput(DSMInput):
                 (must be 2**n/10)
             nspc (int): number of frequency points for synthetics
                 (must be 2**n)
-            source_time_function (SourceTimeFunction): source time
-                function in frequency domain
             sampling_hz: sampling frequency for time-domain synthetics
         Returns:
             pydsm_input (PyDSMInput): PyDSMInput object
         """
         dsm_input = DSMInput.input_from_arrays(event, stations,
                                               seismic_model, tlen, nspc)
-        return cls(dsm_input, sampling_hz,
-                   source_time_function, mode=0)
+        pydsm_input = cls(dsm_input, sampling_hz, mode=0)
+        pydsm_input.set_source_time_function(event.source_time_function)
+        return pydsm_input
 
     def find_optimal_sampling_hz(self, sampling_hz):
         if sampling_hz is not None:
@@ -373,8 +369,8 @@ class PyDSMInput(DSMInput):
             optimal_sampling_hz = 40 / Tmin  # TODO: check this scaling
             return optimal_sampling_hz
 
-    def set_sourcetimefunction(self, sourcetimefunction):
-        self.sourcetimefunction = sourcetimefunction
+    def set_source_time_function(self, source_time_function):
+        self.event.source_time_function = source_time_function
 
     def _parse_stations(self):
         stations = []
@@ -395,7 +391,7 @@ class PyDSMInput(DSMInput):
         else:
             raise RuntimeError('{}'.format(event_id))
         event = Event(event_id, self.eqlat, self.eqlon,
-                      6371. - self.r0, self.mt)
+                      6371. - self.r0, self.mt, None)
         return event
 
 
@@ -430,29 +426,34 @@ class Event:
 
     Args:
         event_id (str): GCMT event name
-        latitude (float) centroid geographic latitude 
+        latitude (float): centroid geographic latitude 
             [-90, 90] in degree
-        longitude (float) centroid longitude 
+        longitude (float): centroid longitude 
             [-180, 180] in degree
         depth (float) centroid depth in km
-        mt (ndarray(3, 3)) moment tensor
+        mt (ndarray(3, 3)): moment tensor
+        source_time_function (SourceTimeFunction): SourceTimeFunction
+            object
     
     Attributes:
         event_id (str): GCMT event name
         latitude (float) centroid geographic latitude 
             [-90, 90] in degree
-        longitude (float) centroid longitude 
+        longitude (float): centroid longitude 
             [-180, 180] in degree
         depth (float) centroid depth in km
-        mt (ndarray(3, 3)) moment tensor
+        mt (ndarray(3, 3)): moment tensor
+        source_time_function (SourceTimeFunction): SourceTimeFunction
+            object
     """
-
-    def __init__(self, event_id, latitude, longitude, depth, mt):
+    def __init__(self, event_id, latitude, longitude, depth, mt,
+                 source_time_function):
         self.event_id = event_id
         self.latitude = latitude
         self.longitude = longitude
         self.depth = depth
         self.mt = mt
+        self.source_time_function = source_time_function
 
     @classmethod
     def event_from_catalog(cls, cat, event_id):
@@ -533,7 +534,6 @@ def compute_parallel(
         pydsm_input, comm, mode=0, write_to_file=False):
     """Compute spectra using DSM with data parallelization.
     """
-    #comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     n_cores = comm.Get_size()
     
@@ -885,8 +885,7 @@ def compute_dataset_parallel(
             output = PyDSMOutput(
                 spcs_gathered[:, :, start:end].transpose(0, 2, 1), 
                 dataset.stations[start:end],
-                dataset.events[i], 
-                dataset.source_time_functions[i],
+                dataset.events[i],
                 scalar_dict['sampling_hz'],
                 scalar_dict['tlen'],
                 scalar_dict['nspc'],

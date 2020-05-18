@@ -13,9 +13,11 @@ def get_input():
 
     mt = dsm.MomentTensor(Mrr=-0.193, Mrt=0.0998, Mrp=-0.148,
                                  Mtt=0.0571, Mtp=-0.141, Mpp=0.136)
+    source_time_function = None
 
     event = dsm.Event('', -1.600000023841858, -78.05000305175781,
-                      6371-6195.2, mt.to_array())
+                      6371-6195.2, mt.to_array(),
+                      source_time_function=source_time_function)
     stations = [
         dsm.Station('109C', 'TA', 32.88890075683594, -117.1051025390625)]
     tlen = 3276.8
@@ -25,7 +27,7 @@ def get_input():
 
     pydsm_input = dsm.PyDSMInput.input_from_arrays(
         event, stations, seismic_model,
-        tlen, nspc, source_time_function, sampling_hz)
+        tlen, nspc, sampling_hz)
     return pydsm_input
 
 def get_u_pydsm():

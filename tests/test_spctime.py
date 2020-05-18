@@ -10,10 +10,9 @@ from pydsm._tish import _pinput, _tish
 
 def get_u_pydsm():
     parameter_file = os.path.join(rootdsm_sh, 'AK135_SH_64.inf')
-    inputs = dsm.PyDSMInput.input_from_file(parameter_file,
-                                            sampling_hz=20,
-                                            source_time_function=None,
-                                            mode=1)
+    inputs = dsm.PyDSMInput.input_from_file(
+        parameter_file, sampling_hz=20,
+        source_time_function=None, mode=1)
     outputs = dsm.compute(inputs)
     outputs.to_time_domain()
     return outputs.us, outputs.ts
@@ -45,7 +44,7 @@ def plot(ts, udsm, upydsm):
 if __name__ == '__main__':
     udsm = get_u_dsm()
 
-    print('Computing waveform using pyDSM (np=512)')
+    print('Computing waveform using pyDSM')
     upydsms, ts = get_u_pydsm()
     upydsm = upydsms[2, 0]
 

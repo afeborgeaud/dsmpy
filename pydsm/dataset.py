@@ -104,20 +104,22 @@ class Dataset:
         r0s = 6371. - eqdeps
 
         # read event catalog
+        # TODO case when event_id is not in the catalog
         cat = read_catalog()
         events_ = cat[np.isin(cat, evids)]
         if len(events_) != len(evids):
             raise RuntimeError('Some events not in the catalog')
         mts = np.array([e.mt for e in events_])
+        source_time_functions = np.array(
+            [e.source_time_function for e  in events_])
 
         events = [
-            Event(id, lat, lon, depth, mt)
+            Event(id, lat, lon, depth, mt, source_time_function)
             for id, lat, lon, depth, mt 
             in zip(evids, eqlats, eqlons, eqdeps, mts)]
         stations = dataset_info.apply(
             lambda x: Station(x.names, x.nets, x.lats, x.lons),
             axis=1).values
-        source_time_functions = np.empty(nr, dtype=np.object)
 
         lons = np.array(lons)
         lats = np.array(lats)

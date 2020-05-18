@@ -1,6 +1,7 @@
 from obspy import read_events
 from pydsm import root_resources
 from pydsm.dsm import Event
+from pydsm.spc.spctime import SourceTimeFunction
 import numpy as np
 
 def convert_catalog():
@@ -9,13 +10,17 @@ def convert_catalog():
     events = np.empty(cat.count(), dtype=np.object)
     for i, event in enumerate(cat):
         tensor = event.preferred_focal_mechanism().moment_tensor.tensor
+        stf_obspy = (event.preferred_focal_mechanism().
+            moment_tensor.source_time_function)
+        source_time_function = SourceTimeFunction(
+            stf_obspy.type, 0.5*stf_obspy.duration)
         mt = _mt_from_tensor(tensor)
         lon = event.origins[1].longitude
         lat = event.origins[1].latitude
         depth = event.origins[1].depth / 1000.
         event_id = [e.text for e in event.event_descriptions
                            if e.type == 'earthquake name'][0][1:]
-        event = Event(event_id, lat, lon, depth, mt)
+        event = Event(event_id, lat, lon, depth, mt, source_time_function)
         events[i] = event
     np.save(root_resources + 'gcmt', events)
 

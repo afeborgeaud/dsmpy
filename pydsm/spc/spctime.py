@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+import warnings
 
 class SpcTime:
     def __init__(self, tlen, nspc, sampling_hz, omegai,
@@ -63,7 +63,10 @@ class SpcTime:
 
     def convolve(self, spc):
         if self.source_time_function is not None:
-            spc *= self.source_time_function
+            stf_freq = (self.source_time_function.
+                get_source_time_function_frequency_domain(
+                    self.tlen, self.nspc))
+            spc *= stf_freq
 
     def spctime(self, spcs):
         ''' spcs is the output of pyDSM.
@@ -83,6 +86,29 @@ class SpcTime:
 
 
 class SourceTimeFunction:
+    """Represent an earthquake source time function.
+    
+    Args:
+        type (str): 'triangle' or 'boxcar'
+        half_duration (float): half duration of the source time function
+    """
+    _types = {'triangle',}
+
+    def __init__(self, type: str, half_duration: float):
+        self.type = type
+        self.half_duration = half_duration
+
+        if self.type not in self._types:
+            raise RuntimeError('{} not implemented yet'.format(self.type))
+
+    def get_source_time_function_frequency_domain(self, tlen, nspc):
+        if self.type == 'triangle':
+            return SourceTimeFunction.triangle(
+                self.half_duration, tlen, nspc)
+        else:
+            warnings.warn('{} not implemented yet'.format(self.type))
+            return None
+
     @staticmethod
     def triangle(half_duration, tlen, nspc):
         deltaF = 1 / tlen
