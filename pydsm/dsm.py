@@ -112,7 +112,7 @@ class DSMInput:
         Return:
             DSMInput
         """
-        if mode == 0:
+        if mode == 0 or mode == 1:
             inputs = _pinput(parameter_file)
             (re, ratc, ratl,
              tlen, nspc, omegai,
@@ -124,7 +124,7 @@ class DSMInput:
             nr = inputs[23]
             (theta, phi, lat,
              lon, output) = inputs[24:]
-        elif mode == 1:
+        else:
             inputs = _pinput_sh(parameter_file)
             (re, ratc, ratl,
              tlen, nspc, omegai,
@@ -510,7 +510,7 @@ class MomentTensor:
         return mt
 
 
-def compute(pydsm_input, mode=0, write_to_file=False):
+def compute(pydsm_input, write_to_file=False):
     """Compute spectra using DSM.
 
     Args:
@@ -528,10 +528,10 @@ def compute(pydsm_input, mode=0, write_to_file=False):
         or SH results in non-physical waves and should be avoided.
         See Kawai et al. (2006) for details.
     """
-    if mode not in {0, 1, 2}:
+    if pydsm_input.mode not in {0, 1, 2}:
         raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
                            .format(mode))
-    if mode == 0:
+    if pydsm_input.mode == 0:
         print('compute PSV')
         spcs = _tipsv(
             *pydsm_input.get_inputs_for_tipsv(),
@@ -540,7 +540,7 @@ def compute(pydsm_input, mode=0, write_to_file=False):
         spcs += _tish(
             *pydsm_input.get_inputs_for_tish(),
             write_to_file)
-    elif mode == 1:
+    elif pydsm_input.mode == 1:
         print('compute PSV')
         spcs = _tipsv(
             *pydsm_input.get_inputs_for_tipsv(),
