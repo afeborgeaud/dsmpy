@@ -5,7 +5,7 @@ from pydsm.lib import tipsv
 
 
 def _pinput(parameter_file):
-    inputs = tipsv.pinput_fromfile(parameter_file)
+    inputs = tipsv.pinput_tipsv(parameter_file)
     return inputs
 
 

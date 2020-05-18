@@ -1,5 +1,5 @@
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine pinput_fromfile(parameter_file,&
+subroutine pinput_tipsv(parameter_file,&
     re,ratc,ratl,tlen,np,omegai,imin,imax,&
     nzone,vrmin,vrmax,rho,vpv,vph,vsv,vsh,eta,qmu,qkappa,&
     r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
@@ -7,15 +7,15 @@ subroutine pinput_fromfile(parameter_file,&
     implicit none
     character*160, intent(in):: parameter_file
     integer,intent(out):: np,imin,imax,nzone,nr
-    double precision,intent(out):: tlen,omegai,re,ratc,ratl
-    double precision,dimension(maxnzone),intent(out):: vrmin,vrmax,qmu,qkappa
-    double precision,dimension(4,maxnzone),intent(out)::rho,vpv,vph,vsv,vsh,eta
-    double precision,dimension(maxnr),intent(out)::theta,phi,lat,lon
-    double precision,intent(out):: eqlat,eqlon,r0,mt(3,3)
+    real(dp),intent(out):: tlen,omegai,re,ratc,ratl
+    real(dp),dimension(maxnzone),intent(out):: vrmin,vrmax,qmu,qkappa
+    real(dp),dimension(4,maxnzone),intent(out)::rho,vpv,vph,vsv,vsh,eta
+    real(dp),dimension(maxnr),intent(out)::theta,phi,lat,lon
+    real(dp),intent(out):: eqlat,eqlon,r0,mt(3,3)
     character*80,dimension(maxnr),intent(out):: output
     integer:: i,linenum,io
+    real(dp):: eqlattmp,stlat,stlon
     logical:: file_exists
-    double precision:: eqlattmp,stlat,stlon
     character*80::buffer
     character*80,dimension(1000):: lines
 
@@ -24,7 +24,7 @@ subroutine pinput_fromfile(parameter_file,&
     if (.not. file_exists) stop 'parameter file does not exist.'
 
     linenum=0
-    open(1, file=parameter_file,status='old',action='read')
+    open(1,file=parameter_file,status='old',action='read')
     do
         read (1,'(a)', iostat=io) buffer
         buffer = adjustl(buffer)
@@ -45,6 +45,7 @@ subroutine pinput_fromfile(parameter_file,&
     read(lines(6),*) imin,imax
     read(lines(7),*) nzone
     if ( nzone>maxnzone ) stop 'nzone is too large. (pinput)'
+! structure
     do i=1, nzone
         read(lines(7+6*(i-1)+1),*) vrmin(i),vrmax(i),rho(1:4,i)
         read(lines(7+6*(i-1)+2),*) vpv(1:4,i)
@@ -53,11 +54,13 @@ subroutine pinput_fromfile(parameter_file,&
         read(lines(7+6*(i-1)+5),*) vsh(1:4,i)
         read(lines(7+6*(i-1)+6),*) eta(1:4,i),qmu(i),qkappa(i)
     enddo
+! source
     read(lines(8+6*nzone),*) r0,eqlat,eqlon
     eqlattmp = eqlat
     call translat(eqlattmp,eqlattmp)
     read(lines(9+6*nzone),*) mt(1,1:3),mt(2,2:3),mt(3,3)
     read(lines(10+6*nzone),*) nr
+!station
     if ( nr>maxnr ) stop 'nr is too large. (pinput)'
     do  i=1,nr
         read(lines(10+6*nzone+i),*) lat(i),lon(i)
@@ -71,7 +74,7 @@ subroutine pinput_fromfile(parameter_file,&
         output(i)=trim(output(i))
     enddo
     return
-   end subroutine
+end subroutine
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine calthetaphi(ievla,ievlo,istla,istlo,theta,phi)

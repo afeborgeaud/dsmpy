@@ -19,7 +19,7 @@ def _pinput(parameter_file):
         inputs (tuple): tupe of input parameters 
             (in correct order for _tish)
     """
-    inputs = tish.pinput_fromfile(parameter_file)
+    inputs = tish.pinput_tish(parameter_file)
     return inputs
 
 def _tish(

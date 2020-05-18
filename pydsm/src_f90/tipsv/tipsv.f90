@@ -728,7 +728,7 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
    call get_command_argument(1, parameter_file)
    print*,parameter_file
 
-   call pinput_fromfile(parameter_file, &
+   call pinput_tipsv(parameter_file, &
       re,ratc,ratl,tlen,np,omegai,imin,imax, &
       nzone,vrmin,vrmax,rho,vpv,vph,vsv,vsh,eta,qmu,qkappa, &
       r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)

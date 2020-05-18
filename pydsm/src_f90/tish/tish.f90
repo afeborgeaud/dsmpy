@@ -13,7 +13,6 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
 !------------------------------------------------------------------------
       use parameters
       implicit none
-
 ! ----------------------------<<variables>>----------------------------
 ! write to files?
       logical, intent(in) :: write_to_file
@@ -360,7 +359,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
             maxamp = -1.d0
             llog = maxlmax
             do l=0,maxlmax	! l-loop
-               if( ismall.gt.20 ) then
+               if( ismall>20 ) then
                   if(llog.gt.l) llog = l
                   cycle
                endif
@@ -495,7 +494,7 @@ program main
 
    ! read input parameters
    call get_command_argument(1, parameter_file)
-   call pinput_fromfile(parameter_file, &
+   call pinput_tish(parameter_file, &
       re,ratc,ratl,tlen,np,omegai,imin,imax, &
       nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
       r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)

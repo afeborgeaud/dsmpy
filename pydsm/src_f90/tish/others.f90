@@ -1,183 +1,167 @@
-!------------------------------------------------------------------------
-subroutine pinput_fromfile(parameter_file, &
-      re,ratc,ratl,tlen,np,omegai,imin,imax, &
-      nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
-      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
+subroutine pinput_tish(parameter_file, &
+    re,ratc,ratl,tlen,np,omegai,imin,imax, &
+    nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
+    r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
 !------------------------------------------------------------------------
 ! Parameter Input
 !------------------------------------------------------------------------
-      use parameters
-      implicit none
+    use parameters
+    implicit none
+    character*160, intent(in) :: parameter_file
+    integer, intent(out):: np,imin,imax,nzone,nr
+    real(dp),intent(out) :: tlen,omegai,re,ratc,ratl
+    real(dp),dimension(maxnzone), intent(out):: vrmin,vrmax,qmu
+    real(dp),dimension(4,maxnzone), intent(out):: rho,vsv,vsh
+    real(dp),dimension(maxnr), intent(out) :: theta,phi,lat,lon
+    real(dp),intent(out) :: eqlat,eqlon,r0,mt(3,3)
+    character*80,dimension(maxnr),intent(out) :: output
+    real(dp) :: stlat,stlon,eqlattmp
+    integer i,linenum,io
+    logical:: file_exists
+    character*80::buffer
+    character*80,dimension(1000) :: lines
 
-      integer, parameter :: MAX_LINES = 10000
-      character*160, intent(in) :: parameter_file
-      integer, intent(out) :: np
-      integer, intent(out) :: imin,imax
-      integer, intent(out) :: nzone,nr
-      real(dp), intent(out) :: tlen,omegai,re,ratc,ratl
-      real(dp), dimension(maxnzone), intent(out) :: vrmin,vrmax,qmu
-      real(dp), dimension(4,maxnzone), intent(out) :: rho,vsv,vsh
-      real(dp), intent(out) :: r0,mt(3,3)
-      real(dp), dimension(maxnr), intent(out) :: theta,phi,lat,lon
-      real(dp), intent(out) :: eqlat,eqlon
-      character*80, dimension(maxnr), intent(out) :: output
-      real(dp) :: stlat,stlon,eqlattmp
-      integer i,j,io
-      character*80 :: line
-      character*80, dimension(MAX_LINES) :: lines
-!
-! reading the parameter file
-      j = 1
-      io = 0
-      open(unit=11, file=parameter_file, status='old',action='read')
-      do while (io == 0)
-            read(11, '(a80)', iostat=io) line
-            if (line(1:1) /= 'c' .and. line(1:3) /= 'end') then
-                  lines(j) = line
-                  j = j + 1
-            endif
-      enddo
-      close(11)
+    inquire(file=parameter_file,exist=file_exists)
+    if (.not. file_exists) stop 'parameter file does not exist.'
 
-      read(lines(1),*) tlen,np
-      read(lines(2),*) re		! relative error (vertical grid)
-      read(lines(3),*) ratc		! ampratio (vertical grid cut-off)
-      read(lines(4),*) ratl		! ampratio (for l-cutoff)
-      read(lines(5),*) omegai	! omegai
-      omegai = - dlog(omegai) / tlen
-!
-      read(lines(6),*) imin,imax
-      read(lines(7),*) nzone
-      if (nzone > maxnzone) then
-            write(*,*) 'nzone is too large. (pinput)'
-            return
-      endif
+    linenum=0
+    open(unit=1,file=parameter_file,status='old',action='read')
+    do
+        read(1, '(a)', iostat=io) buffer
+        buffer = adjustl(buffer)
+        if(buffer(1:1)=='c'.or.buffer(1:1)=='c'.or.buffer(1:1)=='!') cycle
+        if(io/=0) exit
+        linenum=linenum+1
+        lines(linenum) = buffer
+    enddo
+    close(1)
+
+    read(lines(1),*)tlen,np
+    read(lines(2),*)re ! relative error (vertical grid)
+    read(lines(3),*)ratc ! ampratio (vertical grid cut-off)
+    read(lines(4),*)ratl ! ampratio (for l-cutoff)
+    read(lines(5),*)omegai ! omegai
+    omegai=-dlog(omegai)/tlen
+    read(lines(6),*) imin,imax
+    read(lines(7),*) nzone
+    if (nzone > maxnzone) stop 'nzone is too large. (pinput)'
+
 ! structure
-      do i=1,nzone
-            read(lines(7+3*(i-1)+1),*) vrmin(i),vrmax(i), &
-                  rho(1,i),rho(2,i),rho(3,i),rho(4,i)
-            read(lines(7+3*(i-1)+2),*) vsv(1,i),vsv(2,i),vsv(3,i), &
-                  vsv(4,i)
-            read(lines(7+3*(i-1)+3),*) vsh(1,i),vsh(2,i),vsh(3,i), &
-                  vsh(4,i),qmu(i)
-      enddo
+    do i=1,nzone
+        read(lines(7+3*(i-1)+1),*) vrmin(i),vrmax(i),rho(1:4,i)
+        read(lines(7+3*(i-1)+2),*) vsv(1:4,i)
+        read(lines(7+3*(i-1)+3),*) vsh(1:4,i),qmu(i)
+    enddo
 ! source parameter
-      read(lines(3*nzone+8),*) r0,eqlat,eqlon
-      call translat(eqlat,eqlattmp)
-      read(lines(3*nzone+9),*) mt(1,1),mt(1,2),mt(1,3), &
-            mt(2,2),mt(2,3),mt(3,3)
-      read(lines(3*nzone+10),*) nr
-      if (nr > maxnr) then
-            write(*,*) 'nr is too large. (pinput)'
-            return
-      endif
-      do i=1,nr
-            read(lines(3*nzone+10+i),*) lat(i),lon(i)
-            stlat = lat(i)
-            stlon = lon(i)
-            call translat(lat(i),stlat)
-            call calthetaphi(eqlattmp,eqlon,stlat,stlon,theta(i),phi(i))
-      enddo
-      do i=1,nr
-            read(lines(3*nzone+10+nr+i),'(a80)') output(i)
-      enddo
-
-      return
-      end
+    read(lines(3*nzone+8),*) r0,eqlat,eqlon
+    call translat(eqlat,eqlattmp)
+    read(lines(3*nzone+9),*) mt(1,1:3),mt(2,2:3),mt(3,3)
+    read(lines(3*nzone+10),*) nr
+! station
+    if (nr > maxnr) stop 'nr is too large. (pinput)'
+    do i=1,nr
+        read(lines(3*nzone+10+i),*) lat(i),lon(i)
+        stlat = lat(i)
+        stlon = lon(i)
+        call translat(lat(i),stlat)
+        call calthetaphi(eqlattmp,eqlon,stlat,stlon,theta(i),phi(i))
+    enddo
+    do i=1,nr
+        read(lines(3*nzone+10+nr+i),'(a)') output(i)
+        output(i)=trim(output(i))
+    enddo
+    return
+    end
 !------------------------------------------------------------------------
 subroutine calthetaphi(ievla,ievlo,istla,istlo,theta,phi)
 !------------------------------------------------------------------------
-      use parameters
-      implicit none
+    use parameters
+    implicit none
 !
-      real(dp), intent(in) :: ievla,ievlo,istla,istlo
-      real(dp), intent(out) :: theta,phi
-      real(dp) evla,evlo,stla,stlo
-      real(dp) gcarc,az
-      real(dp) tc,ts
+    real(dp), intent(in) :: ievla,ievlo,istla,istlo
+    real(dp), intent(out) :: theta,phi
+    real(dp) evla,evlo,stla,stlo
+    real(dp) gcarc,az,tc,ts
 !
 ! transformation to spherical coordinates
 !
-      evla = 90.d0 - ievla
-      stla = 90.d0 - istla
+    evla = 90.d0 - ievla
+    stla = 90.d0 - istla
 !
-      evla = evla / 1.8d2 * pi
-      evlo = ievlo / 1.8d2 * pi
-      stla = stla / 1.8d2 * pi
-      stlo = istlo / 1.8d2 * pi
+    evla = evla / 1.8d2 * pi
+    evlo = ievlo / 1.8d2 * pi
+    stla = stla / 1.8d2 * pi
+    stlo = istlo / 1.8d2 * pi
 !
-      gcarc = dacos( dcos(evla) * dcos(stla) &
-          + dsin(evla) * dsin(stla) * dcos(evlo - stlo) )
+    gcarc = dacos( dcos(evla) * dcos(stla) &
+        + dsin(evla) * dsin(stla) * dcos(evlo - stlo) )
 !
-      tc = ( dcos(stla) * dsin(evla)  &
-          - dsin(stla) * dcos(evla) * dcos(stlo - evlo) ) &
-          / dsin(gcarc)
-      ts = dsin(stla) * dsin(stlo - evlo) / dsin(gcarc)
+    tc = ( dcos(stla) * dsin(evla)  &
+        - dsin(stla) * dcos(evla) * dcos(stlo - evlo) ) &
+        / dsin(gcarc)
+    ts = dsin(stla) * dsin(stlo - evlo) / dsin(gcarc)
 !
       ! rouding errors might lead to tc > 1
-      if (tc > 1.d0) tc = 1.d0
-      az = dacos(tc)
-      if( ts .lt. 0.d0 ) az = -1.d0 * az
+    if (tc > 1.d0) tc = 1.d0
+    az = dacos(tc)
+    if( ts < 0.d0 ) az = -1.d0 * az
 !
-      az = az * 1.8d2 / pi
+    az = az * 1.8d2 / pi
 
-      gcarc = gcarc * 1.8d2 / pi
+    gcarc = gcarc * 1.8d2 / pi
 !
-      theta = gcarc
-      phi   = 180.d0 - az
-      return
-      end
+    theta = gcarc
+    phi   = 180.d0 - az
+    return
+end
 !------------------------------------------------------------------------
-      subroutine translat(geodetic,geocentric)
+subroutine translat(geodetic,geocentric)
 !------------------------------------------------------------------------
-      use parameters
-      implicit none
+    use parameters
+    implicit none
 
-      real*8, intent(in) :: geodetic
-      real*8, intent(out) :: geocentric
-      real*8 tmp
-      integer flag
+    real(dp), intent(in) :: geodetic
+    real(dp), intent(out) :: geocentric
+    real(dp):: tmp
+    integer flag
 
-      tmp = geodetic
+    tmp = geodetic
 
-      flag = 0
-      if(geodetic .gt. 90.d0) then
-            tmp = 1.8d2 - geodetic
-         flag = 1
-      endif
-!
-      tmp = tmp / 1.8d2 * pi
-      geocentric = datan( (1.d0 - flattening) * (1.d0 - flattening) &
-          * dtan(tmp) )
-      geocentric = geocentric * 1.8d2 / pi
+    flag = 0
+    if(geodetic .gt. 90.d0) then
+        tmp = 1.8d2 - geodetic
+        flag = 1
+    endif
+
+    tmp = tmp / 1.8d2 * pi
+    geocentric = datan( (1.d0 - flattening) * (1.d0 - flattening) &
+        * dtan(tmp) )
+    geocentric = geocentric * 1.8d2 / pi
 !      if(geocentric .lt. 0.d0 ) geocentric = 1.8d2 + geocentric
-      if(flag .eq. 1) then
-         geocentric = 1.8d2 - geocentric
-      endif
+    if(flag ==1) geocentric = 1.8d2 - geocentric
 !      write(6,*) 'geocentric latitude', geocentric
-      return
-      end
+    return
+end
 !------------------------------------------------------------------------
-      subroutine calgrid( nzone,vrmin,vrmax,vs,rmin,rmax, &
-     	                    imax,lmin,tlen,vmin,gridpar,dzpar )
+subroutine calgrid( nzone,vrmin,vrmax,vs,rmin,rmax, &
+            imax,lmin,tlen,vmin,gridpar,dzpar )
 !------------------------------------------------------------------------
-      real*8, parameter :: pi=3.1415926535897932d0
+    use parameters
+    integer nzone,imax,lmin
+    real*8 vrmin(*),vrmax(*),vs(4,*)
+    real*8 rmin,rmax,tlen,vmin(*),gridpar(*),dzpar(*)
+    integer izone,i,j
+    real*8 coef1,coef2,v(4),vs1,vs2,rh,omega,amax,gtmp
 !
-      integer nzone,imax,lmin
-      real*8 vrmin(*),vrmax(*),vs(4,*)
-      real*8 rmin,rmax,tlen,vmin(*),gridpar(*),dzpar(*)
-      integer izone,i,j
-      real*8 coef1,coef2,v(4),vs1,vs2,rh,omega,amax,gtmp
-!
-      do 130 izone=1,nzone
+    do 130 izone=1,nzone
 ! computing the S-velocity at each zone
-      do 110 i=1,4
-	      v(i) = vs(i,izone)
- 110	   continue
+    do 110 i=1,4
+        v(i) = vs(i,izone)
+ 110   continue
         vs1 = 0.d0
         vs2 = 0.d0
         do 120 j=1,4
-	    if ( j.eq.1 ) then
+	    if ( j==1 ) then
 	      coef1 = 1.d0
 	     else
 	      coef1 = coef1 * ( vrmin(izone) / rmax )
@@ -237,10 +221,9 @@ subroutine calthetaphi(ievla,ievlo,istla,istlo,theta,phi)
       end
 !
 !------------------------------------------------------------------------
-	subroutine calra( maxnlay,maxnzone, &
-     	                  nlayer, &
-     	                  gridpar,dzpar,nzone,vrmin,vrmax, &
-     	                  rmin,rmax,nnl,ra,re )
+subroutine calra( maxnlay,maxnzone, &
+        nlayer,gridpar,dzpar,nzone,vrmin,vrmax, &
+                rmin,rmax,nnl,ra,re )
 !------------------------------------------------------------------------
 ! Computing the number and the location of grid points.
 !------------------------------------------------------------------------
