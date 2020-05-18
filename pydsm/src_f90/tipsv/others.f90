@@ -181,7 +181,6 @@ subroutine translat(geodetic,geocentric)
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
     use parameters
     implicit none
-    double precision,parameter :: flattening = 1.d0 / 298.25d0
     double precision,intent(in):: geodetic
     double precision,intent(out):: geocentric
     double precision:: tmp_geodetic
