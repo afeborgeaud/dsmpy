@@ -2,15 +2,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
-from pydsm import dsm
+from pydsm import dsm, rootdsm_sh
 from pydsm.spc import spctime
-from pydsm import rootdsm_sh
+
+from pydsm._tish import _pinput, _tish
 
 
 def get_u_pydsm():
     parameter_file = os.path.join(rootdsm_sh, 'AK135_SH_64.inf')
     inputs = dsm.PyDSMInput.input_from_file(parameter_file,
-                                            sampling_hz=20)
+                                            sampling_hz=20,
+                                            source_time_function=None,
+                                            mode=1)
     outputs = dsm.compute(inputs)
     outputs.to_time_domain()
     return outputs.us, outputs.ts

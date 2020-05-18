@@ -96,14 +96,14 @@ subroutine pinput_fromfile(parameter_file, &
       integer, intent(out) :: np
       integer, intent(out) :: imin,imax
       integer, intent(out) :: nzone,nr
-      real*8, intent(out) :: tlen,omegai,re,ratc,ratl
-      real*8, dimension(maxnzone), intent(out) :: vrmin,vrmax,qmu
-      real*8, dimension(4,maxnzone), intent(out) :: rho,vsv,vsh
-      real*8, intent(out) :: r0,mt(3,3)
-      real*8, dimension(maxnr), intent(out) :: theta,phi,lat,lon
-      real*8, intent(out) :: eqlat,eqlon
+      real(dp), intent(out) :: tlen,omegai,re,ratc,ratl
+      real(dp), dimension(maxnzone), intent(out) :: vrmin,vrmax,qmu
+      real(dp), dimension(4,maxnzone), intent(out) :: rho,vsv,vsh
+      real(dp), intent(out) :: r0,mt(3,3)
+      real(dp), dimension(maxnr), intent(out) :: theta,phi,lat,lon
+      real(dp), intent(out) :: eqlat,eqlon
       character*80, dimension(maxnr), intent(out) :: output
-      real*8 :: stlat,stlon,eqlattmp
+      real(dp) :: stlat,stlon,eqlattmp
       integer i,j,io
       character*80 :: line
       character*80, dimension(MAX_LINES) :: lines
@@ -167,16 +167,16 @@ subroutine pinput_fromfile(parameter_file, &
       return
       end
 !------------------------------------------------------------------------
-      subroutine calthetaphi(ievla,ievlo,istla,istlo,theta,phi)
+subroutine calthetaphi(ievla,ievlo,istla,istlo,theta,phi)
 !------------------------------------------------------------------------
+      use parameters
       implicit none
-      real*8, parameter :: pi = 3.1415926535897932d0
 !	
-      real*8, intent(in) :: ievla,ievlo,istla,istlo
-      real*8, intent(out) :: theta,phi
-      real*8 evla,evlo,stla,stlo
-      real*8 gcarc,az
-      real*8 tc,ts
+      real(dp), intent(in) :: ievla,ievlo,istla,istlo
+      real(dp), intent(out) :: theta,phi
+      real(dp) evla,evlo,stla,stlo
+      real(dp) gcarc,az
+      real(dp) tc,ts
 !
 ! transformation to spherical coordinates
 !
@@ -196,6 +196,8 @@ subroutine pinput_fromfile(parameter_file, &
           / dsin(gcarc)
       ts = dsin(stla) * dsin(stlo - evlo) / dsin(gcarc)
 !
+      ! rouding errors might lead to tc > 1
+      if (tc > 1.d0) tc = 1.d0
       az = dacos(tc)
       if( ts .lt. 0.d0 ) az = -1.d0 * az
 !
@@ -210,18 +212,13 @@ subroutine pinput_fromfile(parameter_file, &
 !------------------------------------------------------------------------
       subroutine translat(geodetic,geocentric)
 !------------------------------------------------------------------------
+      use parameters
       implicit none
 
-      real*8, parameter :: flattening = 1.d0 / 298.25d0
-! specfem flattening is f = 1/299.8
-!      parameter ( flattening = 1.d0 / 299.8d0)
-!      parameter ( flattening = 1.d0 / 297.d0 )
-      real*8, parameter :: pi = 3.1415926535897932d0
       real*8, intent(in) :: geodetic
       real*8, intent(out) :: geocentric
       real*8 tmp
       integer flag
-!      read(5,*) geodetic
 
       tmp = geodetic
 

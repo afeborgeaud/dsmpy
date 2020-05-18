@@ -7,3 +7,4 @@
 .idea
 lib
 a.out
+tests/*npy

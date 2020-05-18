@@ -84,10 +84,9 @@ class SpcTime:
 
 class SourceTimeFunction:
     @staticmethod
-    def triangle(half_duration, dsm_input):
-        deltaF = 1 / dsm_input.get_tlen()
+    def triangle(half_duration, tlen, nspc):
+        deltaF = 1 / tlen
         constant = 2 * np.pi * deltaF * half_duration
-        nspc = dsm_input.get_nspc()
         stf = np.zeros(nspc + 1, dtype=np.complex128)
         for i in range(nspc):
             omega_tau = (i + 1) * constant

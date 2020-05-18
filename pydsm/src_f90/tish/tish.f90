@@ -506,7 +506,7 @@ program main
    write(*,*) 'Enter main loop'
    call tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
-      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output,outputu, write_to_file)
+      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output,write_to_file,outputu)
    write(*,*) 'Done!'
 
 end program main

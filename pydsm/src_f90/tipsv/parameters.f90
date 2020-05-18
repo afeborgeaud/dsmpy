@@ -3,7 +3,7 @@ module parameters
     real(dp), parameter :: pi=3.1415926535897932d0
 
     integer, parameter :: maxnzone = 20
-    integer, parameter :: maxnr = 600
+    integer, parameter :: maxnr = 1000
     integer, parameter :: maxlmax = 80000
     integer, parameter :: maxnlay = 80880
     integer, parameter :: maxnslay = 48840
