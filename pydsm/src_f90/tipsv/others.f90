@@ -31,10 +31,10 @@ subroutine pinput2(maxnzone,maxnr,re,ratc,ratl,tlen,np,omegai,imin,imax,&
 
 ! reading the parameter
     read(lines(1),*) tlen,np
-    read(lines(2),*) re		! relative error (vertical grid)
-    read(lines(3),*) ratc		! ampratio (vertical grid cut-off)
-    read(lines(4),*) ratl		! ampratio (for l-cutoff)
-    read(lines(5),*) omegai	! artificial damping
+    read(lines(2),*) re ! relative error (vertical grid)
+    read(lines(3),*) ratc ! ampratio (vertical grid cut-off)
+    read(lines(4),*) ratl ! ampratio (for l-cutoff)
+    read(lines(5),*) omegai ! artificial damping
     omegai = - dlog(omegai) / tlen
     read(lines(6),*) imin,imax
     read(lines(7),*) nzone
@@ -105,10 +105,10 @@ subroutine pinput_fromfile(parameter_file,&
 
 ! reading the parameter
     read(lines(1),*) tlen,np
-    read(lines(2),*) re		! relative error (vertical grid)
-    read(lines(3),*) ratc		! ampratio (vertical grid cut-off)
-    read(lines(4),*) ratl		! ampratio (for l-cutoff)
-    read(lines(5),*) omegai	! artificial damping
+    read(lines(2),*) re! relative error (vertical grid)
+    read(lines(3),*) ratc! ampratio (vertical grid cut-off)
+    read(lines(4),*) ratl! ampratio (for l-cutoff)
+    read(lines(5),*) omegai! artificial damping
     omegai = - dlog(omegai) / tlen
     read(lines(6),*) imin,imax
     read(lines(7),*) nzone
@@ -143,9 +143,9 @@ subroutine pinput_fromfile(parameter_file,&
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine calthetaphi(ievla,ievlo,istla,istlo,theta,phi)
-    !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
-    double precision,parameter:: pi = 3.1415926535897932d0
     double precision,intent(in):: ievla,ievlo,istla,istlo
     double precision,intent(out):: theta,phi
     double precision:: evla,evlo,stla,stlo
@@ -179,9 +179,9 @@ end
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine translat(geodetic,geocentric)
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
     double precision,parameter :: flattening = 1.d0 / 298.25d0
-    double precision,parameter :: pi = 3.1415926535897932d0
     double precision,intent(in):: geodetic
     double precision,intent(out):: geocentric
     double precision:: tmp_geodetic
@@ -230,7 +230,8 @@ end
 subroutine calgrid( nzone,vrmin,vrmax,vp,vs,rmin,rmax,&
     imax,lmin,tlen,vmin,gridpar,dzpar )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    double precision, parameter:: pi=3.1415926535897932d0
+    use parameters
+    implicit none
     integer:: nzone,imax,lmin
     double precision:: vrmin(*),vrmax(*),vp(4,*),vs(4,*)
     double precision:: rmin,rmax,tlen,vmin(*),gridpar(*),dzpar(*)
@@ -240,13 +241,9 @@ subroutine calgrid( nzone,vrmin,vrmax,vp,vs,rmin,rmax,&
     do izone=1,nzone
         ! computing the S-velocity at each zone
         if ( vs(1,izone)==0.d0 ) then
-            do i=1,4
-                v(i) = vp(i,izone)
-            enddo
+            v(1:4) = vp(1:4,izone)
         else
-            do i=1,4
-                v(i) = vs(i,izone)
-            enddo
+            v(1:4) = vs(1:4,izone)
         endif
         vs1 = 0.d0
         vs2 = 0.d0
@@ -311,19 +308,17 @@ subroutine calgrid( nzone,vrmin,vrmax,vp,vs,rmin,rmax,&
 end
 !
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine calra( maxnlay,maxnslay,maxnllay,maxnzone,&
-    nlayer,inlayer,jnlayer,jnslay,jnllay,&
-    gridpar,dzpar,nzone,vrmin,vrmax,iphase,&
-    rmin,rmax,r0,nslay,nllay,nnl,ra,re )
+subroutine calra(inlayer,jnlayer,jnslay,jnllay,&
+    dzpar,nzone,vrmin,vrmax,iphase,&
+    rmin,nslay,nllay,nnl,ra,re )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Computing the number and the location of grid points.
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
-    double precision, parameter:: pi=3.1415926535897932d0
-    integer:: maxnlay,maxnslay,maxnllay,maxnzone
-    integer:: nlayer,inlayer,jnlayer,jnslay,jnllay
+    integer:: inlayer,jnlayer,jnslay,jnllay
     integer:: nzone,iphase(*),nslay,nllay,nnl(maxnzone)
-    double precision:: gridpar(*),dzpar(*),vrmin(*),vrmax(*),rmin,rmax,r0
+    double precision:: dzpar(*),vrmin(*),vrmax(*),rmin
     double precision:: ra(maxnlay+maxnzone+1)
     integer:: izone,itmp,i,ntmp
     double precision:: rh,re
@@ -381,15 +376,16 @@ end
 !
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine calsp( maxnzone,ndc,nsl,nll,&
-    iphase,nlayer,nslay,nllay,&
+    iphase,nlayer,nllay,&
     isp,jsp,ksp,issp,ilsp,lsp,jssp,&
     isdr,jsdr,ildr,jdr,kdr )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Computing the stack points.
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    implicit none
     integer:: maxnzone
     integer:: ndc,nsl,nll,iphase(*),nlayer(maxnzone)
-    integer:: nslay,nllay
+    integer:: nllay
     integer:: isp(maxnzone),jsp(maxnzone),ksp(maxnzone)
     integer:: issp(maxnzone),ilsp(maxnzone)
     integer:: lsp(maxnzone),jssp(maxnzone)
@@ -453,16 +449,16 @@ subroutine calsp( maxnzone,ndc,nsl,nll,&
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine calspo( maxnlay,maxnzone,&
-    ndc,rdc,iphase,inlayer,&
+    rdc,iphase,inlayer,&
     r0,rmin,rmax,ra,isp,spo,spn )
     implicit none
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Computing the source location.
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    integer:: maxnlay,maxnzone,ndc,iphase(*)
+    integer:: maxnlay,maxnzone,iphase(*)
     integer:: inlayer,isp(maxnzone),spn
     double precision:: rdc(*),r0,rmin,rmax,ra(maxnlay+maxnzone+1),spo
-    integer:: itmp,idr
+    integer:: itmp
     !
     ! checking the parameter
     if ( (r0<rmin).or.(r0>rmax) ) stop 'The source location is improper.(calspo)'
@@ -516,14 +512,14 @@ subroutine calspo( maxnlay,maxnzone,&
     end
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine calstg( maxnlay,maxnzone, nzone,iphase,rrho,&
+subroutine calstg( maxnlay,maxnzone,nzone,rrho,&
     vpv,vph,vsv,vsh,eta,nnl,ra,rmax,&
     vnp,vra,rho,kappa,ecKx,ecKy,ecKz,&
     mu,ecL,ecN, r0,spn,ecC0,ecF0,ecL0 )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Computing the structure grid points.
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    integer:: maxnlay,maxnzone,nzone,iphase(*),nnl(*),vnp,spn
+    integer:: maxnlay,maxnzone,nzone,nnl(*),vnp,spn
     double precision:: rrho(4,*),vpv(4,*),vph(4,*),vsv(4,*),vsh(4,*),eta(4,*)
     double precision:: ra(*),rmax
     double precision:: vra(*),rho(*),kappa(*),ecKx(*),ecKy(*),ecKz(*)
@@ -680,18 +676,6 @@ subroutine caltstg( maxnlay,maxnzone,nzone,rrho,vpv,vph,vsv,vsh,eta,nnl,ra,rmax,
 end
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine submat( nlayer,ha,hb,h )
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-! Subtracting matrix `hb' from matrix `ha'.
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    integer:: nlayer
-    double precision:: ha(*),hb(*),h(*)
-
-    h(1:4*nlayer) = ha(1:4*nlayer) - hb(1:4*nlayer)
-    return
-    end
-
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine calspdr( maxnzone,nzone,iphase,nlayer,jjdr,kkdr )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
     implicit none
@@ -721,12 +705,12 @@ subroutine calspdr( maxnzone,nzone,iphase,nlayer,jjdr,kkdr )
 end
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine calmdr( omega,l,nzone,vrmin,vrmax,vmin,dzpar,rmax,sufzone )
+subroutine calmdr( omega,l,nzone,vrmax,vmin,rmax,sufzone )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
-    double precision,parameter ::pi=3.1415926535897932d0
     integer:: l,nzone,sufzone
-    double precision:: omega,vrmin(*),vrmax(*),vmin(*),dzpar(*),rmax
+    double precision:: omega,vrmax(*),vmin(*),rmax
     integer:: izone
     double precision:: gtmp,tdzpar
     !
@@ -751,37 +735,13 @@ subroutine calmdr( omega,l,nzone,vrmin,vrmax,vmin,dzpar,rmax,sufzone )
 end
 !
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine calu0( c0,bvec,u )
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    implicit none
-    complex(kind(0d0)):: c0,bvec,u
-
-    u = u + c0 * bvec
-
-    return
-    end
-
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine calu( c0,lsq,bvec,u )
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    implicit none
-    double precision:: lsq
-    complex(kind(0d0)) c0(2),bvec(3),u(3)
-
-    u(1) = u(1) + c0(1) * bvec(1)
-    u(2) = u(2) + c0(2) * bvec(2) / dcmplx(lsq)
-    u(3) = u(3) + c0(2) * bvec(3) / dcmplx(lsq)
-
-    return
-end
-
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine calamp( g,l,lsuf,maxamp,ismall,ratl )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
     integer:: ismall,l,lsuf
     double precision:: maxamp,ratl
-    complex(kind(0d0)) g(2)
+    complex(dp) g(2)
     double precision:: amp,ampratio
 
     ampratio = 0.d0
@@ -797,11 +757,13 @@ subroutine calamp( g,l,lsuf,maxamp,ismall,ratl )
 end
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine calcutd(nzone,nnl,tmpc,rat,nn,iphase,spo,spn,ra,kkdr,kc)
+subroutine calcutd(nzone,nnl,tmpc,rat,nn,iphase,ra,kkdr,kc)
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    integer:: nzone,nn,spn,kkdr(*),kc,iphase(*),nnl(*)
-    complex(kind(0d0)) ::tmpc(*)
-    double precision:: rat,spo,ra(*)
+    use parameters
+    implicit none
+    integer:: nzone,nn,kkdr(*),kc,iphase(*),nnl(*)
+    complex(dp) ::tmpc(*)
+    double precision:: rat,ra(*)
     integer:: nc
     double precision:: cU(nn),cV(nn),rc
     double precision:: maxamp,amp(nn)
@@ -821,7 +783,7 @@ subroutine calcutd(nzone,nnl,tmpc,rat,nn,iphase,spo,spn,ra,kkdr,kc)
             if(mod((jj-kkdr(iz-1)),2)==1) then ! U
                 cU(jz) = cdabs(tmpc(jj))
                 jz = jz + 1
-            else		! V
+                ! V nothing
             endif
         else ! U in fluid
             cU(jz) = cdabs(tmpc(jj))
@@ -838,7 +800,7 @@ subroutine calcutd(nzone,nnl,tmpc,rat,nn,iphase,spo,spn,ra,kkdr,kc)
     maxamp = maxamp * rat ! threshold value
     !
     nc = 1
-    do  i=1,jz-1
+    do i=1,jz-1
         if(amp(i)>maxamp) then
             nc = i
             goto 140
@@ -877,7 +839,7 @@ subroutine calcutd(nzone,nnl,tmpc,rat,nn,iphase,spo,spn,ra,kkdr,kc)
 
     return
 end
-!
+
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine callsuf(omega,nzone,vrmax,vsv,lsuf)
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
