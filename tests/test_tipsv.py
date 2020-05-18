@@ -17,16 +17,15 @@ def test_tipsv():
     start = time.time()
     u = _tipsv(*inputs, write_to_file)
     end = time.time()
-    print('tish finished in {} s'.format(end - start))
-
-    # TODO change below for P-SV
-    error_re = abs(u[2, 0, -1].real + 4.7034875e-10) / 4.7034875e-10
-    error_im = abs(u[2, 0, -1].imag + 1.7664374e-11) / 1.7664374e-11
-    # TODO until here
-
+    print('tipsv finished in {} s'.format(end - start))
+    error_re = abs(
+        u[2, 0, -1].real + 1.54309401723643564E-011) /-1.54309401723643564E-011
+    error_im = abs(
+        u[2, 0, -1].imag - 5.97994400276396742E-012) / 5.97994400276396742E-012
     assert error_re < 1e-7
     assert error_im < 1e-7
     print("All passed")
+
 
 if __name__ == '__main__':
     test_tipsv()
