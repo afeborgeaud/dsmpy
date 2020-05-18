@@ -1,7 +1,11 @@
+<<<<<<< HEAD
+from pydsm._tish import _tish
+=======
 import sys
 from pydsm._tish import _tish, _calthetaphi
 from pydsm._tish import parameters as tish_parameters
 from pydsm._tish import _pinput as _pinput_sh
+>>>>>>> 99e1e198c1743b07183703924b07da7edf4fb31f
 from pydsm._tipsv import _pinput, _tipsv
 from pydsm.spc import spctime
 from pydsm import root_resources
@@ -73,14 +77,14 @@ class DSMInput:
             vrmin, vrmax, rho, vpv, vph, vsv, vsh, eta, qmu, qkappa,
             r0, eqlat, eqlon, mt, nr, theta, phi, lat, lon, output, mode=0):
         (self.re, self.ratc,
-        self.ratl, self.omegai) = re, ratc, ratl, omegai
+         self.ratl, self.omegai) = re, ratc, ratl, omegai
 
         (self.tlen, self.nspc,
-        self.imin, self.imax) = tlen, nspc, imin, imax
+         self.imin, self.imax) = tlen, nspc, imin, imax
 
         (self.nzone, self.vrmin, self.vrmax,
-        self.rho, self.vpv, self.vph, self.vsv, self.vsh, self.eta,
-        self.qmu, self.qkappa) = (
+         self.rho, self.vpv, self.vph, self.vsv, self.vsh, self.eta,
+         self.qmu, self.qkappa) = (
             nzone, vrmin, vrmax, rho, vpv,
             vph, vsv, vsh, eta, qmu, qkappa)
 
@@ -88,6 +92,27 @@ class DSMInput:
             r0, eqlat, eqlon, mt)
 
         (self.nr, self.theta, self.phi, self.lat,
+<<<<<<< HEAD
+         self.lon, self.output) = (nr, theta, phi,
+                                   lat, lon, output)
+
+    @classmethod
+    def input_from_file(self, parameter_file):
+        inputs = _pinput(parameter_file)
+
+        (re, ratc, ratl,
+         tlen, nspc, omegai,
+         imin, imax, nzone) = inputs[:9]
+        (vrmin, vrmax, rho,
+         vpv, vph, vsv, vsh,
+         eta, qmu, qkappa) = inputs[9:19]
+        r0, eqlat, eqlon, mt = inputs[19:23]
+        nr = inputs[23]
+        (theta, phi, lat,
+         lon, output) = inputs[24:]
+
+        return DSMInput(
+=======
         self.lon, self.output) = (nr, theta, phi,
                                  lat, lon, output)
         
@@ -139,6 +164,7 @@ class DSMInput:
             qkappa = None
 
         return cls(
+>>>>>>> 99e1e198c1743b07183703924b07da7edf4fb31f
             re, ratc, ratl, tlen, nspc,
             omegai, imin, imax, nzone, vrmin, vrmax,
             rho, vpv, vph, vsv, vsh, eta, qmu, qkappa, r0, eqlat, eqlon,
@@ -256,6 +282,16 @@ class DSMInput:
     def get_inputs_for_tish(self):
         # TODO modify fortran? Else, have to take care of case
         # number of core layers != 2
+<<<<<<< HEAD
+        nzone = self.nzone - 2
+        vrmin = np.pad(self.vrmin[2:], (0, 2), constant_values=0)
+        vrmax = np.pad(self.vrmax[2:], (0, 2), constant_values=0)
+        qmu = np.pad(self.qmu[2:], (0, 2), constant_values=0)
+        npad = ((0, 0), (0, 2))
+        rho = np.pad(self.rho[:, 2:], npad, constant_values=0)
+        vsv = np.pad(self.vsv[:, 2:], npad, constant_values=0)
+        vsh = np.pad(self.vsh[:, 2:], npad, constant_values=0)
+=======
         if self.mode == 0:
             nzone = self.nzone - 2
             vrmin = np.pad(self.vrmin[2:], (0,2), constant_values=0)
@@ -273,6 +309,7 @@ class DSMInput:
             rho = self.rho
             vsv = self.vsv
             vsh = self.vsh
+>>>>>>> 99e1e198c1743b07183703924b07da7edf4fb31f
 
         inputs = (self.re, self.ratc, self.ratl, self.tlen,
                   self.nspc, self.omegai, self.imin, self.imax,
@@ -411,7 +448,7 @@ class Station:
         longitude (float): geographic longitude
     """
     def __init__(self, name: str, network: str,
-            latitude: float, longitude: float):
+                 latitude: float, longitude: float):
         self.name = name
         self.network = network
         self.latitude = latitude
@@ -519,13 +556,21 @@ def compute(pydsm_input, mode=0, write_to_file=False):
         See Kawai et al. (2006) for details.
     """
     print('compute SH')
+<<<<<<< HEAD
+    sh_spcs = _tish(*dsm_input.get_inputs_for_tish(),
+                    write_to_file)
+    # FIXME memory error in tipsv.tipsv
+    # print('compute PSV')
+    # psv_spcs = _tipsv(*dsm_input.get_inputs_for_tipsv(),
+=======
     sh_spcs = _tish(*pydsm_input.get_inputs_for_tish(),
         write_to_file)
     # FIXME memory error in tipsv.tipsv
     #print('compute PSV')
     #psv_spcs = _tipsv(*pydsm_input.get_inputs_for_tipsv(),
+>>>>>>> 99e1e198c1743b07183703924b07da7edf4fb31f
     #    write_to_file)
-    #spcs = sh_spcs + psv_spcs
+    # spcs = sh_spcs + psv_spcs
     spcs = sh_spcs
     dsm_output = PyDSMOutput.output_from_pydsm_input(spcs, pydsm_input)
     return dsm_output

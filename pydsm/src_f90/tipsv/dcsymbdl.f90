@@ -19,13 +19,14 @@ SUBROUTINE DCSYMBDL(A,M,N,NN,EPS,Z,W,L,LI,LJ,IER)
 !  COPYRIGHT:       FUMIKO NAGAHORI    1 SEP. 1991      VER. 1        *
 !    modified: Kensuke Konishi 2018 in Paris
 !**********************************************************************
+    use parameters
     implicit none
     INTEGER:: N,M,MM,NN
     INTEGER:: L(NN),LI(NN),LJ(NN),IER
     double precision::EPS
-    COMPLEX(kind(0d0)):: A((M+1)*N),Z(M+1),W(M+1)
+    COMPLEX(dp):: A((M+1)*N),Z(M+1),W(M+1)
     INTEGER:: I,J,K,IJ,KK,NK,NKK,NKI
-    COMPLEX(kind(0d0)):: PIV
+    COMPLEX(dp):: PIV
     !
     IER = 0
     IJ = 0
@@ -49,18 +50,17 @@ SUBROUTINE DCSYMBDL(A,M,N,NN,EPS,Z,W,L,LI,LJ,IER)
             IER = 1
             RETURN
         ENDIF
-        PIV = DCMPLX(1.0D0) / A(NK+M)
+        PIV = 1.0D0 / A(NK+M)
         DO  J=2,M+1
-            Z(J) = - A(NK+M*J)
-            W(J) =	 A(NK+M*J) * PIV
+            Z(J) = -A(NK+M*J)
+            W(J) = A(NK+M*J) * PIV
             A(NK+M*J) = W(J)
         enddo
-        !
+
         KK = NK + M + M
         !VORTION VEC
-        DO  I=1,MM
-            A(KK+L(I)) = A(KK+L(I)) + W(LJ(I)) * Z(LI(I))
-        enddo
+        A(KK+L(1:mm)) = A(KK+L(1:mm)) + W(LJ(1:mm)) * Z(LI(1:mm))
+
     !
     enddo
     !
@@ -72,16 +72,16 @@ SUBROUTINE DCSYMBDL(A,M,N,NN,EPS,Z,W,L,LI,LJ,IER)
             IER = 1
             RETURN
         ENDIF
-        PIV = DCMPLX(1.0D0) / A(NK+M)
+        PIV = 1.0D0 / A(NK+M)
         DO  J=2,N-K+1
-            Z(J) = - A(NK+M*J)
-            W(J) =	 A(NK+M*J) * PIV
+            Z(J) = -A(NK+M*J)
+            W(J) = A(NK+M*J) * PIV
             A(NK+M*J) = W(J)
-            !
+
             NKI = NKK + M * (J-1)
-            DO  I=2,J
-                A(NKI+I) = A(NKI+I) + W(J) * Z(I)
-            enddo
+
+            A(NKI+2:nki+j) = A(NKI+2:nki+j) + W(J) * Z(2:j)
+
         enddo
     enddo
     !
@@ -110,12 +110,13 @@ SUBROUTINE DCSBDLV(A,B,M,N,NP,EPS,Z,IER)
 !  COPYRIGHT:       FUMIKO NAGAHORI    1 SEP. 1991      VER. 1        *
 ! modified: Kensuke Konishi 2018 in Paris
 !**********************************************************************
+    use parameters
     implicit none
     INTEGER:: M,N,NP,IER
     double precision::EPS
-    COMPLEX(kind(0d0)):: A(M+1,N),B(N),Z(N)
+    COMPLEX(dp):: A(M+1,N),B(N),Z(N)
     INTEGER:: MM,J,K,I1
-    COMPLEX(kind(0d0)):: SUM
+    COMPLEX(dp):: SUM
     !
     !  FORWARD SUBSTITUTION
     MM = M + 1
@@ -134,15 +135,15 @@ SUBROUTINE DCSBDLV(A,B,M,N,NP,EPS,Z,IER)
             ELSE
                 I1 = NP-1+MM - J + 1
             ENDIF
-            SUM = DCMPLX(0.0D0)
+            SUM = 0.0D0
             DO  K=I1,MM-1
                 SUM = SUM + A(K,J) * Z(J-MM+K)
             enddo
             Z(J) = B(J) - SUM
         enddo
-        DO  J=N-1,N
-            Z(J) = Z(J) / A(M+1,J)
-        enddo
+
+        Z(n-1:n) = Z(n-1:n) / A(M+1,n-1:n)
+
         !
         B(N) = Z(N)
         B(N-1) = Z(N-1) - A(MM-1,N) * Z(N)
@@ -172,13 +173,14 @@ SUBROUTINE DCSYMBDL0(A,M,N,NN,EPS,Z,W,L,LI,LJ,IER)
 !  COPYRIGHT:       FUMIKO NAGAHORI    1 SEP. 1991      VER. 1        *
 !modified: Kensuke Konishi 2018 in Paris
 !**********************************************************************
+    use parameters
     implicit none
     integer:: N,M,MM,NN
     integer:: L(NN),LI(NN),LJ(NN),IER
     double precision:: EPS
-    complex(kind(0d0)):: A((M+1)*N),Z(M+1),W(M+1)
+    complex(dp):: A((M+1)*N),Z(M+1),W(M+1)
     integer:: I,J,K,IJ,KK,NK,NKK,NKI
-    complex(kind(0d0)):: PIV
+    complex(dp):: PIV
     !
     IER = 0
     IJ = 0
@@ -202,10 +204,10 @@ SUBROUTINE DCSYMBDL0(A,M,N,NN,EPS,Z,W,L,LI,LJ,IER)
             IER = 1
             RETURN
         ENDIF
-        PIV = DCMPLX(1.0D0) / A(NK+M)
+        PIV = 1D0 / A(NK+M)
         DO J=2,M+1
-            Z(J) = - A(NK+M*J)
-            W(J) =	 A(NK+M*J) * PIV
+            Z(J) = -A(NK+M*J)
+            W(J) = A(NK+M*J) * PIV
             A(NK+M*J) = W(J)
         enddo
         !
@@ -225,10 +227,10 @@ SUBROUTINE DCSYMBDL0(A,M,N,NN,EPS,Z,W,L,LI,LJ,IER)
             IER = 1
             RETURN
         ENDIF
-        PIV = DCMPLX(1.0D0) / A(NK+M)
+        PIV = 1D0 / A(NK+M)
         DO  J=2,N-K+1
             Z(J) = - A(NK+M*J)
-            W(J) =	 A(NK+M*J) * PIV
+            W(J) = A(NK+M*J) * PIV
             A(NK+M*J) = W(J)
             !
             NKI = NKK + M * (J-1)
@@ -242,9 +244,6 @@ SUBROUTINE DCSYMBDL0(A,M,N,NN,EPS,Z,W,L,LI,LJ,IER)
 !  END OF SYMBDL
 END
 
-
-
-!      SUBROUTINE DCSBDLV0(A,B,M,N,NP,EPS,Z,IER)
 SUBROUTINE DCSBDLV0(A,B,M,N,EPS,Z,IER)
 !**********************************************************************
 !  GAUSS METHOD FOR A SYMMETRIC BAND MATRIX WITH A SHORT WIDTH.       *
@@ -265,12 +264,13 @@ SUBROUTINE DCSBDLV0(A,B,M,N,EPS,Z,IER)
 !                                                                     *
 !  COPYRIGHT:       FUMIKO NAGAHORI    1 SEP. 1991      VER. 1        *
 !**********************************************************************
+    use parameters
     IMPLICIT NONE
-    integer:: M,N,NP,IER
+    integer:: M,N,IER
     double precision:: EPS
-    complex(kind(0d0)):: A(M+1,N),B(N),Z(N)
+    complex(dp):: A(M+1,N),B(N),Z(N)
     integer:: MM,J,K,I1,J1
-    complex(kind(0d0)):: SUM
+    complex(dp):: SUM
     !
     !  FORWARD SUBSTITUTION
     MM = M + 1
@@ -295,16 +295,15 @@ SUBROUTINE DCSBDLV0(A,B,M,N,EPS,Z,IER)
             ELSE
                 I1 = MM - J + 1
             ENDIF
-            SUM = DCMPLX(0.0D0)
-            DO  K=I1,MM-1
+            SUM = 0
+            DO K=I1,MM-1
                 SUM = SUM + A(K,J) * Z(J-MM+K)
             enddo
             Z(J) = B(J) - SUM
         enddo
-        DO  J=1,N
-            Z(J) = Z(J) / A(M+1,J)
-        enddo
-        !
+
+        Z(1:n) = Z(1:n) / A(M+1,1:n)
+
         B(N) = Z(N)
         B(N-1) = Z(N-1) - A(MM-1,N) * Z(N)
         DO J=3,N
@@ -318,6 +317,5 @@ SUBROUTINE DCSBDLV0(A,B,M,N,EPS,Z,IER)
             B(J1) = Z(J1) - SUM
         enddo
     ENDIF
-    !
     RETURN
 END

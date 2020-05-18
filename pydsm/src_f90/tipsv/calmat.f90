@@ -6,9 +6,10 @@ subroutine calmatc( nlayer,vnp,vra,con,rpow,w1dn,w2dn,ra,m )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
     implicit none
     integer,parameter:: maxrpow= 2
-    integer:: nlayer,vnp,rpow,w1dn,w2dn
-    double precision:: vra(vnp),con(vnp),ra(*),m(*)
-    integer:: i,j,k,kk,l,nn,snp
+    integer,intent(in):: nlayer,vnp,rpow,w1dn,w2dn
+    double precision,intent(in):: vra(vnp),con(vnp),ra(nlayer+1)
+    double precision,intent(out)::m(4*nlayer)
+    integer:: i,j,k,l,nn,snp
     double precision:: a(2,2),b(2,2),c(5),rh
     ! parameter check
     if (maxrpow<rpow ) stop 'Invalid arguments.(calmatc)'
@@ -48,9 +49,7 @@ subroutine calmatc( nlayer,vnp,vra,con,rpow,w1dn,w2dn,ra,m )
         endif
         do j=1,2
             do k=1,2
-                do kk=1,5
-                    c(kk) = 0.d0
-                enddo
+                c(1:5) = 0.d0
                 call pmulti( 2,a(1,j),2,b(1,k),3,c )
                 do l=3,1,-1
                     c(l+rpow) = c(l)
@@ -72,7 +71,8 @@ subroutine pmulti(n,a,m,b,l,c)
 ! (n-1) degrees polynomial a(n) and (m-1) degrees polynomial b(n).
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
     implicit none
-    integer:: n,m,l,i,j
+    integer,intent(in):: n,m,l
+    integer:: i,j
     double precision:: a(n),b(m),c(l)
 
     if (n+m-1/=l) stop 'Invalid arguments.(pmulti)'
@@ -169,7 +169,7 @@ subroutine caltl( nlayer,vnp,vra,rho,ra,tl)
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
     implicit none
     integer:: nlayer,vnp
-    double precision:: vra(vnp),rho(vnp),ra(*),tl(*)
+    double precision:: vra(vnp),rho(vnp),ra(nlayer+1),tl(4*nlayer)
     integer:: i,nn,snp
     double precision:: c(3),from,to
     !
@@ -201,7 +201,7 @@ subroutine calhl( nlayer,vnp,vra,mu,ra,hl)
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
     implicit none
     integer:: nlayer,vnp
-    double precision:: vra(vnp),mu(vnp),ra(*),hl(*)
+    double precision:: vra(vnp),mu(vnp),ra(nlayer+1),hl(4*nlayer)
     integer:: i,nn,snp
     double precision:: c(1),from,to
 
@@ -222,22 +222,7 @@ subroutine calhl( nlayer,vnp,vra,mu,ra,hl)
     enddo
     return
 end
-!
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine calt( nlayer, tl, tc, t )
-    !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    implicit none
-    integer:: nlayer
-    double precision:: t(*), tl(*), tc(*)
-    integer:: i
 
-    do i=1,4*nlayer
-        t(i) = ( tl(i) + tc(i) ) / 2.d0
-    enddo
-
-    return
-end
-!
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine calh5( nlayer,vra,con,ra,h5 )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -245,9 +230,9 @@ subroutine calh5( nlayer,vra,con,ra,h5 )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
     implicit none
     integer:: nlayer
-    double precision:: vra(*),con(*),ra(*),h5(*)
+    double precision:: vra(*),con(*),ra(nlayer+1),h5(4*nlayer)
     integer:: itmp,i
-    !
+
     ! Data initialization
     h5(1:4*nlayer)=0
 
@@ -280,7 +265,7 @@ subroutine calhm1( nlayer,vra,con,ra,hm1 )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
     implicit none
     integer:: nlayer
-    double precision:: vra(*),con(*),ra(*),hm1(-1:2,*)
+    double precision:: vra(nlayer),con(nlayer+1),ra(nlayer+1),hm1(-1:2,nlayer+1)
     integer:: itmp,i
     !
     itmp = 0
@@ -303,9 +288,9 @@ subroutine calhm1( nlayer,vra,con,ra,hm1 )
         hm1( 2,i) = hm1( 2,i) - 1.d0 / 12.d0 * con(itmp) * ra(i)
     enddo
     itmp = itmp + 1
-    hm1(-1,nlayer)   = hm1(-1,nlayer)      - 5.d0 / 12.d0 * con(itmp) * ra(nlayer)
+    hm1(-1,nlayer)   = hm1(-1,nlayer)   - 5.d0 / 12.d0 * con(itmp) * ra(nlayer)
     hm1( 0,nlayer)   = hm1( 0,nlayer)   - 3.d0 / 12.d0 * con(itmp) * ra(nlayer)
-    hm1( 1,nlayer)   = hm1( 1,nlayer)     + 8.d0 / 12.d0 * con(itmp) * ra(nlayer)
+    hm1( 1,nlayer)   = hm1( 1,nlayer)   + 8.d0 / 12.d0 * con(itmp) * ra(nlayer)
     itmp = itmp + 1
     hm1(-1,nlayer+1) = hm1(-1,nlayer+1) - 5.d0 / 12.d0 * con(itmp) * ra(nlayer+1)
     hm1( 0,nlayer+1) = hm1( 0,nlayer+1)  + 5.d0 / 12.d0 * con(itmp) * ra(nlayer+1)
@@ -319,7 +304,7 @@ subroutine calhm2( nlayer,vra,con,ra,hm2 )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
     implicit none
     integer ::nlayer
-    double precision:: vra(*),con(*),ra(*),hm2(-2:1,*)
+    double precision:: vra(nlayer),con(nlayer+1),ra(nlayer+1),hm2(-2:1,nlayer+1)
     integer ::itmp,i
 
     itmp = 0
@@ -358,7 +343,8 @@ subroutine mtrnp(nlayer,a1,a2)
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
     implicit none
     integer:: nlayer
-    double precision:: a1(*),a2(*)
+    double precision,intent(in):: a1(4*nlayer)
+    double precision,intent(out):: a2(4*nlayer)
     integer:: i,nn
 
     nn = 4 * nlayer
@@ -383,7 +369,8 @@ subroutine mtrnp2( nlayer,p,q,hm1,hm2 )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
     implicit none
     integer::nlayer,p,q
-    double precision:: hm1(-p:q,*),hm2(-q:p,*)
+    double precision,intent(in):: hm1(-p:q,nlayer+1)
+    double precision,intent(out)::hm2(-q:p,nlayer+1)
     integer::i,j,m,n
 
     do i=-q,p
@@ -400,18 +387,18 @@ subroutine mtrnp2( nlayer,p,q,hm1,hm2 )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine calcoef( nzone,omega,qmu,qkappa,coef1,coef2,coef )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
     integer:: nzone
-    double precision:: omega,qmu(*),qkappa(*)
-    complex(kind(0d0)):: coef1(*),coef2(*),coef(*)
+    double precision,intent(in):: omega,qmu(nzone),qkappa(nzone)
+    complex(dp):: coef1(nzone),coef2(nzone),coef(nzone)
     integer:: i
     double precision:: aa,bb
-    double precision,parameter:: pi=3.1415926535897932d0
 
     ! evaluating the effect of anelasticity
     do  i=1,nzone
         if ( qmu(i)<=0.d0 ) then
-            coef1(i) = dcmplx( 1.d0 )
+            coef1(i) =   1d0
         else
             if ( omega==0.d0 ) then
                 aa = 1.d0
@@ -422,8 +409,8 @@ subroutine calcoef( nzone,omega,qmu,qkappa,coef1,coef2,coef )
             coef1(i) = dcmplx( aa, bb ) * dcmplx( aa, bb )
         endif
         if ( qkappa(i)<=0.d0 ) then
-            coef2(i) = dcmplx( 1.d0 )
-            coef(i) = dcmplx( 1.d0 ) / coef2(i)
+            coef2(i) =  1.d0
+            coef(i) =  1.d0  / coef2(i)
         else
             if ( omega==0.d0 ) then
                 aa = 1.d0
@@ -432,31 +419,33 @@ subroutine calcoef( nzone,omega,qmu,qkappa,coef1,coef2,coef )
             endif
             bb = 1.d0 / ( 2.d0 * qkappa(i) )
             coef2(i) = dcmplx( aa, bb ) * dcmplx( aa, bb )
-            coef(i) = dcmplx( 1.d0 ) / coef2(i)
+            coef(i) =  1.d0  / coef2(i)
         endif
     enddo
     return
     end
 !
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine cala0( nlayer,omega,omegai,t,h1x,h1y,h1z,h2L,h2N,&
-    h3ax,h3ay,h3az,h4aL,h4aN,h5ax,h5ay,h5az,h6aL,h6aN,&
-    h7x,h7y,h7z,h8L,h8N,coef1,coef2,a0 )
+subroutine cala0( nlayer,omega,omegai,t,h1x,h2L,h2N,&
+    h3ay,h4aL,h4aN,h5ay,h6aL,h6aN,&
+    h7y,h7z,h8L,h8N,coef1,coef2,a0 )
+    use parameters
     implicit none
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Computing the coefficient matrix 'a' in the solid part.
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
     integer:: nlayer
-    double precision:: omega,omegai
-    double precision:: t(*)
-    double precision:: h1x(*),h1y(*),h1z(*),h2L(*),h2N(*)
-    double precision:: h3ax(*),h3ay(*),h3az(*),h4aL(*),h4aN(*)
-    double precision:: h5ax(*),h5ay(*),h5az(*),h6aL(*),h6aN(*)
-    double precision:: h7x(*),h7y(*),h7z(*),h8L(*),h8N(*)
-    complex(kind(0d0))::coef1,coef2,a0(*)
+    double precision,intent(in):: omega,omegai
+    double precision,intent(in):: t(4*nlayer)
+    double precision,intent(in):: h1x(4*nlayer),h2L(4*nlayer),h2N(4*nlayer)
+    double precision,intent(in):: h3ay(4*nlayer),h4aL(4*nlayer),h4aN(4*nlayer)
+    double precision,intent(in):: h5ay(4*nlayer),h6aL(4*nlayer),h6aN(4*nlayer)
+    double precision,intent(in):: h7y(4*nlayer),h7z(4*nlayer),h8L(4*nlayer),h8N(4*nlayer)
+    complex(dp),intent(in):: coef1,coef2
+    complex(dp),intent(out):: a0(16*nlayer)
     integer:: i,nnn
     double precision:: tt
-    complex(kind(0d0))::hh0,comega2
+    complex(dp)::hh0,comega2
     !
     a0( 1:16*nlayer)=0
     comega2 = dcmplx( omega, -omegai ) * dcmplx( omega, -omegai )
@@ -464,95 +453,99 @@ subroutine cala0( nlayer,omega,omegai,t,h1x,h1y,h1z,h2L,h2N,&
         nnn = ( i + 3 ) / 4
         if ( mod(nnn,4)==3 ) cycle
         tt = t(nnn)
-        hh0 = coef2 * dcmplx( 4.d0 * h1x(nnn) )& !4A
-            + coef1 * dcmplx( 16.d0/3.d0 * h2N(nnn) )& !4A
-            + coef1 * dcmplx( -4.d0 * h2N(nnn) )& !-4N
-            + coef2 * dcmplx( 2.d0 * ( h3ay(nnn) + h5ay(nnn) ) )& !2F
-            - coef1 * dcmplx( 4.d0/3.d0 * ( h4aN(nnn) + h6aN(nnn) ) )&
-            + coef2 * dcmplx( 3.d0 *h7z(nnn) -2.d0*h7y(nnn) )& !C
-            + coef1 * dcmplx( 4.d0/3.d0 * h8N(nnn) ) !C
-        a0(i) = comega2 * dcmplx( tt ) - hh0
+        hh0 = coef2 *  4.d0 * h1x(nnn) & !4A
+            + coef1 *  16.d0/3.d0 * h2N(nnn) & !4A
+            - coef1 *  4.d0 * h2N(nnn) & !-4N
+            + coef2 *  2.d0 * ( h3ay(nnn) + h5ay(nnn) ) & !2F
+            - coef1 *  4.d0/3.d0 * ( h4aN(nnn) + h6aN(nnn) ) &
+            + coef2 * ( 3.d0 *h7z(nnn) -2.d0*h7y(nnn) )& !C
+            + coef1 *  4.d0/3.d0 * h8N(nnn)  !C
+        a0(i) = comega2 * tt  - hh0
     enddo
     do i=4,16*nlayer,4
         nnn = i / 4
         if ( mod(nnn,4)==3 ) cycle
         tt = t(nnn)
-        hh0 = coef1 * dcmplx(   h2L(nnn) ) &!L
-            + coef1 * dcmplx( -2.d0 * h2N(nnn) )& !-2N
-            - coef1 * dcmplx( h4aL(nnn) + h6aL(nnn) )& !-L
-            + coef1 * dcmplx( h8L(nnn) ) !L
-        a0(i) = comega2 * dcmplx( tt ) - hh0
+        hh0 = coef1 *    h2L(nnn)  &!L
+            + coef1 * ( -2.d0 * h2N(nnn) )& !-2N
+            - coef1 *  (h4aL(nnn) + h6aL(nnn) )& !-L
+            + coef1 *  h8L(nnn)  !L
+        a0(i) = comega2 *  tt  - hh0
     enddo
     return
 end
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine cala1( nlayer,h1x,h1y,h1z,h2L,h2N,h3x,h3y,h3z,&
-    h4L,h4N,h5x,h5y,h5z,h6L,h6N,coef1,coef2,a1 )
+subroutine cala1( nlayer,h1x,h2L,h2N,h3y,&
+    h4L,h4N,h5y,h6L,h6N,coef1,coef2,a1 )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Computing the coefficient matrix 'a' in the solid part.
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
     integer:: nlayer
-    double precision:: h1x(*),h1y(*),h1z(*),h2L(*),h2N(*)
-    double precision:: h3x(*),h3y(*),h3z(*),h4L(*),h4N(*)
-    double precision:: h5x(*),h5y(*),h5z(*),h6L(*),h6N(*)
-    complex(kind(0d0)):: coef1,coef2,a1(*)
+    double precision,intent(in):: h1x(4*nlayer),h2L(4*nlayer),h2N(4*nlayer)
+    double precision,intent(in):: h3y(4*nlayer),h4L(4*nlayer),h4N(4*nlayer)
+    double precision,intent(in):: h5y(4*nlayer),h6L(4*nlayer),h6N(4*nlayer)
+    complex(dp):: coef1,coef2
+    complex(dp),intent(out):: a1(16*nlayer)
     integer:: i,nnn
-    complex(kind(0d0)):: hh1
+    complex(dp):: hh1
 
     a1( 1:16*nlayer )=0
     do i=2,16*nlayer-2,4
         nnn = ( i + 2 ) / 4
         if ( mod(nnn,4)==3 ) cycle
-        hh1 = - coef2 * dcmplx( 2.d0 * h1x(nnn) )&  !2A
-            - coef1 * dcmplx( 8.d0/3.d0 * h2N(nnn) ) &!2A
-            - coef1 * dcmplx( h2L(nnn) )& !L
-            - coef1 * dcmplx( -2.d0 * h2N(nnn) ) &!-2N
-            - coef2 * dcmplx( h3y(nnn) )& !F
-            - coef1 * dcmplx( -2.d0/3.d0 * h4N(nnn) ) &!F
-            + coef1 * dcmplx( h6L(nnn) ) !-L
+        hh1 = - coef2 * ( 2.d0 * h1x(nnn) )&  !2A
+            - coef1 * ( 8.d0/3.d0 * h2N(nnn) ) &!2A
+            - coef1 * ( h2L(nnn) )& !L
+            - coef1 * ( -2.d0 * h2N(nnn) ) &!-2N
+            - coef2 * ( h3y(nnn) )& !F
+            - coef1 * ( -2.d0/3.d0 * h4N(nnn) ) &!F
+            + coef1 * ( h6L(nnn) ) !-L
         a1(i) = - hh1
     enddo
     do i=3,16*nlayer-1,4
         nnn = ( i + 1 ) / 4
         if ( mod(nnn,4)/=2 ) cycle
-        hh1 = - coef2 * dcmplx( 2.d0 * h1x(nnn) )& !2A
-            - coef1 * dcmplx( 8.d0/3.d0 * h2N(nnn) ) & !2A
-            - coef1 * dcmplx( -2.d0 * h2N(nnn) )& !-2N
-            - coef1 * dcmplx(  h2L(nnn) ) & !L
-            + coef1 * dcmplx( h4L(nnn) ) & !-L
-            - coef2 * dcmplx( h5y(nnn) )& !F
-            + coef1 * dcmplx( 2.d0/3.d0 * h6N(nnn) ) !F
+        hh1 = - coef2 * ( 2.d0 * h1x(nnn) )& !2A
+            - coef1 * ( 8.d0/3.d0 * h2N(nnn) ) & !2A
+            - coef1 * ( -2.d0 * h2N(nnn) )& !-2N
+            - coef1 *   h2L(nnn)  & !L
+            + coef1 *  h4L(nnn)  & !-L
+            - coef2 *  h5y(nnn) & !F
+            + coef1 * ( 2.d0/3.d0 * h6N(nnn) ) !F
         a1(i) = - hh1
     enddo
     return
     end
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine cala2( nlayer,h1x,h1y,h1z,h2L,h2N,coef1,coef2,a2 )
+subroutine cala2( nlayer,h1x,h2L,h2N,coef1,coef2,a2 )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Computing the coefficient matrix 'a' in the solid part.
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
     integer:: nlayer
-    double precision:: h1x(*),h1y(*),h1z(*),h2L(*),h2N(*)
-    complex(kind(0d0)):: coef1,coef2,a2(*)
+    double precision,intent(in):: h1x(4*nlayer),h2L(4*nlayer),h2N(4*nlayer)
+    complex(dp),intent(in):: coef1,coef2
+    complex(dp),intent(out):: a2(16*nlayer)
     integer:: i,nnn
-    complex(kind(0d0)):: hh2
+    complex(dp):: hh2
 
     a2( 1:16*nlayer)=0
     do i=1,16*nlayer-3,4
         nnn = ( i + 3 ) / 4
         if ( mod(nnn,4)==3 ) cycle
-        hh2 = coef1 * dcmplx( h2L(nnn) )
+        hh2 = coef1 * h2L(nnn)
         a2(i) = - hh2
     enddo
 
     do i=4,16*nlayer,4
         nnn = i / 4
         if ( mod(nnn,4)==3 ) cycle
-        hh2 = coef2 * dcmplx( h1x(nnn) )  + coef1 * dcmplx( 4.d0/3.d0 * h2N(nnn) )
+        hh2 = coef2 *  h1x(nnn)   + coef1 * ( 4.d0/3.d0 * h2N(nnn) )
         a2(i) = - hh2
     enddo
     return
@@ -563,103 +556,101 @@ subroutine calb0( nlayer,omega,omegai,p1,p3,coef,b0 )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Computing the coefficient matrix 'b' in the solid part.
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
     integer:: nlayer
-    double precision:: omega,omegai,p1(*),p3(*)
-    complex(kind(0d0)):: coef,b0(*)
+    double precision,intent(in):: omega,omegai,p1(4*nlayer),p3(4*nlayer)
+    complex(dp),intent(in):: coef
+    complex(dp),intent(out)::b0(4*nlayer)
     integer:: i
-    complex(kind(0d0)):: comega2
+    complex(dp):: comega2
 
     b0( 1:4*nlayer )=0
     comega2 = dcmplx( omega, -omegai ) * dcmplx( omega, -omegai )
-    do i=1,4*nlayer-3,4
-        b0(i) = - dcmplx( p1(i) ) / comega2  + coef * dcmplx( p3(i) )
+
+    do i=1,nlayer
+        b0(i*4-3) = -  p1(i*4-3)  / comega2  + coef *  p3(i*4-3)
+        b0(i*4-2) = -  p1(i*4-2)  / comega2  + coef *  p3(i*4-2)
+        b0(i*4) = -  p1(i*4)  / comega2  + coef *  p3(i*4)
     enddo
-    do i=2,4*nlayer-2,4
-        b0(i) = - dcmplx( p1(i) ) / comega2  + coef * dcmplx( p3(i) )
+
+    return
+    end
+
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+subroutine calb2( nlayer,omega,omegai,p2,b2 )
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+! Computing the coefficient matrix 'b' in the solid part.
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
+    implicit none
+    integer:: nlayer
+    double precision,intent(in):: omega,omegai,p2(4*nlayer)
+    complex(dp),intent(out):: b2(4*nlayer)
+    integer:: i
+    complex(dp):: comega2
+
+    b2( 1:4*nlayer )=0
+    comega2 = dcmplx( omega, -omegai ) * dcmplx( omega, -omegai )
+
+    do i=1,nlayer
+        b2(i*4-3) = - dcmplx( p2(i*4-3) ) / comega2
+        b2(i*4-2) = - dcmplx( p2(i*4-2) ) / comega2
+        b2(i*4) = - dcmplx( p2(i*4) ) / comega2
     enddo
-    do i=4,4*nlayer,4
-        b0(i) = - dcmplx( p1(i) ) / comega2     + coef * dcmplx( p3(i) )
+    return
+end
+!
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+subroutine calhml( nlayer,coef1,coef2,h3my,h5my,h4m1L,h4m2N,h6m1N,h6m2L,a1 )
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+! Summing up the modified first derivatives matrix operators.
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
+    implicit none
+    integer:: nlayer
+    double precision,intent(in):: h3my(-2:1,nlayer+1),h5my(-1:2,nlayer+1)
+    double precision,intent(in):: h4m1L(-1:2,nlayer+1),h4m2N(-2:1,nlayer+1)
+    double precision,intent(in):: h6m1N(-1:2,nlayer+1),h6m2L(-2:1,nlayer+1)
+    complex(dp),intent(in):: coef1,coef2
+    complex(dp),intent(out)::a1(4,2*nlayer+2)
+    integer:: i,j,m,n
+    !
+    do  j=2,2*(nlayer+1),2
+        do i=1,3,2
+            if ( (i==1).and.(j==2) ) cycle
+            m = (-i+3)/2
+            n = (i+j-3)/2
+            a1(i,j) = a1(i,j)&
+                - ( - coef2 * ( h3my(m,n) )& !-F
+                + coef1 * ( 2.d0/3.d0 * h4m2N(m,n) )&
+                + coef1 * ( h6m2L(m,n) ) )!L
+        enddo
+    enddo
+    do j=3,2*nlayer+1,2
+        do i=1,3,2
+            if ( (i==1).and.(j==3) ) cycle
+            m = (-i+5)/2
+            n = (i+j-4)/2
+            a1(i,j) = a1(i,j)&
+                - (   coef1 * ( h4m1L(m,n) ) &!L
+                - coef2 * ( h5my(m,n) ) &!-F
+                + coef1 * ( 2.d0/3.d0 * h6m1N(m,n) ) )
+        enddo
     enddo
     return
     end
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine calb2( nlayer,omega,omegai,p2,coef,b2 )
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-! Computing the coefficient matrix 'b' in the solid part.
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    implicit none
-    integer:: nlayer
-    double precision:: omega,omegai,p2(*)
-    complex(kind(0d0)):: coef,b2(*)
-    integer:: i
-    complex(kind(0d0)):: comega2
-
-    b2( 1:4*nlayer )=0
-    comega2 = dcmplx( omega, -omegai ) * dcmplx( omega, -omegai )
-    do  i=1,4*nlayer-3,4
-        b2(i) = - dcmplx( p2(i) ) / comega2
-    enddo
-    do  i=2,4*nlayer-2,4
-        b2(i) = - dcmplx( p2(i) ) / comega2
-    enddo
-    do  i=4,4*nlayer,4
-        b2(i) = - dcmplx( p2(i) ) / comega2
-    enddo
-    !
-    return
-end
-!
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine calhml( nlayer,coef1,coef2, h3mx,h3my,h3mz,h5mx,h5my,h5mz,&
-    h4m1L,h4m1N,h4m2L,h4m2N,h6m1L,h6m1N,h6m2L,h6m2N,a1 )
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-! Summing up the modified first derivatives matrix operators.
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    implicit none
-    integer:: nlayer
-    double precision:: h3mx(-2:1,*),h3my(-2:1,*),h3mz(-2:1,*)
-    double precision:: h5mx(-1:2,*),h5my(-1:2,*),h5mz(-1:2,*)
-    double precision:: h4m1L(-1:2,*),h4m1N(-1:2,*),h4m2L(-2:1,*),h4m2N(-2:1,*)
-    double precision:: h6m1L(-1:2,*),h6m1N(-1:2,*),h6m2L(-2:1,*),h6m2N(-2:1,*)
-    complex(kind(0d0)):: coef1,coef2,a1(4,*)
-    integer:: i,j,m,n
-    !
-    do  j=2,2*(nlayer+1),2
-        do 100 i=1,3,2
-            if ( (i==1).and.(j==2) ) goto 100
-            m = (-i+3)/2
-            n = (i+j-3)/2
-            a1(i,j) = a1(i,j)&
-                - ( - coef2 * dcmplx( h3my(m,n) )& !-F
-                + coef1 * dcmplx( 2.d0/3.d0 * h4m2N(m,n) )&
-                + coef1 * dcmplx( h6m2L(m,n) ) )!L
-100     continue
-        enddo
-        do   j=3,2*nlayer+1,2
-            do 120 i=1,3,2
-                if ( (i==1).and.(j==3) ) goto 120
-                m = (-i+5)/2
-                n = (i+j-4)/2
-                a1(i,j) = a1(i,j)&
-                    - (   coef1 * dcmplx( h4m1L(m,n) ) &!L
-                    - coef2 * dcmplx( h5my(m,n) ) &!-F
-                    + coef1 * dcmplx( 2.d0/3.d0 * h6m1N(m,n) ) )
-120         continue
-            enddo
-            !
-            return
-        end
-!
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine overlapa(nlayer,a,a2)
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Overlapping the coefficient matrix elements in the solid part.
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
     integer:: nlayer
-    complex(kind(0d0)):: a(*),a2(4,*)
+    complex(dp),intent(in):: a(16*nlayer)
+    complex(dp),intent(out)::a2(4,2*nlayer+2)
     integer:: i,nsize,msize,n1,n2
 !
     nsize = 2 * ( nlayer + 1 )
@@ -698,7 +689,6 @@ subroutine overlapa(nlayer,a,a2)
                 a2(4,i) = a(n1) + a(n2)
             endif
         enddo
-!
         return
     end
         !
@@ -707,37 +697,38 @@ subroutine overlapb(nlayer,b,b2)
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Overlapping the coefficient matrix elements in the liquid part.
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
+    implicit none
     integer:: nlayer
-    complex(kind(0d0))::b(*),b2(4,*)
+    complex(dp)::b(4*nlayer),b2(4,nlayer+1)
     integer:: i,n1,n2
 
     b2( 1:4,1:nlayer+1 )=0
 
     b2(4,1) = b(1)
     do i=2,nlayer
-        n1 = 4 * ( i - 1 )
-        n2 = n1 + 1
-        b2(4,i) = b(n1) + b(n2)
+        b2(4,i) = b( 4 * ( i - 1 )) + b( 4 * ( i - 1 )+1)
     enddo
     b2(4,nlayer+1) = b(4*nlayer)
 
     do i=2,nlayer+1
-        n1 = 4 * ( i - 2 ) + 2
-        b2(3,i) = b(n1)
+        b2(3,i) = b(4 * ( i - 2 ) + 2)
     enddo
     return
     end
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine cala( maxnzone,ndc,iphase,nlayer,kkdr,kdr,ksp,&
+subroutine cala( ndc,iphase,nlayer,kkdr,kdr,ksp,&
         l2,lsq,nn,a0,a1,a2,a )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
-    integer:: maxnzone,ndc,iphase(*)
-    integer:: nlayer(maxnzone)
-    integer:: kkdr(*),kdr,ksp(maxnzone),nn
-    double precision:: l2,lsq
-    complex(kind(0d0)):: a0(4,*),a1(4,*),a2(4,*),a(4,*)
+    integer,intent(in):: ndc,iphase(ndc+1)
+    integer,intent(in):: nlayer(maxnzone)
+    integer,intent(in):: kkdr(ndc+1),kdr,ksp(maxnzone),nn
+    double precision,intent(in):: l2,lsq
+    complex(dp),intent(in):: a0(4,*),a1(4,*),a2(4,*)
+    complex(dp),intent(out)::a(4,nn)
     integer:: j,isl,ill,ii,jj,mtmp,i1,i2
 
     ! --- Initializing the matrix elements
@@ -753,14 +744,8 @@ subroutine cala( maxnzone,ndc,iphase,nlayer,kkdr,kdr,ksp,&
             i2 = kkdr(j)+2*nlayer(j)+1
             do jj=i1,i2
                 mtmp = kdr+ksp(j)+jj-kkdr(j)
-                do  ii=2,4,2
-                    a(ii,jj) = a(ii,jj) +  dcmplx(  dble(a0(ii,mtmp)) + l2 *  dble(a2(ii,mtmp)),&
-                            dimag(a0(ii,mtmp)) + l2 * dimag(a2(ii,mtmp))  )
-                enddo
-                do ii=1,3,2
-                    a(ii,jj) = a(ii,jj)  + dcmplx( lsq * dble(a1(ii,mtmp)),&
-                    lsq * dimag(a1(ii,mtmp)) )
-                enddo
+                a(2:4:2,jj) = a(2:4:2,jj) +  a0(2:4:2,mtmp)+ l2*a2(2:4:2,mtmp)
+                a(1:3:2,jj) = a(1:3:2,jj) + lsq*a1(1:3:2,mtmp)
             enddo
         else
             ill = ill + 1
@@ -768,10 +753,7 @@ subroutine cala( maxnzone,ndc,iphase,nlayer,kkdr,kdr,ksp,&
             i2 = kkdr(j)+nlayer(j)
             do jj=i1,i2
                 mtmp = kdr+ksp(j)+jj-kkdr(j)
-                do ii=3,4
-                    a(ii,jj) = a(ii,jj)+dcmplx( dble(a0(ii,mtmp)) + l2 * dble(a2(ii,mtmp)),&
-                    dimag(a0(ii,mtmp)) + l2 * dimag(a2(ii,mtmp)) )
-                enddo
+                a(3:4,jj)=a(3:4,jj)+a0(3:4,mtmp)+l2*a2(3:4,mtmp)
             enddo
         endif
     enddo
@@ -780,14 +762,15 @@ subroutine cala( maxnzone,ndc,iphase,nlayer,kkdr,kdr,ksp,&
     end
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine calbc( maxnzone,ndc,rdc,iphase,kkdr,a )
+subroutine calbc( ndc,rdc,iphase,kkdr,a )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Computing the boundary condition elements.
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
-    integer:: maxnzone,ndc,iphase(*),kkdr(*)
-    double precision:: rdc(*)
-    complex(kind(0d0)):: a(4,*)
+    integer:: ndc,iphase(ndc+1),kkdr(ndc+1)
+    double precision,intent(in):: rdc(ndc+1)
+    complex(dp),intent(out):: a(4,*)
     integer:: i
 
     do i=1,ndc
@@ -801,26 +784,22 @@ subroutine calbc( maxnzone,ndc,rdc,iphase,kkdr,a )
 subroutine calabnum( omega,omegai,rmax,rrho, vpv,vph,vsv,vsh,eta,&
     ra,r0,coef1,coef2,anum,bnum )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
     double precision:: omega,omegai,rmax
     double precision:: rrho(4),vpv(4),vph(4),vsv(4),vsh(4),eta(4)
     double precision:: ra(2),r0
-    complex(kind(0d0)):: coef1,coef2,anum(4,4,10),bnum(4,4,10)
+    complex(dp):: coef1,coef2,anum(4,4,10),bnum(4,4,10)
     integer:: i,j,k
     double precision:: trho,tmu,tecA,tecC,tecL,tecN,tAkappa,tCkappa
     double precision:: tvpv,tvph,tvsv,tvsh,teta,coef,r,r2
-    complex(kind(0d0)):: xrho,xecA,xecC,xecF,xecL,xecN
-    complex(kind(0d0)):: xmu,xFdC,xAmF2dC
-    complex(kind(0d0)):: xAkappa,xCkappa,comega2
+    complex(dp):: xrho,xecA,xecC,xecF,xecL,xecN
+    complex(dp):: xmu,xFdC,xAmF2dC
+    complex(dp):: xAkappa,xCkappa,comega2
     !
-    do k=1,10
-        do  j=1,4
-            do  i=1,4
-                anum(i,j,k) = dcmplx( 0.d0 )
-                bnum(i,j,k) = dcmplx( 0.d0 )
-            enddo
-        enddo
-    enddo            ! computation of mu,lam and rho at r
+    anum(1:4,1:4,1:10) =  0
+    bnum(1:4,1:4,1:10) =  0
+                     ! computation of mu,lam and rho at r
     do i=1,10
         if ( i<=5 ) then
             r = ra(1) + dble(i-1) / 4.d0 * ( r0 - ra(1) )
@@ -837,7 +816,7 @@ subroutine calabnum( omega,omegai,rmax,rrho, vpv,vph,vsv,vsh,eta,&
             if ( j==1 ) then
                 coef = 1.d0
             else
-            coef = coef * ( r / rmax )
+                coef = coef * ( r / rmax )
             endif
             trho  = trho  + rrho(j)  * coef
             tvpv  = tvpv  + vpv(j)   * coef
@@ -851,7 +830,7 @@ subroutine calabnum( omega,omegai,rmax,rrho, vpv,vph,vsv,vsh,eta,&
         tecL = trho * tvsv * tvsv
         tecN = trho * tvsh * tvsh
         tmu  = trho * tvsv * tvsv
-!
+
         tAkappa = tecA - tmu * 4.d0 / 3.d0
         tCkappa = tecC - tmu * 4.d0 / 3.d0
         xAkappa = dcmplx(tAkappa) * coef2
@@ -894,21 +873,21 @@ subroutine calya( aa,bb,l2,ra,r0,ya,yb,yc,yd )
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Computing the excitation vector using Geller and Hatori(1995).
 !                                1995.7     N.Takeuchi
+! 2020.5 K.Konishi
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
     common a,b,cl2,itmp
     external eqmotion1
-! ---------------------------<< constants >>---------------------------
-    double precision,parameter ::pi=3.1415926535897932d0
 ! ---------------------------<< variables >>---------------------------
 ! variables for the source
     double precision:: r0
 ! variables for the numerical integration
     integer:: i,k,itmp
     double precision:: l2,cl2
-    complex(kind(0d0)):: ya(4),yb(4),yc(4),yd(4),yn(4)
+    complex(dp):: ya(4),yb(4),yc(4),yd(4),yn(4)
     double precision:: xs,xe,dr,ra(2)
-    complex(kind(0d0)):: work(4,2),aa(160),bb(160),a(64),b(64)
+    complex(dp):: work(4,2),aa(160),bb(160),a(64),b(64)
     integer ktmp1,ktmp2,ktmp3,ktmp4
 
     ! -----------------------<< common variables >>-----------------------
@@ -990,25 +969,24 @@ subroutine calg( l,m,coef1,coef2,lsq,ecC0,ecF0,ecL0,&
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Computing the excitation vector using Geller and Hatori(1995).
 !                                1995.7     N.Takeuchi
+! changed 2020,5 K.Konishi
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
-! ---------------------------<< constants >>---------------------------
-    double precision:: pi
-    parameter ( pi=3.1415926535897932d0 )
 ! ---------------------------<< variables >>---------------------------
 ! variables for the structure
-    complex(kind(0d0)):: coef1,coef2
+    complex(dp):: coef1,coef2
 ! variables for the source
     double precision:: r0,mt(3,3),ecC0,ecF0,ecL0
-    complex(kind(0d0)):: dd,ee,s1,s2,s(4)
+    complex(dp):: dd,ee,s1,s2,s(4)
 ! variables for the numerical integration
     integer l,m
-    complex(kind(0d0)):: ya(4),yb(4),yc(4),yd(4)
-    complex(kind(0d0)):: g(4)
+    complex(dp):: ya(4),yb(4),yc(4),yd(4)
+    complex(dp):: g(4)
     double precision:: ra(2)
     ! other variables
     integer ip(4),ier,i
-    complex(kind(0d0)):: a(4,4),b(4),wk(4),xtmp
+    complex(dp):: a(4,4),b(4),wk(4),xtmp
     double precision:: eps,sgn,b1,b2,lsq,r03,dtmp(4)
     data eps / -1.d0 /
 
@@ -1048,8 +1026,8 @@ subroutine calg( l,m,coef1,coef2,lsq,ecC0,ecF0,ecL0,&
         s2 = dcmplx( b1 * lsq * ( mt(2,2) + mt(3,3) ) / r03 ) - dcmplx( 2.d0 * b1 * lsq * mt(1,1) / r03 ) * xtmp
     endif
     if ( iabs(m)==1 ) then
-        s1 = dcmplx( 0.d0 )
-        s2 = dcmplx( 0.d0 )
+        s1 =  0
+        s2 =  0
     endif
     if ( iabs(m)==2 ) then
         r03 = r0 * r0 * r0
@@ -1063,8 +1041,7 @@ subroutine calg( l,m,coef1,coef2,lsq,ecC0,ecF0,ecL0,&
         s(3) = dcmplx( dble(ee)/lsq, dimag(ee)/lsq )
         s(4) = dcmplx( dble(s2)/lsq, dimag(s2)/lsq )
     else
-        s(3) = dcmplx( 0.d0 )
-        s(4) = dcmplx( 0.d0 )
+        s(3:4) =  0
     endif
 ! consideration of the boundary conditions
 ! determination of the analytical solution
@@ -1075,19 +1052,17 @@ subroutine calg( l,m,coef1,coef2,lsq,ecC0,ecF0,ecL0,&
         call sab2( ya,yc,s,a,b )
         call glu(a,2,4,b,eps,wk,ip,ier)
         b(3) = b(2)
-        b(2) = dcmplx( 0.d0 )
-        b(4) = dcmplx( 0.d0 )
+        b(2) = 0
+        b(4) = 0
     endif
 ! computation of the excitation vector
     dtmp(1) = - ra(1) * ra(1)
     dtmp(2) = dtmp(1) * lsq
     dtmp(3) = ra(2) * ra(2)
     dtmp(4) = dtmp(3) * lsq
-    do i=1,4
-        xtmp = b(i)
-        g(i) = dcmplx( dble(xtmp)*dtmp(i), dimag(xtmp)*dtmp(i) )
-    enddo
-!
+
+    g(1:4) =  b(1:4)*dtmp(1:4)
+
     end
 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1095,12 +1070,13 @@ subroutine eqmotion1(r,y,f)
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Equation of the motion of the solid medium.
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
     common a,b,l2,itmp
     double precision:: r,l2
-    complex(kind(0d0)):: y(4),f(4)
+    complex(dp):: y(4),f(4)
     integer i,j,itmp,mtmp
-    complex(kind(0d0)):: a(64),b(64),c(4,4)
+    complex(dp):: a(64),b(64),c(4,4)
 !
 ! computation of itmp
     itmp = itmp + 1
@@ -1113,8 +1089,8 @@ subroutine eqmotion1(r,y,f)
         enddo
     enddo
     do i=1,4
-        f(i) = dcmplx( 0.d0 )
-        do  j=1,4
+        f(i) = 0
+        do j=1,4
             f(i) = f(i) + c(i,j) * y(j)
         enddo
     enddo
@@ -1127,8 +1103,10 @@ subroutine sab1( ya,yb,yc,yd,s,a,b )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! determination of the matrix imposing the boundary conditions.
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
-    complex(kind(0d0)):: ya(4),yb(4),yc(4),yd(4),s(4),a(4,4),b(4)
+    complex(dp),intent(in):: ya(4),yb(4),yc(4),yd(4),s(4)
+    complex(dp),intent(out):: a(4,4),b(4)
     integer i
 !
     do i=1,4
@@ -1136,9 +1114,8 @@ subroutine sab1( ya,yb,yc,yd,s,a,b )
         a(i,2) = - yb(i)
         a(i,3) =   yc(i)
         a(i,4) =   yd(i)
-        b(i) = s(i)
     enddo
-!
+    b(1:4) = s(1:4)
     return
     end
 
@@ -1147,15 +1124,17 @@ subroutine sab2( ya,yc,s,a,b )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! determination of the matrix imposing the boundary conditions.
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
-    complex(kind(0d0)):: ya(4),yc(4),s(4),a(4,4),b(4)
+    complex(dp),intent(in):: ya(4),yc(4),s(4)
+    complex(dp),intent(out):: a(4,4),b(4)
     integer i
 !
     do i=1,2
         a(i,1) = - ya(i)
         a(i,2) =   yc(i)
-        b(i) = s(i)
     enddo
+    b(1:2) = s(1:2)
     return
     end
 !
@@ -1164,10 +1143,12 @@ subroutine rea2( nn,a,g,c,d,nzone,iphase,kkdr,spn,kkdr0,nn0 )
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! rearranging the matrix elements for l=0.
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    use parameters
     implicit none
-    integer:: nn,nzone
-    integer:: iphase(*),kkdr(*),spn,kkdr0,nn0
-    complex(kind(0d0)):: a(4,*),c(2,*),g(*),d(*)
+    integer,intent(in):: nn,nzone
+    integer,intent(in):: iphase(nzone),kkdr(nzone),spn
+    integer,intent(out)::kkdr0,nn0
+    complex(dp):: a(4,*),c(2,*),g(nn),d(nn)
     integer:: izone,i1,i2,itmp,mtmp,i
 !
     itmp = 0
