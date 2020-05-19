@@ -16,6 +16,7 @@ def test_tipsv():
     write_to_file = False
     start = time.time()
     u = _tipsv(*inputs, write_to_file)
+    u2 = _tipsv(*inputs, write_to_file)
     end = time.time()
     print('tipsv finished in {} s'.format(end - start))
     error_re = abs(
@@ -24,6 +25,8 @@ def test_tipsv():
         u[2, 0, -1].imag - 5.97994400276396742E-012) / 5.97994400276396742E-012
     assert error_re < 1e-7
     assert error_im < 1e-7
+    # to test value leaks when calling _tipsv 2 times
+    assert np.allclose(u, u2)
     print("All passed")
 
 

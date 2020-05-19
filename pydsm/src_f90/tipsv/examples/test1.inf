@@ -1,7 +1,7 @@
 c parameter file for tipsv.f
 c
 c parameter for the periodic range
-   409.6   32   tlen(s), np
+   3276.8   32   tlen(s), np
 c relative error (see GT95 eq. 6.2)
    1.d-2   re	
 c ampratio using in grid cut-off (1.d-10 is recommended)

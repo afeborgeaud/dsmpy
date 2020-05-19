@@ -85,7 +85,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       rmin = vrmin(1)
       rmax = vrmax(nzone)
       ndc = nzone - 1
-      
+
       if ( (r0 < rmin) .or. (r0 > rmax) ) then
          write(*,*) 'Location of the source is improper.'
          return
@@ -514,13 +514,5 @@ program main
       nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
       r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output,write_to_file,outputu)
    write(*,*) 'Done!'
-
-   write(*,*) outputu(3,0,10)
-
-   call tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
-      nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
-      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output,write_to_file,outputu)
-
-   write(*,*) outputu(3,0,10)
 
 end program main

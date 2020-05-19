@@ -12,10 +12,11 @@ def get_u_pydsm():
     parameter_file = os.path.join(rootdsm_psv, 'test1.inf')
     inputs = dsm.PyDSMInput.input_from_file(
         parameter_file, sampling_hz=20,
-        source_time_function=None, mode=1)
-    outputs = dsm.compute(inputs)
-    outputs.to_time_domain()
-    return outputs.us, outputs.ts
+        source_time_function=None, mode=0)
+    outputs_sh, outputs_psv = dsm.compute(inputs)
+    outputs_sh.to_time_domain()
+    outputs_psv.to_time_domain()
+    return outputs_sh.us, outputs_sh.ts, outputs_psv.us
 
 
 def get_u_dsm():
@@ -27,9 +28,9 @@ def get_u_dsm():
 def plot(ts, udsm, upydsm):
     fig, (ax0, ax1) = plt.subplots(2, 1, figsize=(10, 8))
     ax0.plot(ts, udsm, label='dsm')
-    ax0.plot(ts, upydsm, label='pydsm', color='red')
+    #ax0.plot(ts, upydsm, label='pydsm', color='red')
 
-    residuals = upydsm - udsm
+    residuals = upydsm #- udsm
     ax1.plot(ts, residuals, color='blue', label='residuals')
 
     ax0.legend()
@@ -46,14 +47,15 @@ if __name__ == '__main__':
     #udsm = get_u_dsm() # TODO add psv file
 
     print('Computing waveform using pyDSM')
-    upydsms, ts = get_u_pydsm()
-    upydsm = upydsms[2, 0]
+    upydsms, ts, upydsm_psv = get_u_pydsm()
+    upydsm = upydsms[1, 0]
+    upydsm_psv = upydsm_psv[1, 0]
 
     filename = 'figures/waveform_accuracy_psv.pdf'
     print('Saving DSM and pyDSM waveform comparison in {}'
           .format(filename))
     #_ = plot(ts, udsm, upydsm) #TODO add psv file
-    _ = plot(ts, upydsm, upydsm)
+    _ = plot(ts, upydsm, upydsm_psv)
     plt.savefig(filename, bbox_inches='tight')
 
     #assert (np.allclose(udsm, upydsm, rtol=1e-10))

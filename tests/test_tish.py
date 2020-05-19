@@ -16,12 +16,15 @@ def test_tish():
     write_to_file = False
     start = time.time()
     u = _tish(*inputs, write_to_file)
+    u2 = _tish(*inputs, write_to_file)
     end = time.time()
     print('tish finished in {} s'.format(end - start))
     error_re = abs(u[2, 0, -1].real + 4.7034875e-10) / 4.7034875e-10
     error_im = abs(u[2, 0, -1].imag + 1.7664374e-11) / 1.7664374e-11
     assert error_re < 1e-7
     assert error_im < 1e-7
+    # to test value leaks when calling _tish 2 times
+    assert np.allclose(u, u2)
     print("All passed")
 
 

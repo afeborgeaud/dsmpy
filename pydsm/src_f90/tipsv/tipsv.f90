@@ -740,6 +740,18 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output,write_to_file,&
       outputu)
    write(*,*) 'Done!'
+   write(*,*) outputu(3,0,20)
+
+   call pinput_tipsv(parameter_file, &
+      re,ratc,ratl,tlen,np,omegai,imin,imax, &
+      nzone,vrmin,vrmax,rho,vpv,vph,vsv,vsh,eta,qmu,qkappa, &
+      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
+
+   call tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
+      nzone,vrmin,vrmax,rho,vpv,vph,vsv,vsh,eta,qmu,qkappa,&
+      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output,write_to_file,&
+      outputu)
+   write(*,*) outputu(3,0,20)
 
 end program main
 
