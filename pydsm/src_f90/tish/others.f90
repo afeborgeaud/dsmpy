@@ -54,7 +54,8 @@ subroutine pinput_tish(parameter_file, &
     enddo
 ! source parameter
     read(lines(3*nzone+8),*) r0,eqlat,eqlon
-    call translat(eqlat,eqlattmp)
+    eqlattmp=eqlat
+    call translat(eqlattmp,eqlattmp)
     read(lines(3*nzone+9),*) mt(1,1:3),mt(2,2:3),mt(3,3)
     read(lines(3*nzone+10),*) nr
 ! station
@@ -63,7 +64,7 @@ subroutine pinput_tish(parameter_file, &
         read(lines(3*nzone+10+i),*) lat(i),lon(i)
         stlat = lat(i)
         stlon = lon(i)
-        call translat(lat(i),stlat)
+        call translat(stlat,stlat)
         call calthetaphi(eqlattmp,eqlon,stlat,stlon,theta(i),phi(i))
     enddo
     theta(1:nr) = theta(1:nr) / 1.8d2 * pi
