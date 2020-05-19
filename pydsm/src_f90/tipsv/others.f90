@@ -69,6 +69,8 @@ subroutine pinput_tipsv(parameter_file,&
         call translat(stlat,stlat)
         call calthetaphi(eqlattmp,eqlon,stlat,stlon,theta(i),phi(i))
     enddo
+    theta(1:nr) = theta(1:nr) / 1.8d2 * pi
+    phi(1:nr) = phi(1:nr) / 1.8d2 * pi
     do i=1,nr
         read(lines(10+6*nzone+nr+i),'(a)') output(i)
         output(i)=trim(output(i))

@@ -55,7 +55,7 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
     complex(dp) ya(4),yb(4),yc(4),yd(4)
 !c variable for the station
     integer,intent(in):: nr
-    double precision:: theta(maxnr),phi(maxnr)
+    double precision,intent(in):: theta(maxnr),phi(maxnr)
     double precision,intent(in):: lat(maxnr),lon(maxnr)
 !c variable for the matrix elements
     complex(dp) a0(4,2*(2*(maxnslay+1)+(maxnllay+1)+maxnzone))
@@ -136,9 +136,6 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
     rmin = vrmin(1)
     rmax = vrmax(nzone)
     ndc = nzone - 1
-
-    theta=theta/180*pi
-    phi=phi/180*pi
 
     if ( (r0<rmin) .or. (r0>rmax) ) stop 'Location of the source is improper.'
 

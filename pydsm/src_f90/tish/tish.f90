@@ -22,12 +22,12 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       real(dp) ra(maxnlay+maxnzone+1),gra(3),plm(3,0:3,maxnr)
       complex(dp) bvec(3,-2:2,maxnr)
 ! variable for the structure
-      integer nzone
+      integer, intent(in) :: nzone
       integer ndc,vnp
       real(dp) rmin,rmax
-      real(dp) vrmin(maxnzone),vrmax(maxnzone)
-      real(dp) rrho(4,maxnzone),vsv(4,maxnzone),vsh(4,maxnzone)
-      real(dp) qmu(maxnzone)
+      real(dp), intent(in) :: vrmin(maxnzone),vrmax(maxnzone)
+      real(dp), intent(in) :: rrho(4,maxnzone),vsv(4,maxnzone),vsh(4,maxnzone)
+      real(dp), intent(in) :: qmu(maxnzone)
       real(dp) vra(maxnlay+2*maxnzone+1)
       real(dp) rho(maxnlay+2*maxnzone+1)
       real(dp) ecL(maxnlay+2*maxnzone+1)
@@ -35,16 +35,19 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       real(dp) gvra(3),grho(3),gecL(3),gecN(3)
       complex(dp) coef(maxnzone)
 ! variable for the periodic range
-      integer np,imin,imax
-      real(dp) tlen,omega,omegai
+      integer, intent(in) :: np,imin,imax
+      real(dp), intent(in) :: tlen,omegai
+      real(dp) omega
       complex(dp) u(3,maxnr)
 ! variable for the source
       integer spn,ns
-      real(dp) r0,mt(3,3),spo,mu0,eqlat,eqlon
+      real(dp), intent(in) :: r0,mt(3,3),eqlat,eqlon
+      real(dp) spo,mu0
 ! variable for the station
-      integer nr,ir
-      real(dp) theta(maxnr),phi(maxnr)
-      real(dp) lat(maxnr),lon(maxnr)
+      integer, intent(in) :: nr
+      integer ir
+      real(dp), intent(in) :: theta(maxnr),phi(maxnr)
+      real(dp), intent(in) :: lat(maxnr),lon(maxnr)
 ! variable for the matrix elements
       complex(dp) a0( 2,maxnlay+1 ), a2( 2,maxnlay+1 )
       complex(dp)  a( 2,maxnlay+1 )
@@ -55,11 +58,12 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       complex(dp) aa(4),ga(8),ga2(2,3),gdr(3)
       complex(dp) g( maxnlay+1 )
 ! variable for the file
-      character*80 :: output(maxnr)
+      character*80, intent(in) :: output(maxnr)
 ! variable for grid spacing
       real(dp) tmpr(maxnlay+1)
       real(dp) gridpar(maxnzone),dzpar(maxnzone),vmin(maxnzone)
-      real(dp) re,ratc,ratl,maxamp
+      real(dp), intent(in) :: re,ratc,ratl
+      real(dp) maxamp
       integer kc,lsuf,ismall,llog
 ! variable for the stack point
       integer isp(maxnzone),jsp(maxnzone),ins
@@ -81,10 +85,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       rmin = vrmin(1)
       rmax = vrmax(nzone)
       ndc = nzone - 1
-      do ir=1,nr
-         theta(ir)= theta(ir) / 1.8d2 * pi
-         phi(ir)= phi(ir) / 1.8d2 * pi
-      enddo
+      
       if ( (r0 < rmin) .or. (r0 > rmax) ) then
          write(*,*) 'Location of the source is improper.'
          return
@@ -107,7 +108,13 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
          open(unit=11,file='llog.log',status='unknown')
          close(11)
       endif
+! ************************** Initialization **************************
+u(1:3,1:nr) = (0.d0, 0.d0)
+outputu(1:3,1:nr,imin:imax) = dcmplx(0.d0)
+bvec(1:3,-2:2,1:maxnr) = (0.d0, 0.d0)
+plm(1:3,0:3,1:maxnr) = 0.d0
 
+! --------------------------------------------------------------------
       iimax = imax
       if( (rmax-r0) < shallowdepth) then ! option for shallow events
 ! computing of the number and the location of grid points
@@ -507,5 +514,13 @@ program main
       nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
       r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output,write_to_file,outputu)
    write(*,*) 'Done!'
+
+   write(*,*) outputu(3,0,10)
+
+   call tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
+      nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
+      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output,write_to_file,outputu)
+
+   write(*,*) outputu(3,0,10)
 
 end program main

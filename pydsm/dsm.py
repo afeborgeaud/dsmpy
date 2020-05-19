@@ -108,11 +108,11 @@ class DSMInput:
         """Build a DSMInput object from a DSM input file.
         Args:
             parameter_file (str): path of a DSM input file
-            mode (int): computation mode. 0: both, 1: P-SV, 2: SH
+            mode (int): 1: P-SV, 2: SH
         Return:
             DSMInput
         """
-        if mode == 0 or mode == 1:
+        if mode == 1:
             inputs = _pinput(parameter_file)
             (re, ratc, ratl,
              tlen, nspc, omegai,
@@ -304,7 +304,7 @@ class PyDSMInput(DSMInput):
         sampling_hz (int): sampling frequency for time-domain waveforms
         source_time_function (SourceTimeFunction): SourceTimeFunction
             object
-        mode (int): computation mode. 0: both, 1: P-SV, 2: SH
+        mode (int): 1: P-SV, 2: SH
     """
 
     def __init__(
@@ -329,7 +329,7 @@ class PyDSMInput(DSMInput):
                 for time-domain waveforms
             source_time_function (SourceTimeFunction): 
                 SourceTimeFunction object
-            mode (int): computation mode. 0: both, 1: P-SV, 2: SH
+            mode (int): 1: P-SV, 2: SH
         Returns:
             PyDSMInput object
         """
@@ -510,7 +510,8 @@ class MomentTensor:
         return mt
 
 
-def compute(pydsm_input, write_to_file=False):
+def compute(pydsm_input, write_to_file=False,
+            mode=0):
     """Compute spectra using DSM.
 
     Args:
@@ -531,25 +532,30 @@ def compute(pydsm_input, write_to_file=False):
     if pydsm_input.mode not in {0, 1, 2}:
         raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
                            .format(mode))
-    if pydsm_input.mode == 0:
+    if mode == 0:
         print('compute PSV')
-        spcs = _tipsv(
+        spcs_psv = _tipsv(
             *pydsm_input.get_inputs_for_tipsv(),
             write_to_file)
+        print('0 PSV', spcs_psv[2, 0, 30:33].real)
         print('compute SH')
-        spcs += _tish(
+        spcs_sh = _tish(
             *pydsm_input.get_inputs_for_tish(),
             write_to_file)
-    elif pydsm_input.mode == 1:
+        spcs = spcs_sh + spcs_psv
+        print('0 SH', spcs_sh[2, 0, 30:33].real)
+    elif mode == 1:
         print('compute PSV')
         spcs = _tipsv(
             *pydsm_input.get_inputs_for_tipsv(),
             write_to_file)
+        print('1 PSV', spcs[2, 0, 30:33].real)
     else:
         print('compute SH')
         spcs = _tish(
             *pydsm_input.get_inputs_for_tish(),
             write_to_file)
+        print('1 SH', spcs[2, 0, 30:33].real)
     
     dsm_output = PyDSMOutput.output_from_pydsm_input(spcs, pydsm_input)
     return dsm_output

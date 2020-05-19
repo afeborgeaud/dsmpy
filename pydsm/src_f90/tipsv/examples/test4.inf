@@ -1,7 +1,7 @@
 c parameter file for tipsv.f
 c
 c parameter for the periodic range
-   409.6   32   tlen(s), np
+   3276.8   64   tlen(s), np
 c relative error (see GT95 eq. 6.2)
    1.d-2   re	
 c ampratio using in grid cut-off (1.d-10 is recommended)
@@ -9,10 +9,10 @@ c ampratio using in grid cut-off (1.d-10 is recommended)
 c ampratio using in l-cutoff
    1.d-5    ratl
 c artificial damping for wrap-around (see GO94 5.1)
-   1.d-2   
+   1.d-2
 c parameter for the trial function
 c imin imax  
-    0  32     
+    0  64     
 c parameter for the structure
    12   nzone
 c  - Radius(km) -     --- Density (g/cm^3)---
@@ -96,7 +96,7 @@ c                     ---   eta     (ND  ) ---             - Qmu -  - Qkappa -
 c 
 c parameter for the source
    5771.1   -22.49 -68.09 r0(km), lat, lon (deg)
-   0.0 1.0 0.0 0.0 0.0 0.0   mt (Mrr, Mrt, Mrp, Mtt, Mtp, Mpp) (1.e25 dyne cm)
+   1.0 1.0 1.0 -1.0 0.0 0.0   mt (Mrr, Mrt, Mrp, Mtt, Mtp, Mpp) (1.e25 dyne cm)
 c parameter for the station
    2   nr
      -51.6753 -58.0637 lat,lon (deg)
