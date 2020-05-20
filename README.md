@@ -44,6 +44,8 @@ output = dsm.compute(input)
 output.to_time_domain() # perform inverse FFT
 us = output.us # synthetics. us.shape = (3,nr,tlen)
 ts = output.ts # time points [0, tlen]
+# brackets can be used to access component and station
+u_Z_FCC = output['Z', 'FCC_CN']
 ```
 
 #### Using Fortran DSM input file
