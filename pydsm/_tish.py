@@ -2,6 +2,7 @@
 '''
 
 from pydsm.lib import tish
+import numpy as np
 
 parameters = dict(maxnzone=tish.parameters.maxnzone.item(),
                   maxnr=tish.parameters.maxnr.item(),
@@ -56,6 +57,11 @@ def _calthetaphi(stalat, stalon, eqlat, eqlon):
     """
     eqlat_geocentric = _translat(eqlat)
     stalat_geocentric = _translat(stalat)
-    return tish.calthetaphi(eqlat_geocentric, eqlon,
+    theta, phi = tish.calthetaphi(eqlat_geocentric, eqlon,
                             stalat_geocentric, stalon)
+    # the conversion to radians is now done in pinput
+    # so it must be reproduced here
+    theta *= np.pi / 180.
+    phi *= np.pi / 180.
+    return theta, phi
 

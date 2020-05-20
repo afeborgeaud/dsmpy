@@ -104,7 +104,7 @@ class DSMInput:
             max_nzone=len(self.vrmin), max_nr=len(self.lat))
 
     @classmethod
-    def input_from_file(cls, parameter_file, mode=0):
+    def input_from_file(cls, parameter_file, mode=1):
         """Build a DSMInput object from a DSM input file.
         Args:
             parameter_file (str): path of a DSM input file
@@ -112,6 +112,9 @@ class DSMInput:
         Return:
             DSMInput
         """
+        if mode not in {1, 2}:
+            raise RuntimeError('mode should be 1 or 2')
+        
         if mode == 1:
             inputs = _pinput(parameter_file)
             (re, ratc, ratl,
@@ -139,7 +142,7 @@ class DSMInput:
             vph = None
             eta = None
             qkappa = None
-
+        
         return cls(
             re, ratc, ratl, tlen, nspc,
             omegai, imin, imax, nzone, vrmin, vrmax,
@@ -309,18 +312,20 @@ class PyDSMInput(DSMInput):
 
     def __init__(
             self, dsm_input, sampling_hz=None,
-            mode=0):
+            mode=1):
         super().__init__(
             *dsm_input.get_inputs_for_tipsv())
         self.sampling_hz = self.find_optimal_sampling_hz(sampling_hz)
         self.stations = self._parse_stations()
         self.event = self._parse_event()
         self.mode = mode
+        if mode not in {1, 2}:
+            raise RuntimeError('mode should be 1 or 2')
 
     @classmethod
     def input_from_file(cls, parameter_file,
                         sampling_hz=None, source_time_function=None,
-                        mode=0):
+                        mode=1):
         """Build a PyDSMInput object from a DSM input file.
         
         Args:
@@ -360,7 +365,7 @@ class PyDSMInput(DSMInput):
         """
         dsm_input = DSMInput.input_from_arrays(event, stations,
                                                seismic_model, tlen, nspc)
-        pydsm_input = cls(dsm_input, sampling_hz, mode=0)
+        pydsm_input = cls(dsm_input, sampling_hz, mode=1)
         pydsm_input.set_source_time_function(event.source_time_function)
         return pydsm_input
 
@@ -529,7 +534,7 @@ def compute(pydsm_input, write_to_file=False,
         or SH results in non-physical waves and should be avoided.
         See Kawai et al. (2006) for details.
     """
-    if pydsm_input.mode not in {0, 1, 2}:
+    if mode not in {0, 1, 2}:
         raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
                            .format(mode))
     if mode == 0:
@@ -560,6 +565,10 @@ def compute_parallel(
         pydsm_input, comm, mode=0, write_to_file=False):
     """Compute spectra using DSM with data parallelization.
     """
+    if mode not in {0, 1, 2}:
+        raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
+                           .format(mode))
+
     rank = comm.Get_rank()
     n_cores = comm.Get_size()
 
@@ -720,6 +729,9 @@ def compute_dataset_parallel(
         outputs ([PyDSMOutput]): list of PyDSMOutput with one
             entry for each event in dataset
     """
+    if mode not in {0, 1, 2}:
+        raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
+                           .format(mode))
 
     rank = comm.Get_rank()
     n_cores = comm.Get_size()
@@ -871,8 +883,22 @@ def compute_dataset_parallel(
         lon_local, phi_local, theta_local)
 
     start_time = time.time()
-    spcs_local = _tish(*input_local.get_inputs_for_tish(),
-                       write_to_file=False)
+    print('rank {}: mode={}'.format(rank, mode))
+    if mode == 0:
+        spcs_local = _tipsv(
+            *input_local.get_inputs_for_tipsv(),
+            write_to_file=False)
+        spcs_local += _tish(
+            *input_local.get_inputs_for_tish(),
+            write_to_file=False)
+    elif mode == 1:
+        spcs_local = _tipsv(
+            *input_local.get_inputs_for_tipsv(),
+            write_to_file=False)
+    else:
+        spcs_local = _tish(
+            *input_local.get_inputs_for_tish(),
+            write_to_file=False)
     end_time = time.time()
     print('{} paths: processor {} in {} s'
           .format(input_local.nr, rank, end_time - start_time))

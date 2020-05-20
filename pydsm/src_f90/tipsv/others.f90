@@ -5,6 +5,7 @@ subroutine pinput_tipsv(parameter_file,&
     r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
     use parameters
     implicit none
+    integer, parameter :: maxnline=2*maxnr+6*maxnzone+50
     character*160, intent(in):: parameter_file
     integer,intent(out):: np,imin,imax,nzone,nr
     real(dp),intent(out):: tlen,omegai,re,ratc,ratl
@@ -17,7 +18,7 @@ subroutine pinput_tipsv(parameter_file,&
     real(dp):: eqlattmp,stlat,stlon
     logical:: file_exists
     character*80::buffer
-    character*80,dimension(1000):: lines
+    character*80,dimension(maxnline):: lines
 
     inquire(file=parameter_file, exist=file_exists)
 

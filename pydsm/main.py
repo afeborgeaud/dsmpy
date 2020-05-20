@@ -69,23 +69,24 @@ if __name__ == '__main__':
     start_time = time.time()
     outputs = dsm.compute_dataset_parallel(dataset, seismic_model,
                                            tlen, nspc, sampling_hz,
-                                           comm)
+                                           comm, mode=2)
     end_time = time.time()
     print('rank {}: DSM finished in {} s'
           .format(rank, end_time-start_time))
 
-    for output in outputs:
-        # output.set_source_time_function(
-        #     SourceTimeFunction.triangle(10., tlen, nspc))
-        output.to_time_domain()
+    if rank == 0:
+        for output in outputs:
+            output.set_source_time_function(None)
+            output.to_time_domain()
     
     # debug for station order
-    for station, sac in zip(
-            np.concatenate([output.stations for output in outputs]),
-            sac_files):
-        st = read(sac)
-        assert str(station) == (st[0].stats.station + '_' 
-                               + st[0].stats.network)
+    if rank == 0:
+        for station, sac in zip(
+                np.concatenate([output.stations for output in outputs]),
+                sac_files):
+            st = read(sac)
+            assert str(station) == (st[0].stats.station + '_' 
+                                + st[0].stats.network)
     
     if rank == 0:
         write_outputs(outputs, root_event_folder)
