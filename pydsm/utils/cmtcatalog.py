@@ -4,9 +4,12 @@ from pydsm.dsm import Event
 from pydsm.spc.spctime import SourceTimeFunction
 import numpy as np
 import warnings
+from datetime import date
+import re
+import requests
 
-def convert_catalog():
-    cat = read_events(root_resources + 'gcmt.ndk')
+def convert_catalog(cat):
+    #cat = read_events(root_resources + 'gcmt.ndk')
     #mts = np.zeros((cat.count(), 6), dtype=np.float64)
     events = np.empty(cat.count(), dtype=np.object)
     for i, event in enumerate(cat):
@@ -45,13 +48,34 @@ def read_catalog():
     try:
         cat = np.load(root_resources + 'gcmt.npy', allow_pickle=True)
     except:
-        print('Convert gcmt ndk catalog to pickle.\n'
+        print('Dowloading gcmt catalog.\n'
               + 'Takes a few minutes. Done only once.')
+        cat = _download_gcmt_catalog()
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            convert_catalog()
+            convert_catalog(cat)
         cat = np.load(root_resources + 'gcmt.npy', allow_pickle=True)
     return cat
 
+def _download_gcmt_catalog():
+    cat = read_events('https://www.ldeo.columbia.edu/~gcmt/projects/CMT/'
+                      'catalog/jan76_dec17.ndk')
+    start_year = 2018
+    end_year = date.today().year
+    p=re.compile('[a-z]+\d\d\.ndk')
+    for year in range(start_year, end_year+1):
+        dir = ('https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/'
+               'NEW_MONTHLY/' + str(year))
+        r = requests.get(dir)
+        ndk_files = p.findall(r.text)
+        for ndk_file in set(ndk_files):
+            try:
+                cat_tmp = read_events(dir + '/' + ndk_file)
+                cat.extend(cat_tmp.events)
+            except:
+                pass
+    #cat.write(root_resources + 'gcmt.xml', format='quakeml')
+    return cat
+
 if __name__ == '__main__':
-    convert_catalog()
+    cat = read_catalog()

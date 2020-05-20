@@ -25,7 +25,7 @@ class PyDSMOutput:
         sampling_hz (int): sampling frequency for time-domain waveforms
         tlen (float): length of time series (must be 2**n/10)
         nspc (int): number of frequency points (must be 2**n)
-        omegai (float): 
+        omegai (float):
     """
 
     def __init__(
@@ -62,6 +62,36 @@ class PyDSMOutput:
 
     def get_nr(self):
         return len(self.stations)
+
+    def __getattribute__(self, name):
+        if name == 'Z':
+            return self.us[0, ...]
+        elif name == 'R':
+            return self.us[1, ...]
+        elif name == 'T':
+            return self.us[2, ...]
+        else:
+            return super().__getattribute__(name)
+    
+    def __getitem__(self, key):
+        """Override __getitem__ to allow calls such as 
+        output['Z'] and output['Z', 'station_network']
+        """
+        if len(key) == 1:
+            if key == 'Z':
+                return self.us[0, ...]
+            elif key == 'R':
+                return self.us[1, ...]
+            elif key == 'T':
+                return self.us[2, ...]
+        elif len(key) == 2:
+            try:
+                index = self.stations.index(key[1])
+                return self.__getitem__(key[0])[index, :]
+            except:
+                raise KeyError('Station {} not in list'.format(key[1]))
+        else:
+            raise KeyError('key {} undefined'.format(key))
 
 
 class DSMInput:
@@ -430,6 +460,11 @@ class Station:
     def __repr__(self):
         return self.name + '_' + self.network
 
+    def __eq__(self, other):
+        if self.__repr__() == other:
+            return True
+        else:
+            return False
 
 class Event:
     """Represent an earthquake point-source.

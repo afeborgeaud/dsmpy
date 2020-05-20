@@ -30,7 +30,7 @@ if __name__ == '__main__':
     start_time = time.time()
     outputs = dsm.compute_dataset_parallel(dataset, seismic_model,
                                            tlen, nspc, sampling_hz,
-                                           comm)
+                                           comm, mode=1)
     end_time = time.time()
 
     if rank == 0:
@@ -42,7 +42,7 @@ if __name__ == '__main__':
             filename = '{}_{}_n{}'.format(output.event, i, n_cores)
             np.save(filename, output.spcs)
     #elif rank == 0:
-            if i == 0:
-                spcs_n2 = np.load('20090101_0_n2.npy')
-                assert np.allclose(spcs_n2, output.spcs, rtol=1e-17)
+            if i == 1:
+                spcs_n2 = np.load('20090101_1_n2.npy')
+                assert np.allclose(spcs_n2, output.spcs, atol=1e-17)
                 print("Same!")
