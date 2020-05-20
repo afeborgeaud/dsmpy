@@ -3,6 +3,7 @@ from pydsm import root_resources
 from pydsm.dsm import Event
 from pydsm.spc.spctime import SourceTimeFunction
 import numpy as np
+import warnings
 
 def convert_catalog():
     cat = read_events(root_resources + 'gcmt.ndk')
@@ -44,7 +45,11 @@ def read_catalog():
     try:
         cat = np.load(root_resources + 'gcmt.npy', allow_pickle=True)
     except:
-        convert_catalog()
+        print('Convert gcmt ndk catalog to pickle.\n'
+              + 'Takes a few minutes. Done only once.')
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            convert_catalog()
         cat = np.load(root_resources + 'gcmt.npy', allow_pickle=True)
     return cat
 

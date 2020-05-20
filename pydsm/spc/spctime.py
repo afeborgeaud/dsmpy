@@ -89,10 +89,10 @@ class SourceTimeFunction:
     """Represent an earthquake source time function.
     
     Args:
-        type (str): 'triangle' or 'boxcar'
+        type (str): 'triangle' or 'box car'
         half_duration (float): half duration of the source time function
     """
-    _types = {'triangle',}
+    _types = {'triangle', 'box car'}
 
     def __init__(self, type: str, half_duration: float):
         self.type = type
@@ -104,6 +104,9 @@ class SourceTimeFunction:
     def get_source_time_function_frequency_domain(self, tlen, nspc):
         if self.type == 'triangle':
             return SourceTimeFunction.triangle(
+                self.half_duration, tlen, nspc)
+        elif self.type == 'box car':
+            return SourceTimeFunction.boxcar(
                 self.half_duration, tlen, nspc)
         else:
             warnings.warn('{} not implemented yet'.format(self.type))
@@ -118,4 +121,14 @@ class SourceTimeFunction:
             omega_tau = (i + 1) * constant
             stf[i] = complex((2 - 2 * np.cos(omega_tau))
                              / (omega_tau * omega_tau))
+        return stf
+
+    @staticmethod
+    def boxcar(half_duration, tlen, nspc):
+        deltaF = 1 / tlen
+        constant = 2 * np.pi * deltaF * half_duration
+        stf = np.zeros(nspc + 1, dtype=np.complex128)
+        for i in range(nspc):
+            omega_tau = (i + 1) * constant
+            stf[i] = complex(np.sin(omega_tau) / omega_tau)
         return stf

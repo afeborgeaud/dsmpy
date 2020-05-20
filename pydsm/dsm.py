@@ -534,28 +534,23 @@ def compute(pydsm_input, write_to_file=False,
                            .format(mode))
     if mode == 0:
         print('compute PSV')
-        spcs_psv = _tipsv(
+        spcs = _tipsv(
             *pydsm_input.get_inputs_for_tipsv(),
             write_to_file)
-        print('0 PSV', spcs_psv[2, 0, 30:33].real)
         print('compute SH')
-        spcs_sh = _tish(
+        spcs += _tish(
             *pydsm_input.get_inputs_for_tish(),
             write_to_file)
-        spcs = spcs_sh + spcs_psv
-        print('0 SH', spcs_sh[2, 0, 30:33].real)
     elif mode == 1:
         print('compute PSV')
         spcs = _tipsv(
             *pydsm_input.get_inputs_for_tipsv(),
             write_to_file)
-        print('1 PSV', spcs[2, 0, 30:33].real)
     else:
         print('compute SH')
         spcs = _tish(
             *pydsm_input.get_inputs_for_tish(),
             write_to_file)
-        print('1 SH', spcs[2, 0, 30:33].real)
     
     dsm_output = PyDSMOutput.output_from_pydsm_input(spcs, pydsm_input)
     return dsm_output
