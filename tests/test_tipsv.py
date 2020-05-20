@@ -20,7 +20,7 @@ def test_tipsv():
     end = time.time()
     print('tipsv finished in {} s'.format(end - start))
     error_re = abs(
-        u[2, 0, -1].real + 1.54309401723643564E-011) /-1.54309401723643564E-011
+        u[2, 0, -1].real + 1.54309401723643564E-011) / -1.54309401723643564E-011
     error_im = abs(
         u[2, 0, -1].imag - 5.97994400276396742E-012) / 5.97994400276396742E-012
     assert error_re < 1e-7

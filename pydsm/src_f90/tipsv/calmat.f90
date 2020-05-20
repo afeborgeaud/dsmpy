@@ -268,6 +268,7 @@ subroutine calhm1( nlayer,vra,con,ra,hm1 )
     double precision:: vra(nlayer),con(nlayer+1),ra(nlayer+1),hm1(-1:2,nlayer+1)
     integer:: itmp,i
     !
+    hm1=0
     itmp = 0
 100 continue
     itmp = itmp + 1
@@ -306,7 +307,7 @@ subroutine calhm2( nlayer,vra,con,ra,hm2 )
     integer ::nlayer
     double precision:: vra(nlayer),con(nlayer+1),ra(nlayer+1),hm2(-2:1,nlayer+1)
     integer ::itmp,i
-
+    hm2=0
     itmp = 0
 100 continue
     itmp = itmp + 1
@@ -391,7 +392,7 @@ subroutine calcoef( nzone,omega,qmu,qkappa,coef1,coef2,coef )
     implicit none
     integer:: nzone
     double precision,intent(in):: omega,qmu(nzone),qkappa(nzone)
-    complex(dp):: coef1(nzone),coef2(nzone),coef(nzone)
+    complex(dp),intent(out):: coef1(nzone),coef2(nzone),coef(nzone)
     integer:: i
     double precision:: aa,bb
 
@@ -975,14 +976,14 @@ subroutine calg( l,m,coef1,coef2,lsq,ecC0,ecF0,ecL0,&
     implicit none
 ! ---------------------------<< variables >>---------------------------
 ! variables for the structure
-    complex(dp):: coef1,coef2
+    complex(dp),intent(in):: coef1,coef2
 ! variables for the source
     double precision:: r0,mt(3,3),ecC0,ecF0,ecL0
     complex(dp):: dd,ee,s1,s2,s(4)
 ! variables for the numerical integration
     integer l,m
     complex(dp):: ya(4),yb(4),yc(4),yd(4)
-    complex(dp):: g(4)
+    complex(dp),intent(out):: g(4)
     double precision:: ra(2)
     ! other variables
     integer ip(4),ier,i

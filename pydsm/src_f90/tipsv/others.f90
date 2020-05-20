@@ -149,7 +149,7 @@ subroutine calnl( nzone,vs,iphase,nsl,nll )
 
     nsl = 0
     nll = 0
-    do   i=1,nzone
+    do i=1,nzone
         if ( ( vs(1,i)==0.d0 ).and.( vs(2,i)==0.d0 ).and.&
             ( vs(3,i)==0.d0 ).and.( vs(4,i)==0.d0 ) ) then
             nll = nll + 1
@@ -677,7 +677,7 @@ subroutine calamp( g,l,lsuf,maxamp,ismall,ratl )
     implicit none
     integer:: ismall,l,lsuf
     double precision:: maxamp,ratl
-    complex(dp) g(2)
+    complex(dp),intent(in):: g(2)
     double precision:: amp,ampratio
 
     ampratio = 0.d0

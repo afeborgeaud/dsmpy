@@ -30,12 +30,12 @@ SUBROUTINE DCSYMBDL(A,M,N,NN,EPS,Z,W,L,LI,LJ,IER)
     !
     IER = 0
     IJ = 0
-    DO  I=1,M
+    DO I=1,M
         IJ = IJ + 1
         LI(IJ) = I + 1
         LJ(IJ) = 2
         L(IJ) = M * (I-1) + 1
-        DO  J=I+1,M
+        DO J=I+1,M
             IJ = IJ + 1
             L(IJ) = L(IJ-1) + M + 1
             LI(IJ) = LI(IJ-1) + 1
@@ -43,7 +43,7 @@ SUBROUTINE DCSYMBDL(A,M,N,NN,EPS,Z,W,L,LI,LJ,IER)
         enddo
     enddo
     MM = (M+1) * M / 2
-    DO  K=1,N-M
+    DO K=1,N-M
         NK = (M+1) * (K-1) + 1
         IF (cdabs(A(NK+M)) < EPS) THEN
             WRITE(*,*) '(SUBR. SYMBDL) SINGULAR AT STEP = ', K
@@ -51,7 +51,7 @@ SUBROUTINE DCSYMBDL(A,M,N,NN,EPS,Z,W,L,LI,LJ,IER)
             RETURN
         ENDIF
         PIV = 1.0D0 / A(NK+M)
-        DO  J=2,M+1
+        DO J=2,M+1
             Z(J) = -A(NK+M*J)
             W(J) = A(NK+M*J) * PIV
             A(NK+M*J) = W(J)
