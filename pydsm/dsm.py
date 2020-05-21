@@ -11,7 +11,57 @@ import time
 import functools
 import warnings
 from obspy import read_events
+from obspy import Trace
+from obspy.core.trace import Stats
+from obspy.core.util.attribdict import AttribDict
+import obspy.io.sac as sac
+import os
+import glob
 
+def _is_iterable(obj):
+    try:
+        iter(obj)
+    except Exception:
+        return False
+    else:
+        return True
+
+class PyDSMInputFile:
+    """Input file for pydsm.
+
+    Args:
+        input_file (str): path of pydsm input file
+    """
+    def __init__(self, input_file):
+        self.input_file = input_file
+    
+    def read(self):
+        params = dict()
+        with open(self.input_file, 'r') as f:
+            for line in f:
+                key, value = self._parse_line(line)
+                params[key] = value
+        return params
+
+    def _parse_line(self, line):
+        key, value = line.strip().split()[:2]
+        if key == 'sac_files':
+            full_path = os.path.expanduser(value.strip())
+            value_parsed = list(glob.iglob(full_path))
+        elif key == 'tlen':
+            value_parsed = float(value)
+        elif key == 'nspc':
+            value_parsed = int(value)
+        elif key == 'sampling_hz':
+            value_parsed = int(value)
+        elif key == 'seismic_model':
+            value_parsed = value.strip().lower()
+        elif key == 'mode':
+            value_parsed = int(value)
+        elif key == 'output_folder':
+            full_path = os.path.expanduser(value.strip())
+            value_parsed = full_path
+        return key, value_parsed
 
 class PyDSMOutput:
     """Output from pydsm compute methods.
@@ -25,7 +75,7 @@ class PyDSMOutput:
         sampling_hz (int): sampling frequency for time-domain waveforms
         tlen (float): length of time series (must be 2**n/10)
         nspc (int): number of frequency points (must be 2**n)
-        omegai (float): 
+        omegai (float):
     """
 
     def __init__(
@@ -40,6 +90,8 @@ class PyDSMOutput:
         self.omegai = omegai
         self.components = ('Z', 'R', 'T')
         self.dt = 1 / self.sampling_hz
+        self.us = None
+        self.ts = None
 
     @classmethod
     def output_from_pydsm_input(cls, spcs, pydsm_input):
@@ -60,8 +112,78 @@ class PyDSMOutput:
     def set_source_time_function(self, source_time_function):
         self.event.source_time_function = source_time_function
 
+    def write(self, root_path, format):
+        """write using obspy.io.write
+        Args:
+            root_path (str): path of root folder in which to write
+            format (str): output files format ('sac')
+        """
+        for tr in self.get_traces():
+            filename = '.'.join((
+                tr.stats.station, tr.stats.network, tr.stats.sac.kevnm,
+                tr.stats.component, format))
+            tr.write(os.path.join(root_path, filename), format=format)
+
+    def get_traces(self):
+        traces = []
+        if self.us is None:
+            self.to_time_domain()
+        for icomp in range(3):
+            for ista in range(self.get_nr()):
+                station = self.stations[ista]
+                data = self.us[icomp, ista]
+                stats = Stats()
+                stats.network = station.network
+                stats.station = station.name
+                stats.sampling_rate = self.sampling_hz
+                stats.delta = self.dt
+                stats.starttime = 0.
+                #stats.endtime = self.tlen
+                stats.npts = len(data)
+                stats.component = self.components[icomp]
+                sac_header = AttribDict(**dict(
+                    b=0, delta=self.dt, depmax=data.max(),
+                    depmin=data.min(), depmen=data.mean(),
+                    e=self.tlen, npts=len(data), evdp=self.event.depth,
+                    evla=self.event.latitude, evlo=self.event.longitude,
+                    kevnm=self.event.event_id, knetwk=station.network,
+                    kstnm=station.name, gcarc=0.))
+                stats.sac = sac_header
+                trace = Trace(data=data, header=stats)
+                traces.append(trace)
+        return traces
+
     def get_nr(self):
         return len(self.stations)
+    
+    def __getitem__(self, key):
+        """Override __getitem__. Allows following indexations:
+        output['Z']
+        output['Z', 'sta_net']
+        output['Z', ['sta1_net1', 'sta2_net2']]
+        """
+        if self.us is None:
+            self.to_time_domain()
+        if len(key) == 1:
+            if key == 'Z':
+                return self.us[0, ...]
+            elif key == 'R':
+                return self.us[1, ...]
+            elif key == 'T':
+                return self.us[2, ...]
+        elif len(key) == 2:
+            try:
+                if (type(key[1]) != str) and _is_iterable(key[1]):
+                    indexes = [self.stations.index(k)
+                               for k in key[1]]
+                    return self.__getitem__(key[0])[indexes, :]
+                else:
+                    index = self.stations.index(key[1])
+                    return self.__getitem__(key[0])[index, :]
+            except:
+                raise KeyError('Station {} not in list'.format(key[1]))
+        else:
+            raise KeyError('key {} undefined'.format(key))
 
 
 class DSMInput:
@@ -104,7 +226,7 @@ class DSMInput:
             max_nzone=len(self.vrmin), max_nr=len(self.lat))
 
     @classmethod
-    def input_from_file(cls, parameter_file, mode=0):
+    def input_from_file(cls, parameter_file, mode=1):
         """Build a DSMInput object from a DSM input file.
         Args:
             parameter_file (str): path of a DSM input file
@@ -112,6 +234,9 @@ class DSMInput:
         Return:
             DSMInput
         """
+        if mode not in {1, 2}:
+            raise RuntimeError('mode should be 1 or 2')
+        
         if mode == 1:
             inputs = _pinput(parameter_file)
             (re, ratc, ratl,
@@ -139,7 +264,7 @@ class DSMInput:
             vph = None
             eta = None
             qkappa = None
-
+        
         return cls(
             re, ratc, ratl, tlen, nspc,
             omegai, imin, imax, nzone, vrmin, vrmax,
@@ -309,18 +434,20 @@ class PyDSMInput(DSMInput):
 
     def __init__(
             self, dsm_input, sampling_hz=None,
-            mode=0):
+            mode=1):
         super().__init__(
             *dsm_input.get_inputs_for_tipsv())
         self.sampling_hz = self.find_optimal_sampling_hz(sampling_hz)
         self.stations = self._parse_stations()
         self.event = self._parse_event()
         self.mode = mode
+        if mode not in {1, 2}:
+            raise RuntimeError('mode should be 1 or 2')
 
     @classmethod
     def input_from_file(cls, parameter_file,
                         sampling_hz=None, source_time_function=None,
-                        mode=0):
+                        mode=1):
         """Build a PyDSMInput object from a DSM input file.
         
         Args:
@@ -360,7 +487,7 @@ class PyDSMInput(DSMInput):
         """
         dsm_input = DSMInput.input_from_arrays(event, stations,
                                                seismic_model, tlen, nspc)
-        pydsm_input = cls(dsm_input, sampling_hz, mode=0)
+        pydsm_input = cls(dsm_input, sampling_hz, mode=1)
         pydsm_input.set_source_time_function(event.source_time_function)
         return pydsm_input
 
@@ -425,6 +552,11 @@ class Station:
     def __repr__(self):
         return self.name + '_' + self.network
 
+    def __eq__(self, other):
+        if self.__repr__() == other:
+            return True
+        else:
+            return False
 
 class Event:
     """Represent an earthquake point-source.
@@ -529,7 +661,7 @@ def compute(pydsm_input, write_to_file=False,
         or SH results in non-physical waves and should be avoided.
         See Kawai et al. (2006) for details.
     """
-    if pydsm_input.mode not in {0, 1, 2}:
+    if mode not in {0, 1, 2}:
         raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
                            .format(mode))
     if mode == 0:
@@ -555,11 +687,14 @@ def compute(pydsm_input, write_to_file=False,
     dsm_output = PyDSMOutput.output_from_pydsm_input(spcs, pydsm_input)
     return dsm_output
 
-
 def compute_parallel(
         pydsm_input, comm, mode=0, write_to_file=False):
     """Compute spectra using DSM with data parallelization.
     """
+    if mode not in {0, 1, 2}:
+        raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
+                           .format(mode))
+
     rank = comm.Get_rank()
     n_cores = comm.Get_size()
 
@@ -720,6 +855,9 @@ def compute_dataset_parallel(
         outputs ([PyDSMOutput]): list of PyDSMOutput with one
             entry for each event in dataset
     """
+    if mode not in {0, 1, 2, None}:
+        raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
+                           .format(mode))
 
     rank = comm.Get_rank()
     n_cores = comm.Get_size()
@@ -813,7 +951,7 @@ def compute_dataset_parallel(
     nr = np.empty(1, dtype=np.int64)
     comm.Scatter(sendcounts_sta, nr, root=0)
 
-    print('rank {}: nr={}'.format(rank, nr))
+    #print('rank {}: nr={}'.format(rank, nr))
 
     lon_local = np.empty(nr, dtype=np.float64)
     lat_local = np.empty(nr, dtype=np.float64)
@@ -871,11 +1009,25 @@ def compute_dataset_parallel(
         lon_local, phi_local, theta_local)
 
     start_time = time.time()
-    spcs_local = _tish(*input_local.get_inputs_for_tish(),
-                       write_to_file=False)
+    #print('rank {}: mode={}'.format(rank, mode))
+    if mode == 0:
+        spcs_local = _tipsv(
+            *input_local.get_inputs_for_tipsv(),
+            write_to_file=False)
+        spcs_local += _tish(
+            *input_local.get_inputs_for_tish(),
+            write_to_file=False)
+    elif mode == 1:
+        spcs_local = _tipsv(
+            *input_local.get_inputs_for_tipsv(),
+            write_to_file=False)
+    else:
+        spcs_local = _tish(
+            *input_local.get_inputs_for_tish(),
+            write_to_file=False)
     end_time = time.time()
-    print('{} paths: processor {} in {} s'
-          .format(input_local.nr, rank, end_time - start_time))
+    print('rank {}: {} paths finished in {} s'
+          .format(rank, input_local.nr, end_time - start_time))
 
     # TODO change the order of outputu in DSM 
     # to have nr as the last dimension

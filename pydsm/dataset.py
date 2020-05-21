@@ -27,7 +27,7 @@ class Dataset:
         self.events = events
 
     @classmethod
-    def dataset_from_files(cls, parameter_files, mode=0):
+    def dataset_from_files(cls, parameter_files, mode=1):
         pydsm_inputs = [PyDSMInput.input_from_file(file, mode=mode)
                             for file in parameter_files]
         

@@ -10,11 +10,12 @@ if __name__ == '__main__':
     rank = comm.Get_rank()
 
     if rank == 0:
-        parameter_file = os.path.join(rootdsm_psv, 'test2.inf')
-        inputs = dsm.PyDSMInput.input_from_file(parameter_file)
+        parameter_file = os.path.join(rootdsm_psv, 'test3.inf')
+        print(parameter_file)
+        inputs = dsm.PyDSMInput.input_from_file(parameter_file, mode=1)
     else:
         inputs = None
-    
+
     start_time = time.time()
     spcs = dsm.compute_parallel(inputs, comm)
     end_time = time.time()

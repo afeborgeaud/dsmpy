@@ -16,6 +16,24 @@ Compiled using numpy.f2py
 - test scripts are in pydsm/tests
 
 ## Usage
+#### General use: using pydsm input file. Run in parallel.
+A template input file is in *pydsm/tests/input_file/template.txt*. Its contents is as below
+```
+sac_files ~/git/pydsm/tests/sac_files/*T
+output_folder ~/git/pydsm/tests/sac_files
+tlen 3276.8
+nspc 256
+sampling_hz 20
+seismic_model prem
+mode 0
+```
+This input file can be runned in parallel from a Unix shell using:
+```shell
+# from pydsm git folder
+n_proc=2 # n_proc should be greater than the number of earthquakes in the list of sac_files
+mpiexec -n $n_proc python pydsm/main.py tests/input_files/template.txt
+```
+
 #### Using pydsm Python classes
 ```python
 from pydsm import dsm, seismicmodel
@@ -44,6 +62,10 @@ output = dsm.compute(input)
 output.to_time_domain() # perform inverse FFT
 us = output.us # synthetics. us.shape = (3,nr,tlen)
 ts = output.ts # time points [0, tlen]
+# brackets can be used to access component and station
+u_Z_FCC = output['Z', 'FCC_CN']
+# can write synthetics to SAC files
+output.write(root_path='.', format='sac')
 ```
 
 #### Using Fortran DSM input file

@@ -13,9 +13,9 @@ def get_u_pydsm():
     inputs = dsm.PyDSMInput.input_from_file(
         parameter_file, sampling_hz=20,
         source_time_function=None, mode=2)
-    outputs = dsm.compute(inputs)
+    outputs = dsm.compute(inputs, mode=2)
     outputs.to_time_domain()
-    return outputs.us, outputs.ts
+    return outputs
 
 
 def get_u_dsm():
@@ -45,10 +45,11 @@ if __name__ == '__main__':
     udsm = get_u_dsm()
 
     print('Computing waveform using pyDSM')
-    upydsms, ts = get_u_pydsm()
+    outputs = get_u_pydsm()
+    upydsms, ts = outputs.us, outputs.ts
     upydsm = upydsms[2, 0]
 
-    filename = 'figures/waveform_accuracy.pdf'
+    filename = 'figures/waveform_accuracy_sh.pdf'
     print('Saving DSM and pyDSM waveform comparison in {}'
           .format(filename))
     _ = plot(ts, udsm, upydsm)
@@ -56,3 +57,7 @@ if __name__ == '__main__':
 
     assert (np.allclose(udsm, upydsm, rtol=1e-10))
     print('All passed!')
+
+    print('Write to SAC')
+    root_path = 'figures'
+    outputs.write(root_path, 'sac')
