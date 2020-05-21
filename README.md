@@ -16,15 +16,20 @@ Compiled using numpy.f2py
 - test scripts are in pydsm/tests
 
 ## Usage
-#### General use: using pydsm input file. Run in parallel.
+### General use: pydsm input file. Run in parallel.
 A template input file is in *pydsm/tests/input_file/template.txt*. Its contents is as below
 ```
 sac_files ~/git/pydsm/tests/sac_files/*T
 output_folder ~/git/pydsm/tests/sac_files
+# duration of synthetics (in seconds)
 tlen 3276.8
-nspc 256
+# number of points of frequency-domain synthetics
+nspc 256 
+# sampling frequency for time-domain synthetics
 sampling_hz 20
-seismic_model prem
+# prem, ak135
+seismic_model prem 
+# 0: P-SV+SH, 1: P-SV, 2: SH
 mode 0
 ```
 This input file can be runned in parallel from a Unix shell using:
@@ -34,7 +39,7 @@ n_proc=2 # n_proc should be greater than the number of earthquakes in the list o
 mpiexec -n $n_proc python pydsm/main.py tests/input_files/template.txt
 ```
 
-#### Using pydsm Python classes
+### All Python: pydsm Python classes
 ```python
 from pydsm import dsm, seismicmodel
 from pydsm.utils.cmtcatalog import read_catalog
@@ -68,7 +73,7 @@ u_Z_FCC = output['Z', 'FCC_CN']
 output.write(root_path='.', format='sac')
 ```
 
-#### Using Fortran DSM input file
+### Closest to original: Fortran DSM input file
 ```python
 from pydsm import dsm, rootdsm_sh
 parameter_file = rootdsm_sh + 'AK135_SH.inf'
