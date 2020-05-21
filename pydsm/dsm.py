@@ -39,8 +39,11 @@ class PyDSMInputFile:
         params = dict()
         with open(self.input_file, 'r') as f:
             for line in f:
+                if line.strip().startswith('#'):
+                    continue
                 key, value = self._parse_line(line)
-                params[key] = value
+                if key is not None:
+                    params[key] = value
         return params
 
     def _parse_line(self, line):
@@ -61,6 +64,9 @@ class PyDSMInputFile:
         elif key == 'output_folder':
             full_path = os.path.expanduser(value.strip())
             value_parsed = full_path
+        else:
+            print('Warning: key {} undefined. Ignoring.'.format(key))
+            return None, None
         return key, value_parsed
 
 class PyDSMOutput:
