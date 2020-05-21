@@ -79,6 +79,20 @@ class SeismicModel:
             mode='constant', constant_values=0)
 
     @classmethod
+    def model_from_name(cls, model_name):
+        """Return SeismicModel from its identifier.
+        Supported models are:
+        - ak135
+        - prem
+        """
+        if model_name == 'ak135':
+            return cls.ak135()
+        elif model_name == 'prem':
+            return cls.prem()
+        else:
+            raise KeyError('{} not implemented yet'.format(model_name))
+
+    @classmethod
     def ak135(cls):
         """Return model AK135.
 

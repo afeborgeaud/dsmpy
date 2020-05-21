@@ -16,6 +16,7 @@ from obspy.core.trace import Stats
 from obspy.core.util.attribdict import AttribDict
 import obspy.io.sac as sac
 import os
+import glob
 
 def _is_iterable(obj):
     try:
@@ -24,6 +25,43 @@ def _is_iterable(obj):
         return False
     else:
         return True
+
+class PyDSMInputFile:
+    """Input file for pydsm.
+
+    Args:
+        input_file (str): path of pydsm input file
+    """
+    def __init__(self, input_file):
+        self.input_file = input_file
+    
+    def read(self):
+        params = dict()
+        with open(self.input_file, 'r') as f:
+            for line in f:
+                key, value = self._parse_line(line)
+                params[key] = value
+        return params
+
+    def _parse_line(self, line):
+        key, value = line.strip().split()[:2]
+        if key == 'sac_files':
+            full_path = os.path.expanduser(value.strip())
+            value_parsed = list(glob.iglob(full_path))
+        elif key == 'tlen':
+            value_parsed = float(value)
+        elif key == 'nspc':
+            value_parsed = int(value)
+        elif key == 'sampling_hz':
+            value_parsed = int(value)
+        elif key == 'seismic_model':
+            value_parsed = value.strip().lower()
+        elif key == 'mode':
+            value_parsed = int(value)
+        elif key == 'output_folder':
+            full_path = os.path.expanduser(value.strip())
+            value_parsed = full_path
+        return key, value_parsed
 
 class PyDSMOutput:
     """Output from pydsm compute methods.
@@ -84,8 +122,7 @@ class PyDSMOutput:
             filename = '.'.join((
                 tr.stats.station, tr.stats.network, tr.stats.sac.kevnm,
                 tr.stats.component, format))
-            print(os.path.join(root_path, filename))
-            tr.write(filename, format=format)
+            tr.write(os.path.join(root_path, filename), format=format)
 
     def get_traces(self):
         traces = []
@@ -650,7 +687,6 @@ def compute(pydsm_input, write_to_file=False,
     dsm_output = PyDSMOutput.output_from_pydsm_input(spcs, pydsm_input)
     return dsm_output
 
-
 def compute_parallel(
         pydsm_input, comm, mode=0, write_to_file=False):
     """Compute spectra using DSM with data parallelization.
@@ -819,7 +855,7 @@ def compute_dataset_parallel(
         outputs ([PyDSMOutput]): list of PyDSMOutput with one
             entry for each event in dataset
     """
-    if mode not in {0, 1, 2}:
+    if mode not in {0, 1, 2, None}:
         raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
                            .format(mode))
 
@@ -915,7 +951,7 @@ def compute_dataset_parallel(
     nr = np.empty(1, dtype=np.int64)
     comm.Scatter(sendcounts_sta, nr, root=0)
 
-    print('rank {}: nr={}'.format(rank, nr))
+    #print('rank {}: nr={}'.format(rank, nr))
 
     lon_local = np.empty(nr, dtype=np.float64)
     lat_local = np.empty(nr, dtype=np.float64)
@@ -973,7 +1009,7 @@ def compute_dataset_parallel(
         lon_local, phi_local, theta_local)
 
     start_time = time.time()
-    print('rank {}: mode={}'.format(rank, mode))
+    #print('rank {}: mode={}'.format(rank, mode))
     if mode == 0:
         spcs_local = _tipsv(
             *input_local.get_inputs_for_tipsv(),
@@ -990,8 +1026,8 @@ def compute_dataset_parallel(
             *input_local.get_inputs_for_tish(),
             write_to_file=False)
     end_time = time.time()
-    print('{} paths: processor {} in {} s'
-          .format(input_local.nr, rank, end_time - start_time))
+    print('rank {}: {} paths finished in {} s'
+          .format(rank, input_local.nr, end_time - start_time))
 
     # TODO change the order of outputu in DSM 
     # to have nr as the last dimension

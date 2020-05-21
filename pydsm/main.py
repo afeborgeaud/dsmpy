@@ -1,6 +1,7 @@
 from pydsm import dsm, rootdsm_psv, rootdsm_sh
 from pydsm.dataset import Dataset
 from pydsm.seismicmodel import SeismicModel
+from pydsm.dsm import PyDSMInputFile
 import os
 import numpy as np
 import time
@@ -47,29 +48,30 @@ if __name__ == '__main__':
     rank = comm.Get_rank()
 
     if rank == 0:
-        #root_event_folder = sys.argv[1]
-        root_event_folder = os.path.join(rootdsm_sh, 'sac_64')
-        sac_files = get_sac_files(root_event_folder)
-        print(root_event_folder)
-
-    if rank == 0:
-        dataset = Dataset.dataset_from_sac(sac_files)
-        seismic_model = SeismicModel.ak135()
-        tlen = 3276.8
-        nspc = 64
-        sampling_hz = 20
+        input_file = PyDSMInputFile(sys.argv[1])
+        params = input_file.read()
+        dataset = Dataset.dataset_from_sac(params['sac_files'])
+        seismic_model = SeismicModel.model_from_name(params['seismic_model'])
+        tlen = params['tlen']
+        nspc = params['nspc']
+        sampling_hz = params['sampling_hz']
+        mode = params['mode']
     else:
+        params = None
         dataset = None
         seismic_model = None
         tlen = None
         nspc = None
         sampling_hz = None
+        mode = None
     
     # run pydsm
     start_time = time.time()
     outputs = dsm.compute_dataset_parallel(dataset, seismic_model,
-                                           tlen, nspc, sampling_hz,
-                                           comm, mode=2)
+                                           tlen,
+                                           nspc,
+                                           sampling_hz,
+                                           comm, mode=mode)
     end_time = time.time()
     print('rank {}: DSM finished in {} s'
           .format(rank, end_time-start_time))
@@ -78,19 +80,7 @@ if __name__ == '__main__':
         for output in outputs:
             output.set_source_time_function(None)
             output.to_time_domain()
-    
-    # debug for station order
-    if rank == 0:
-        for station, sac in zip(
-                np.concatenate([output.stations for output in outputs]),
-                sac_files):
-            st = read(sac)
-            assert str(station) == (st[0].stats.station + '_' 
-                                + st[0].stats.network)
-    
-    if rank == 0:
-        write_outputs(outputs, root_event_folder)
+            output.write(params['output_folder'], format='sac')
 
-    if rank == 0:
-        plot(outputs[0], sac_files[0])
+        #plot(outputs[0], params['sac_files'][0])
     
