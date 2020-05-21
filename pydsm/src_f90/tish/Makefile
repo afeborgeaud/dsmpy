@@ -4,7 +4,7 @@ FC = gfortran
 FFLAGS	= -O
 
 SRC = parameters.f90 calmat.f90 trialf.f90 others.f90 \
-      dclisb.f90 dclisb3.f90 tish.f90
+      dclisb.f90 tish.f90
 OBJS	= $(SRC:.f90=.o)
 .SUFFIXES: .f90 .o
 
