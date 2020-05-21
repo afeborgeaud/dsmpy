@@ -136,7 +136,7 @@ class PyDSMOutput:
                 return self.us[2, ...]
         elif len(key) == 2:
             try:
-                if _is_iterable(key[1]):
+                if (type(key[1]) != str) and _is_iterable(key[1]):
                     indexes = [self.stations.index(k)
                                for k in key[1]]
                     return self.__getitem__(key[0])[indexes, :]
