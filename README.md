@@ -46,6 +46,8 @@ us = output.us # synthetics. us.shape = (3,nr,tlen)
 ts = output.ts # time points [0, tlen]
 # brackets can be used to access component and station
 u_Z_FCC = output['Z', 'FCC_CN']
+# can write synthetics to SAC files
+output.write(root_path='.', format='sac')
 ```
 
 #### Using Fortran DSM input file
