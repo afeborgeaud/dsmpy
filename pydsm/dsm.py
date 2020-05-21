@@ -11,7 +11,19 @@ import time
 import functools
 import warnings
 from obspy import read_events
+from obspy import Trace
+from obspy.core.trace import Stats
+from obspy.core.util.attribdict import AttribDict
+import obspy.io.sac as sac
+import os
 
+def _is_iterable(obj):
+    try:
+        iter(obj)
+    except Exception:
+        return False
+    else:
+        return True
 
 class PyDSMOutput:
     """Output from pydsm compute methods.
@@ -40,6 +52,8 @@ class PyDSMOutput:
         self.omegai = omegai
         self.components = ('Z', 'R', 'T')
         self.dt = 1 / self.sampling_hz
+        self.us = None
+        self.ts = None
 
     @classmethod
     def output_from_pydsm_input(cls, spcs, pydsm_input):
@@ -60,23 +74,59 @@ class PyDSMOutput:
     def set_source_time_function(self, source_time_function):
         self.event.source_time_function = source_time_function
 
+    def write(self, root_path, format):
+        """write using obspy.io.write
+        Args:
+            root_path (str): path of root folder in which to write
+            format (str): output files format ('sac')
+        """
+        for tr in self.get_traces():
+            filename = '.'.join((
+                tr.stats.station, tr.stats.network, tr.stats.sac.kevnm,
+                tr.stats.component, format))
+            print(filename)
+            tr.write(filename, format=format)
+
+    def get_traces(self):
+        traces = []
+        if self.us is None:
+            self.to_time_domain()
+        for icomp in range(3):
+            for ista in range(self.get_nr()):
+                station = self.stations[ista]
+                data = self.us[icomp, ista]
+                stats = Stats()
+                stats.network = station.network
+                stats.station = station.name
+                stats.sampling_rate = self.sampling_hz
+                stats.delta = self.dt
+                stats.starttime = 0.
+                #stats.endtime = self.tlen
+                stats.npts = len(data)
+                stats.component = self.components[icomp]
+                sac_header = AttribDict(**dict(
+                    b=0, delta=self.dt, depmax=data.max(),
+                    depmin=data.min(), depmen=data.mean(),
+                    e=self.tlen, npts=len(data), evdp=self.event.depth,
+                    evla=self.event.latitude, evlo=self.event.longitude,
+                    kevnm=self.event.event_id, knetwk=station.network,
+                    kstnm=station.name, gcarc=0.))
+                stats.sac = sac_header
+                trace = Trace(data=data, header=stats)
+                traces.append(trace)
+        return traces
+
     def get_nr(self):
         return len(self.stations)
-
-    def __getattribute__(self, name):
-        if name == 'Z':
-            return self.us[0, ...]
-        elif name == 'R':
-            return self.us[1, ...]
-        elif name == 'T':
-            return self.us[2, ...]
-        else:
-            return super().__getattribute__(name)
     
     def __getitem__(self, key):
-        """Override __getitem__ to allow calls such as 
-        output['Z'] and output['Z', 'station_network']
+        """Override __getitem__. Allows following indexations:
+        output['Z']
+        output['Z', 'sta_net']
+        output['Z', ['sta1_net1', 'sta2_net2']]
         """
+        if self.us is None:
+            self.to_time_domain()
         if len(key) == 1:
             if key == 'Z':
                 return self.us[0, ...]
@@ -86,8 +136,13 @@ class PyDSMOutput:
                 return self.us[2, ...]
         elif len(key) == 2:
             try:
-                index = self.stations.index(key[1])
-                return self.__getitem__(key[0])[index, :]
+                if _is_iterable(key[1]):
+                    indexes = [self.stations.index(k)
+                               for k in key[1]]
+                    return self.__getitem__(key[0])[indexes, :]
+                else:
+                    index = self.stations.index(key[1])
+                    return self.__getitem__(key[0])[index, :]
             except:
                 raise KeyError('Station {} not in list'.format(key[1]))
         else:

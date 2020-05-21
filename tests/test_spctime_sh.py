@@ -57,3 +57,7 @@ if __name__ == '__main__':
 
     assert (np.allclose(udsm, upydsm, rtol=1e-10))
     print('All passed!')
+
+    print('Write to SAC')
+    root_path = 'figures'
+    outputs.write(root_path, 'sac')
