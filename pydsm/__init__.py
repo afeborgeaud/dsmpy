@@ -23,9 +23,8 @@ def build_module(module_name='tish'):
 def _build_tish(libroot):
     code = ("import sys; sys.path = {}; import numpy.f2py as f2py2e; "
             "f2py2e.main()".format(sys.path))
-    sources = ['parameters.f90', 'tish.f90',
-               'others.f90', 'calmat.f90', 'trialf.f90',
-               'dclisb.f90', 'dclisb3.f90']
+    sources = ['parameters.f90', 'tish.f90', 'others.f90', 'calmat.f90',
+               'trialf.f90', 'dclisb.f90']
     f2py_opts = ['-c', '-m', 'tish'] + sources
     root = os.path.join(ROOT_DIR, 'src_f90/tish/')
     cwd = os.getcwd()
@@ -50,9 +49,8 @@ def _build_tish(libroot):
 def _build_tipsv(libroot):
     code = ("import sys; sys.path = {}; import numpy.f2py as f2py2e; "
             "f2py2e.main()".format(sys.path))
-    sources = ['parameters.f90', 'tipsv.f90',
-               'others.f90', 'calmat.f90', 'trialf.f90',
-               'dcsymbdl.f90', 'glu2.f90', 'rk3.f90']
+    sources = ['parameters.f90', 'tipsv.f90', 'others.f90', 'calmat.f90',
+               'trialf.f90', 'dcsymbdl.f90', 'glu2.f90', 'rk3.f90']
     f2py_opts = ['-c', '-m', 'tipsv'] + sources
     root = os.path.join(ROOT_DIR, 'src_f90/tipsv/')
     cwd = os.getcwd()

@@ -2,9 +2,9 @@ subroutine pinput_tish(parameter_file, &
     re,ratc,ratl,tlen,np,omegai,imin,imax, &
     nzone,vrmin,vrmax,rho,vsv,vsh,qmu, &
     r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output)
-!------------------------------------------------------------------------
+!----------------------------------------------------------
 ! Parameter Input
-!------------------------------------------------------------------------
+!----------------------------------------------------------
     use parameters
     implicit none
     integer, parameter :: maxnline=2*maxnr+6*maxnzone+50
