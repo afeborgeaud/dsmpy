@@ -392,105 +392,98 @@
   110	continue
 	return
 	end
-!
-!------------------------------------------------------------------------
-	subroutine overlap( nlayer,a,a2 )
-!------------------------------------------------------------------------
+
+
+!----------------------------------------------------------
+subroutine overlap( nlayer,a,a2 )
+!----------------------------------------------------------
 ! Overlapping the coefficient matrix elements in the solid part.
-!------------------------------------------------------------------------
-	integer nlayer
-	complex*16 a(*),a2(2,*)
-	integer i,j,k,mu,m,i1,i2,k1,k2,nsize
-!
-!
-	nsize = nlayer+1
-	mu = 1
-	m = mu + 1
-!	do 110 i=1,2
-!	  do 100 j=1,nsize
-!	    a2(i,j) = dcmplx( 0.d0 )
-! 100	  continue
-! 110	continue
-!
-	do 130 j=1,nsize
-	  i1 = max0(1,j-mu)
-	  i2 = j
-	  do 120 i=i1,i2
-	    k = i - j + m
-	    if ( i.eq.j ) then
-	      if ( i.eq.1 ) then
-	        a2(k,j) = a2(k,j) + a(1)
-	      else
-	        if ( i.eq.nsize ) then
-	          a2(k,j) = a2(k,j) + a( 4*nlayer )
-	        else
-	          k1 = 4 * i - 4
-	          k2 = k1 + 1
-	          a2(k,j) = a2(k,j) + a(k1) + a(k2)
-	        endif
-	      endif
-	    endif
-	    if (i+1.eq.j) then
-	      k1 = 4 * i - 2
-	      a2(k,j) = a2(k,j) + a(k1)
-	    endif
-  120	  continue
-  130	continue
-!
-	return
-	end
-!
-!------------------------------------------------------------------------
-	subroutine calg2( l,m,spo,r0,mt,mu0,coef,ga,a,ga2,dr,g2 )
-!------------------------------------------------------------------------
-	real*8 pi
-	parameter ( pi=3.1415926535897932d0 )
-!
-	integer l,m
-	real*8 spo,r0,mt(3,3),mu0
-	complex*16 coef,ga(*),a(*),ga2(2,*),g2(*)
-	integer i,itmp
-	real*8 b1,sgn,eps,ier
-	complex*16 dd,cg2(3),dr(3),z(3)
-!
-	data eps/ -1.d0 /
-!
-! computing of particular solution with free surface boundary conditions
-	call cvecinit( 3,cg2 )
-	dd = dcmplx( 0.d0 )
-	if ( m.ge.0 ) then
-	  sgn = 1.d0
-	else
-	  sgn = - 1.d0
-	endif
-	if ( iabs(m).eq.1 ) then
-	  b1 = dsqrt( dble( 2*l+1 ) / ( 16.d0 * pi ) )
-!
-	  dd = dcmplx( b1 ) * ( dcmplx( sgn * mt(1,3), mt(1,2) ) ) &
-     	       / ( dcmplx( r0 * r0 * mu0 ) * coef )
-	  itmp = 4
-	  call cvecinit( 3,cg2 )
-	  do 100 i=2,3
-	    cg2(i) = - dd * ( ga(itmp+1) + ga(itmp+2) )
-	    itmp = itmp + 2
-  100	  continue
-	else
-	  if ( iabs(m).eq.2 ) then
-	    b1 = dsqrt( dble(2*l+1)*dble(l-1)*dble(l+2)/(64.d0*pi) )
-	    cg2(2) = dcmplx( b1 / r0 ) &
-     	             * dcmplx( 2.d0*mt(2,3), sgn*( mt(2,2)-mt(3,3) ) )
-	  endif
-	endif
-	if ( (m.eq.-2).or.(m.eq.-l) ) then
-	  call dclisb0( ga2,3,1,2,cg2,eps,dr,z,ier)
-	else
-	  call dcsbsub0( ga2,3,1,2,cg2,eps,dr,z,ier)
-	endif
-	cg2(3) = cg2(3) + dd
-! computation of the excitation vector
-	itmp = dint(spo)
-	g2(itmp+1) = a(1) * cg2(1) + a(2) * cg2(3)
-	g2(itmp+2) = a(3) * cg2(1) + a(4) * cg2(3)
-!
-	return
-	end
+!----------------------------------------------------------
+    use parameters
+    implicit none
+    integer,intent(in):: nlayer
+    complex(dp):: a(*),a2(2,*)
+    integer:: i,j,k,mu,m,i1,i2,k1,k2,nsize
+
+    nsize = nlayer+1
+    mu = 1
+    m = mu + 1
+    do j=1,nsize
+        i1 = max0(1,j-mu)
+        i2 = j
+        do i=i1,i2
+            k = i - j + m
+            if ( i==j ) then
+                if ( i==1 ) then
+                    a2(k,j) = a2(k,j) + a(1)
+                else
+                    if ( i==nsize ) then
+                        a2(k,j) = a2(k,j) + a( 4*nlayer )
+                    else
+                        k1 = 4 * i - 4
+                        k2 = k1 + 1
+                        a2(k,j) = a2(k,j) + a(k1) + a(k2)
+                    endif
+                endif
+            endif
+            if (i+1==j) then
+                k1 = 4 * i - 2
+                a2(k,j) = a2(k,j) + a(k1)
+            endif
+        enddo
+    enddo
+    return
+end
+
+!----------------------------------------------------------
+subroutine calg2( l,m,spo,r0,mt,mu0,coef,ga,a,ga2,dr,g2 )
+!----------------------------------------------------------
+    use parameters
+    implicit none
+
+    integer:: l,m
+    double precision:: spo,r0,mt(3,3),mu0
+    complex(dp) coef,ga(*),a(*),ga2(2,*),g2(*)
+    integer:: i,itmp
+    double precision:: b1,sgn,eps,ier
+    complex(dp) dd,cg2(3),dr(3),z(3)
+
+    data eps/ -1.d0 /
+
+    ! computing of particular solution with free surface boundary conditions
+    cg2=0
+    dd = 0
+    if ( m>=0 ) then
+        sgn = 1.d0
+    else
+        sgn = - 1.d0
+    endif
+    if ( iabs(m)==1 ) then
+        b1 = dsqrt( dble( 2*l+1 ) / ( 16.d0 * pi ) )
+        !c
+        dd = dcmplx( b1 ) * ( dcmplx( sgn * mt(1,3), mt(1,2) ) )/ ( dcmplx( r0 * r0 * mu0 ) * coef )
+        itmp = 4
+        cg2=0
+        do  i=2,3
+            cg2(i) = - dd * ( ga(itmp+1) + ga(itmp+2) )
+            itmp = itmp + 2
+        enddo
+    else
+        if ( iabs(m)==2 ) then
+            b1 = dsqrt( dble(2*l+1)*dble(l-1)*dble(l+2)/(64.d0*pi) )
+            cg2(2) = dcmplx( b1 / r0 ) * dcmplx( 2.d0*mt(2,3), sgn*( mt(2,2)-mt(3,3) ) )
+        endif
+    endif
+    if ( m==-2 .or. m==-l ) then
+        call dclisb0( ga2,3,1,2,cg2,eps,dr,z,ier)
+    else
+        call dcsbsub0( ga2,3,1,2,cg2,eps,dr,z,ier)
+    endif
+    cg2(3) = cg2(3) + dd
+    ! computation of the excitation vector
+    itmp = dint(spo)
+    g2(itmp+1) = a(1) * cg2(1) + a(2) * cg2(3)
+    g2(itmp+2) = a(3) * cg2(1) + a(4) * cg2(3)
+
+    return
+end

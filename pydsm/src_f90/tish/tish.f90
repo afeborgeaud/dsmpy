@@ -121,8 +121,7 @@ plm(1:3,0:3,1:maxnr) = 0.d0
          iimax = int(tlen * 2.d0)
          call calgrid( nzone,vrmin,vrmax,vsv,rmin,rmax, &
             iimax,1,tlen,vmin,gridpar,dzpar )
-         call calra ( maxnlay,maxnzone, &
-            nnlayer,gridpar,dzpar,nzone,vrmin,vrmax, &
+         call calra ( nnlayer,gridpar,dzpar,nzone,vrmin,vrmax, &
             rmin,rmax,nlayer,ra,re )
 ! --- checking the parameter
          if ( nnlayer.gt.maxnlay ) then
@@ -194,8 +193,8 @@ plm(1:3,0:3,1:maxnr) = 0.d0
             call callsuf(omega,nzone,vrmax,vsv,lsuf)
             call calcoef( nzone,omega,qmu,coef )
 !
-            call cmatinit( lda,nn,a0 )
-            call cmatinit( lda,nn,a2 )
+            a0(1:lda,1:nn)=0
+            a2(1:lda,1:nn)=0
             do j=1,ndc+1
                call cala0( nlayer(j),omega,omegai, &
                      t(jsp(j)), h1(jsp(j)),h2(jsp(j)), h3(jsp(j)), &
@@ -221,8 +220,9 @@ plm(1:3,0:3,1:maxnr) = 0.d0
                lsq = dsqrt( dble(l)*dble(l+1) )
 ! computing the coefficient matrix elements
 ! --- Initializing the matrix elements
-               call cmatinit( lda,nn,a )
-               call cmatinit( lda,3,ga2 )
+               a(1:lda,1:nn)=0
+               ga2(1:lda,1:3)=0
+
                call cala( nn,l,lda,a0,a2,a )
                call calga( 1,omega,omegai,l, &
                      t(ins),h1(ins),h2(ins),h3(ins),h4(ins), &
@@ -233,7 +233,7 @@ plm(1:3,0:3,1:maxnr) = 0.d0
 !
                do m=-2,2	! m-loop
                   if ( ( m.ne.0 ).and.( iabs(m).le.iabs(l) ) ) then
-                     call cvecinit( nn,g )
+                     g(1:nn)=0
                      call calg2( l,m,spo,r0,mt,mu0,coef(spn), &
                            ga,aa,ga2,gdr,g( isp(spn) ) )
                      if( mod(l,100).eq.0) then
@@ -270,8 +270,7 @@ plm(1:3,0:3,1:maxnr) = 0.d0
 ! computing of the number and the location of grid points
       call calgrid( nzone,vrmin,vrmax,vsv,rmin,rmax, &
             iimax,1,tlen,vmin,gridpar,dzpar )
-      call calra ( maxnlay,maxnzone, &
-            nnlayer,gridpar,dzpar,nzone,vrmin,vrmax, &
+      call calra ( nnlayer,gridpar,dzpar,nzone,vrmin,vrmax, &
             rmin,rmax,nlayer,ra,re )
 ! --- checking the parameter
       if ( nnlayer.gt.maxnlay ) then
@@ -333,13 +332,14 @@ plm(1:3,0:3,1:maxnr) = 0.d0
 !
       llog = 0
       do i=imin,imax		! omega-loop
-         call cmatinit( 3,nr,u )
+         u( 1:3,1:nr )=0
+
          if ( i.ne.0 ) then
             omega = 2.d0 * pi * dble(i) / tlen
             call callsuf(omega,nzone,vrmax,vsv,lsuf)
-            do ir=1,nr
-               call matinit( 3,4,plm(1,0,ir) )
-            enddo
+
+            plm(1:3,0:3,1:nr)=0
+
 !	    if ( lmin(ipband).gt.0 ) then
 !	      do 160 l=0,lmin(ipband)-1
 !	        do 150 ir=1,nr
@@ -350,8 +350,8 @@ plm(1:3,0:3,1:maxnr) = 0.d0
 !	    endif
             call calcoef( nzone,omega,qmu,coef )
 !
-            call cmatinit( lda,nn,a0 )
-            call cmatinit( lda,nn,a2 )
+            a0( 1:lda,1:nn )=0
+            a2( 1:lda,1:nn )=0
             do j=1,ndc+1
                call cala0( nlayer(j),omega,omegai, &
                      t(jsp(j)), h1(jsp(j)),h2(jsp(j)), h3(jsp(j)), &
@@ -381,8 +381,8 @@ plm(1:3,0:3,1:maxnr) = 0.d0
                enddo
 ! computing the coefficient matrix elements
 ! --- Initializing the matrix elements
-               call cmatinit( lda,nn,a )
-               call cmatinit( lda,3,ga2 )
+               a( 1:lda,1:nn )=0
+               ga2(1:lda,1:3)=0
                call cala( nn,l,lda,a0,a2,a )
                call calga( 1,omega,omegai,l, &
                   t(ins),h1(ins),h2(ins),h3(ins),h4(ins),coef(spn),aa )
@@ -393,7 +393,7 @@ plm(1:3,0:3,1:maxnr) = 0.d0
 !
                do m=-2,2	! m-loop
                   if ( ( m.ne.0 ).and.( iabs(m).le.iabs(l) ) ) then
-                     call cvecinit( nn,g )
+                     g(1:nn)=0
                      call calg2( l,m,spo,r0,mt,mu0,coef(spn), &
                         ga,aa,ga2,gdr,g( isp(spn) ) )
                      if( mod(l,100).eq.0) then
@@ -419,28 +419,16 @@ plm(1:3,0:3,1:maxnr) = 0.d0
                         call calcutd(nzone,nlayer,tmpr,ratc,nn,ra,kc)
                      endif
 !
-                     call calamp(g(nn),l,lsuf,maxamp,ismall,ratl)
-                     do ir=1,nr
-                        call calu( g(nn),lsq,bvec(1,m,ir),u(1,ir) )
-                     enddo
-
+                    call calamp(g(nn),l,lsuf,maxamp,ismall,ratl)
+                    u(2:3,1:nr) = u(2:3,1:nr) + g(nn) * bvec(2:3,m,1:nr) / lsq
                   endif
                enddo          ! m-loop
             enddo             ! l-loop
          endif
 ! ************************** Files Handling **************************
-         do ir=1,nr
-            outputu(1,ir,i) = u(1,ir)
-            outputu(2,ir,i) = u(2,ir)
-	         outputu(3,ir,i) = u(3,ir)
+        outputu(1:3,1:nr,i) = u(1:3,1:nr)
 
-         enddo
-         if(ilog.eq.1) then
-            open(unit=11,file='llog.log',position='append',status='old')
-            write(11,*) i,llog,nnlayer
-            close(11)
-         endif
-!
+
    	   if (write_to_file .and. i .eq. imax) then
 	         write(*,*) "kakikomimasu"
 	         do ir = 1 ,nr
