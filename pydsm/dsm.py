@@ -84,7 +84,7 @@ class PyDSMOutput:
             filename = '.'.join((
                 tr.stats.station, tr.stats.network, tr.stats.sac.kevnm,
                 tr.stats.component, format))
-            print(filename)
+            print(os.path.join(root_path, filename))
             tr.write(filename, format=format)
 
     def get_traces(self):
