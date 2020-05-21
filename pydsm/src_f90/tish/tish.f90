@@ -37,6 +37,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
 ! variable for the periodic range
       integer, intent(in) :: np,imin,imax
       real(dp), intent(in) :: tlen,omegai
+      complex(dp):: comega2
       real(dp) omega
       complex(dp) u(3,maxnr)
 ! variable for the source
@@ -152,16 +153,16 @@ plm(1:3,0:3,1:maxnr) = 0.d0
                ra( isp(i) ),h4( jsp(i) ),work( jsp(i) ) )
 	         call caltl( nlayer(i),vnp,vra,rho, &
                ra( isp(i) ),work( jsp(i) ) )
-	         call calt( nlayer(i),  t( jsp(i) ),  work( jsp(i) ), &
-               t( jsp(i) ) )
-	         call calhl( nlayer(i),vnp,vra,ecL, &
+	    t(jsp(i):jsp(i)+4*nlayer(i)-1)=(t(jsp(i):jsp(i)+4*nlayer(i)-1)&
+             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2d0
+                 call calhl( nlayer(i),vnp,vra,ecL, &
                ra( isp(i) ),work( jsp(i) ) )
-	         call calt( nlayer(i), h3( jsp(i) ), work( jsp(i) ), &
-               h3( jsp(i) ) )
-	         call calhl( nlayer(i),vnp,vra,ecN, &
+	          h3(jsp(i):jsp(i)+4*nlayer(i)-1)=(h3(jsp(i):jsp(i)+4*nlayer(i)-1)&
+             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2d0
+           call calhl( nlayer(i),vnp,vra,ecN, &
                ra( isp(i) ),work( jsp(i) ) )
-	         call calt( nlayer(i), h4( jsp(i) ), work( jsp(i) ), &
-               h4( jsp(i) ) )
+	       h4(jsp(i):jsp(i)+4*nlayer(i)-1)=(h4(jsp(i):jsp(i)+4*nlayer(i)-1)&
+             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2d0
          enddo
          call calmatc( 2,3,gvra,grho,2,0,0,gra,gt, work )
          call calmatc( 2,3,gvra,gecL ,2,1,1,gra,gh1,work )
@@ -169,11 +170,14 @@ plm(1:3,0:3,1:maxnr) = 0.d0
          call calmatc( 2,3,gvra,gecL ,0,0,0,gra,gh3,work )
          call calmatc( 2,3,gvra,gecN ,0,0,0,gra,gh4,work )
          call caltl( 2,3,gvra,grho,gra,work )
-         call calt( 2,  gt, work, gt )
+          gt(1:8)=(gt(1:8)+work(1:8))/2d0
+
          call calhl( 2,3,gvra,gecL, gra,work )
-         call calt( 2, gh3, work, gh3 )
+         gh3(1:8)=(gh3(1:8)+work(1:8))/2d0
+
          call calhl( 2,3,gvra,gecN, gra,work )
-         call calt( 2, gh4, work, gh4 )
+        gh4(1:8)=(gh4(1:8)+work(1:8))/2d0
+
 !
          nn = nnlayer + 1
          ns = isp(spn) + dint(spo)
@@ -190,17 +194,23 @@ plm(1:3,0:3,1:maxnr) = 0.d0
             endif
 	         if(ii.eq.2) i=imax
             omega = 2.d0 * pi * dble(i) / tlen
+                comega2 = dcmplx( omega, -omegai ) * dcmplx( omega, -omegai )
+
             call callsuf(omega,nzone,vrmax,vsv,lsuf)
             call calcoef( nzone,omega,qmu,coef )
 !
             a0(1:lda,1:nn)=0
             a2(1:lda,1:nn)=0
             do j=1,ndc+1
-               call cala0( nlayer(j),omega,omegai, &
-                     t(jsp(j)), h1(jsp(j)),h2(jsp(j)), h3(jsp(j)), &
-                     h4(jsp(j)),coef(j), cwork(jsp(j)) )
-               call overlap( nlayer(j),cwork(jsp(j)),a0( 1,isp(j) ) )
-               call cala2( nlayer(j),h4(jsp(j)),coef(j), cwork(jsp(j)) )
+                !cala0
+                cwork(jsp(j):jsp(j)+4*nlayer(j)-1)= &
+                 comega2*dcmplx(t(jsp(j):jsp(j)+4*nlayer(j)-1))&
+                -coef(j)*dcmplx(h1(jsp(j):jsp(j)+4*nlayer(j)-1)-h2(jsp(j):jsp(j)+4*nlayer(j)-1)&
+                +h3(jsp(j):jsp(j)+4*nlayer(j)-1)-2d0*h4(jsp(j):jsp(j)+4*nlayer(j)-1))
+                call overlap( nlayer(j),cwork(jsp(j)),a0( 1,isp(j) ) )
+                !cala2
+            cwork(jsp(j):jsp(j)+4*nlayer(j)-1)=-coef(j)*dcmplx( h4(jsp(j):jsp(j)+4*nlayer(j)-1) )
+
                call overlap( nlayer(j),cwork(jsp(j)),a2( 1,isp(j) ) )
             enddo
 !
@@ -223,12 +233,16 @@ plm(1:3,0:3,1:maxnr) = 0.d0
                a(1:lda,1:nn)=0
                ga2(1:lda,1:3)=0
 
-               call cala( nn,l,lda,a0,a2,a )
-               call calga( 1,omega,omegai,l, &
-                     t(ins),h1(ins),h2(ins),h3(ins),h4(ins), &
-                     coef(spn),aa )
-               call calga( 2,omega,omegai,l,gt,gh1,gh2,gh3,gh4, &
-                     coef(spn),ga )
+                !c Computing the coefficient matrix 'a' in the solid part. cala
+                a(1:2,1:nn) = a0(1:2,1:nn) + dcmplx(l*(l+1)) * a2(1:2,1:nn)
+
+               !c Computing the coefficient matrix 'a' in the solid part. calga
+                aa(1:4) = comega2 * t(ins:ins+3)&
+                - coef(spn) * dcmplx( h1(ins:ins+3)-h2(ins:ins+3)+h3(ins:ins+3)+dble(l*(l+1)-2)*h4(ins:ins+3) )
+                ga(1:8)=comega2*gt(1:8)&
+                - coef(spn)*dcmplx( gh1(1:8)-gh2(1:8)+gh3(1:8)+dble(l*(l+1)-2)*gh4(1:8) )
+
+
                call overlap( 2,ga,ga2 )
 !
                do m=-2,2	! m-loop
@@ -302,28 +316,31 @@ plm(1:3,0:3,1:maxnr) = 0.d0
                ra( isp(i) ),h4( jsp(i) ),work( jsp(i) ) )
            call caltl( nlayer(i),vnp,vra,rho, &
                ra( isp(i) ),work( jsp(i) ) )
-           call calt( nlayer(i),  t( jsp(i) ),  work( jsp(i) ), &
-               t( jsp(i) ) )
+            t(jsp(i):jsp(i)+4*nlayer(i)-1)=(t(jsp(i):jsp(i)+4*nlayer(i)-1)&
+             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2d0
            call calhl( nlayer(i),vnp,vra,ecL, &
                ra( isp(i) ),work( jsp(i) ) )
-           call calt( nlayer(i), h3( jsp(i) ), work( jsp(i) ), &
-               h3( jsp(i) ) )
-           call calhl( nlayer(i),vnp,vra,ecN, &
+        h3(jsp(i):jsp(i)+4*nlayer(i)-1)=(h3(jsp(i):jsp(i)+4*nlayer(i)-1)&
+             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2d0
+            call calhl( nlayer(i),vnp,vra,ecN, &
                ra( isp(i) ),work( jsp(i) ) )
-           call calt( nlayer(i), h4( jsp(i) ), work( jsp(i) ), &
-               h4( jsp(i) ) )
-      enddo
+        h4(jsp(i):jsp(i)+4*nlayer(i)-1)=(h4(jsp(i):jsp(i)+4*nlayer(i)-1)&
+             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2d0
+        enddo
       call calmatc( 2,3,gvra,grho,2,0,0,gra,gt, work )
       call calmatc( 2,3,gvra,gecL ,2,1,1,gra,gh1,work )
       call calmatc( 2,3,gvra,gecL ,1,1,0,gra,gh2,work )
       call calmatc( 2,3,gvra,gecL ,0,0,0,gra,gh3,work )
       call calmatc( 2,3,gvra,gecN ,0,0,0,gra,gh4,work )
       call caltl( 2,3,gvra,grho,gra,work )
-      call calt( 2,  gt, work, gt )
+         gt(1:8)=(gt(1:8)+work(1:8))/2d0
+
       call calhl( 2,3,gvra,gecL, gra,work )
-      call calt( 2, gh3, work, gh3 )
+     gh3(1:8)=(gh3(1:8)+work(1:8))/2d0
+
       call calhl( 2,3,gvra,gecN, gra,work )
-      call calt( 2, gh4, work, gh4 )
+       gh4(1:8)=(gh4(1:8)+work(1:8))/2d0
+
 !
 ! ******************** Computing the displacement *********************
       nn = nnlayer + 1
@@ -336,28 +353,24 @@ plm(1:3,0:3,1:maxnr) = 0.d0
 
          if ( i.ne.0 ) then
             omega = 2.d0 * pi * dble(i) / tlen
-            call callsuf(omega,nzone,vrmax,vsv,lsuf)
+               comega2 = dcmplx( omega, -omegai ) * dcmplx( omega, -omegai )
+         call callsuf(omega,nzone,vrmax,vsv,lsuf)
 
             plm(1:3,0:3,1:nr)=0
 
-!	    if ( lmin(ipband).gt.0 ) then
-!	      do 160 l=0,lmin(ipband)-1
-!	        do 150 ir=1,nr
-!	          call calbvec( l,theta(ir),phi(ir),
-!     &	                        plm(1,0,ir),bvec(1,-2,ir) )
-!  150	        continue
-!  160	      continue
-!	    endif
             call calcoef( nzone,omega,qmu,coef )
 !
             a0( 1:lda,1:nn )=0
             a2( 1:lda,1:nn )=0
             do j=1,ndc+1
-               call cala0( nlayer(j),omega,omegai, &
-                     t(jsp(j)), h1(jsp(j)),h2(jsp(j)), h3(jsp(j)), &
-                     h4(jsp(j)),coef(j), cwork(jsp(j)) )
+!cala0
+ cwork(jsp(j):jsp(j)+4*nlayer(j)-1)= &
+                 comega2*dcmplx(t(jsp(j):jsp(j)+4*nlayer(j)-1))&
+                -coef(j)*dcmplx(h1(jsp(j):jsp(j)+4*nlayer(j)-1)-h2(jsp(j):jsp(j)+4*nlayer(j)-1)&
+                +h3(jsp(j):jsp(j)+4*nlayer(j)-1)-2d0*h4(jsp(j):jsp(j)+4*nlayer(j)-1))
                call overlap( nlayer(j),cwork(jsp(j)),a0( 1,isp(j) ) )
-               call cala2( nlayer(j),h4(jsp(j)),coef(j), cwork(jsp(j)) )
+                cwork(jsp(j):jsp(j)+4*nlayer(j)-1)=-coef(j)*dcmplx( h4(jsp(j):jsp(j)+4*nlayer(j)-1) )
+
                call overlap( nlayer(j),cwork(jsp(j)),a2( 1,isp(j) ) )
             enddo
 !
@@ -383,12 +396,17 @@ plm(1:3,0:3,1:maxnr) = 0.d0
 ! --- Initializing the matrix elements
                a( 1:lda,1:nn )=0
                ga2(1:lda,1:3)=0
-               call cala( nn,l,lda,a0,a2,a )
-               call calga( 1,omega,omegai,l, &
-                  t(ins),h1(ins),h2(ins),h3(ins),h4(ins),coef(spn),aa )
-!	      call calga2( 2,omega,omegai,l,gt,gh1,gh2,gh3,
-!     &                    coef(spn),ga )
-               call calga( 2,omega,omegai,l,gt,gh1,gh2,gh3,gh4,coef(spn),ga )
+
+                !c Computing the coefficient matrix 'a' in the solid part. cala
+                a(1:2,1:nn) = a0(1:2,1:nn) + dcmplx(l*(l+1)) * a2(1:2,1:nn)
+
+                !c Computing the coefficient matrix 'a' in the solid part. calga
+                aa(1:4) = comega2 * t(ins:ins+3)&
+                - coef(spn) * dcmplx( h1(ins:ins+3)-h2(ins:ins+3)+h3(ins:ins+3)+dble(l*(l+1)-2)*h4(ins:ins+3) )
+                ga(1:8)=comega2*gt(1:8)&
+                - coef(spn)*dcmplx( gh1(1:8)-gh2(1:8)+gh3(1:8)+dble(l*(l+1)-2)*gh4(1:8) )
+
+
                call overlap( 2,ga,ga2 )
 !
                do m=-2,2	! m-loop
