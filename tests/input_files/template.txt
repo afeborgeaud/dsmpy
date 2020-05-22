@@ -10,5 +10,5 @@ sampling_hz 20
 seismic_model prem 
 # 0: P-SV+SH, 1: P-SV, 2: SH
 mode 0
-# 0: quiet, 1: debug
+# 0: quiet, 1: talkative
 verbose 0
