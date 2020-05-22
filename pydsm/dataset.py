@@ -44,7 +44,6 @@ class Dataset:
         r0s = np.array([input.r0 for input in pydsm_inputs])
         mts = np.concatenate([input.mt for input in pydsm_inputs])
         nrs = np.array([input.nr for input in pydsm_inputs])
-        nr = len(lats)
 
         stations = np.concatenate([input.stations
                                         for input in pydsm_inputs])
@@ -56,7 +55,7 @@ class Dataset:
             r0s, mts, nrs, stations, events)
 
     @classmethod
-    def dataset_from_sac(cls, sac_files):
+    def dataset_from_sac(cls, sac_files, verbose=0):
         headers = [read(sac_file, headonly=True)[0]
                    for sac_file in sac_files]
 
@@ -84,6 +83,14 @@ class Dataset:
             nets=nets, eqlats=eqlats, eqlons=eqlons,
             eqdeps=eqdeps, evids=evids
         ))
+        # drop dupplicate sac files with identical source/receiver
+        # values, due to multiple seismic components
+        n_before = len(headers)
+        dataset_info.drop_duplicates(inplace=True)
+        n_after = len(dataset_info)
+        if verbose == 1:
+            print('Dropped {} sac files'.format(n_before - n_after))
+            
         dataset_info.sort_values(by='evids', inplace=True)
 
         theta_phi = [_calthetaphi(stalat, stalon, eqlat, eqlon) 
@@ -92,7 +99,7 @@ class Dataset:
         thetas = np.array([x[0] for x in theta_phi], dtype=np.float64)
         phis = np.array([x[1] for x in theta_phi], dtype=np.float64)
 
-        nr = len(headers)
+        nr = len(dataset_info)
         nrs = dataset_info.groupby('evids').count().lats.values
         dataset_event_info = dataset_info.drop_duplicates(['evids'])
         evids = dataset_event_info.evids.values
