@@ -370,7 +370,7 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                             if ( rmin==0.d0 ) itmp=2
                             ns = kkdr0 + ( nint(spo) - 1 )
                             call dcsymbdl( c(1,itmp),1,nn0-itmp+1,1,eps,z(itmp),w(itmp),ll,lli,llj,ier )
-                            call dcsbdlv( c(1,itmp),d(itmp),1,nn0-itmp+1,ns-itmp+1,eps,z(itmp),ier )
+                            call dcsbdlv( c(1,itmp),d(itmp),1,nn0-itmp+1,ns-itmp+1,z(itmp))
                         else
                             !c computing the expansion coefficient
                             itmp=1
@@ -378,9 +378,9 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                             ns = kkdr(spn) + 2 * ( nint(spo) - 1 )
                             if( mod(l,100)==0) then
                                 if ( ( m==-2 ).or.( m==-l ) )&
-                                 call dcsymbdl0( a(1,itmp),3,nn-itmp+1,6,eps, z(itmp),w(itmp),ll,lli,llj,ier )
+                                 call dcsymbdl( a(1,itmp),3,nn-itmp+1,6,eps, z(itmp),w(itmp),ll,lli,llj,ier )
 
-                                call dcsbdlv0( a(1,itmp),g(itmp),3,nn-itmp+1,eps,z(itmp),ier )
+                                call dcsbdlv0( a(1,itmp),g(itmp),3,nn-itmp+1,z(itmp))
                                 ! sum up c of the same l
                                 tmpc(1:nn) = tmpc(1:nn) + g(1:nn)
                             else
@@ -389,7 +389,7 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                                 if ( ( m==-2 ).or.( m==-l ) )&
                                  call dcsymbdl( a(1,itmp),3,nn-itmp+1,6,eps,z(itmp),w(itmp),ll,lli,llj,ier )
 
-                                call dcsbdlv( a(1,itmp),g(itmp),3,nn-itmp+1,ns-itmp+1,eps,z(itmp),ier )
+                                call dcsbdlv( a(1,itmp),g(itmp),3,nn-itmp+1,ns-itmp+1,z(itmp))
                             endif
                             !c computing ampratio
                             call calamp( g(nn-1),l,lsuf,maxamp,ismall,ratl )
@@ -627,7 +627,7 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                             if ( rmin==0.d0 ) itmp=2
                             ns = kkdr0 + ( nint(spo) - 1 )
                             call dcsymbdl( c(1,itmp),1,nn0-itmp+1,1,eps,z(itmp),w(itmp),ll,lli,llj,ier )
-                            call dcsbdlv( c(1,itmp),d(itmp),1,nn0-itmp+1,ns-itmp+1,eps,z(itmp),ier )
+                            call dcsbdlv( c(1,itmp),d(itmp),1,nn0-itmp+1,ns-itmp+1,z(itmp))
                             !c computing the displacement
                             u(:,1:nr)=d(nn0)*bvec(:,m,1:nr)
                         else
@@ -636,10 +636,10 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                             if ( rmin==0.d0 ) itmp=3
                             ns = kkdr(spn) + 2 * ( nint(spo) - 1 )
                             if( mod(l,100)==0) then
-                                if ( ( m==-2 ).or.( m==-l ) ) then
-                                    call dcsymbdl0( a(1,itmp),3,nn-itmp+1,6,eps,z(itmp),w(itmp),ll,lli,llj,ier )
+                                if (  m==-2 .or. m==-l ) then
+                                    call dcsymbdl( a(1,itmp),3,nn-itmp+1,6,eps,z(itmp),w(itmp),ll,lli,llj,ier )
                                 endif
-                                call dcsbdlv0( a(1,itmp),g(itmp),3,nn-itmp+1,eps,z(itmp),ier )
+                                call dcsbdlv0( a(1,itmp),g(itmp),3,nn-itmp+1,z(itmp))
                                  ! sum up c of the same l
                                 tmpc(1:nn) = tmpc(1:nn) + g(1:nn)
                             else
@@ -647,7 +647,7 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                                 itmp = kc
                                 if ( ( m==-2 ).or.( m==-l ) )&
                                  call dcsymbdl( a(1,itmp),3,nn-itmp+1,6,eps,z(itmp),w(itmp),ll,lli,llj,ier )
-                                call dcsbdlv( a(1,itmp),g(itmp),3,nn-itmp+1,ns-itmp+1,eps,z(itmp),ier )
+                                call dcsbdlv( a(1,itmp),g(itmp),3,nn-itmp+1,ns-itmp+1,z(itmp))
                             endif
                             !c computing ampratio
                             call calamp( g(nn-1),l,lsuf,maxamp,ismall,ratl )
@@ -669,15 +669,15 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
     if (write_to_file) then
         write(*,*) "kakikomimasu"
         do ir=1,nr
-            open(unit=10,file=trim(output(ir)),status='unknown',form='unformatted',access='stream',convert='big_endian')
-            write(10) tlen,np,1,3,omegai,lat(ir),lon(ir),eqlat,eqlon,r0
+            open(unit=1,file=trim(output(ir)),status='replace',form='unformatted',access='stream',convert='big_endian')
+            write(1) tlen,np,1,3,omegai,lat(ir),lon(ir),eqlat,eqlon,r0
 
-            do i= imin, imax
-                write(10) i, dble(outputu(1,ir,i)), dimag(outputu(1,ir,i))
-                write(10) dble(outputu(2,ir,i)), dimag(outputu(2,ir,i))
-                write(10) dble(outputu(3,ir,i)), dimag(outputu(3,ir,i))
+            do i= imin,imax
+                write(1) i, dble(outputu(1,ir,i)), dimag(outputu(1,ir,i))
+                write(1) dble(outputu(2,ir,i)), dimag(outputu(2,ir,i))
+                write(1) dble(outputu(3,ir,i)), dimag(outputu(3,ir,i))
             enddo
-            close(10)
+            close(1)
         enddo
         write(*,*) "Ivalice looks to the horizon"
     endif
@@ -740,13 +740,8 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
       r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output,write_to_file,&
       outputu)
    write(*,*) 'Done!'
-   write(*,*) outputu(3,0,20)
+   write(*,*) outputu(3,1,20)
 
-   call tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
-      nzone,vrmin,vrmax,rho,vpv,vph,vsv,vsh,eta,qmu,qkappa,&
-      r0,eqlat,eqlon,mt,nr,theta,phi,lat,lon,output,write_to_file,&
-      outputu)
-   write(*,*) outputu(3,0,20)
 
 end program main
 
