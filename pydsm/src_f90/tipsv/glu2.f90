@@ -33,13 +33,13 @@ SUBROUTINE GLU( A, N, N1, B, EPS, WK, IP, IER )
     INTEGER:: I,J,K,IPK
     COMPLEX(dp):: AMAX,AIK,W,T
     !             LEFT-HAND SIDE
-    IF( EPS<0.0D0 )  EPS = 3.52D-15
-    IF( ( N1<N ).OR.( N<=0 ) )  THEN
+    IF( EPS<0 ) EPS = 3.52D-15
+    IF( N1<N .OR. N<=0 )  THEN
         IER = 3
         WRITE(*,*) '  (SUBR. GLU)  INVALID ARGUMENT.  N1, N =', N1, N
         RETURN
     END IF
-    !             CHECK ORIGINAL MATRIX.
+    !  CHECK ORIGINAL MATRIX.
     WK(1:n) = cdabs(A(1:n,1))
 
     DO J = 2, N
@@ -52,10 +52,10 @@ SUBROUTINE GLU( A, N, N1, B, EPS, WK, IP, IER )
             RETURN
         END IF
     enddo
-    !
+
     IER = 0
     DO K = 1, N
-        !             FIND MAXIMUM ELEMENT IN THE K-TH COLUMN.
+        !  FIND MAXIMUM ELEMENT IN THE K-TH COLUMN.
         AMAX = cdabs(A(K,K))
         IPK = K
         DO I = K+1, N
@@ -66,14 +66,14 @@ SUBROUTINE GLU( A, N, N1, B, EPS, WK, IP, IER )
             END IF
         enddo
         IP(K) = IPK
-        !
+
         IF( cdabs( AMAX )>EPS )  THEN
             IF( IPK/=K )  THEN
                 W = A(IPK,K)
                 A(IPK,K) = A(K,K)
                 A(K,K) = W
             END IF
-            !             COMPUTE ALFA
+            ! COMPUTE ALFA
             DO I = K+1, N
                 A(I,K) = -A(I,K)/A(K,K)
                 WK(I) = A(I,K)
@@ -85,39 +85,38 @@ SUBROUTINE GLU( A, N, N1, B, EPS, WK, IP, IER )
                     A(IPK,J) = A(K,J)
                     A(K,J) = W
                 END IF
-                !             GAUSSIAN ELIMINATION
+                ! GAUSSIAN ELIMINATION
                 T = A(K,J)
 
                 A(K+1:N,J) = A(K+1:N,J) + WK(K+1:N)*T
 
             enddo
-        !             MATRIX IS SINGULAR.
+        ! MATRIX IS SINGULAR.
         ELSE
             IER = 1
             IP(K) = K
 
-            A(k+1:n,K) = 0.0D0
+            A(k+1:n,K) = 0
 
             WRITE(*,*) '  (SUBR. GLU)  MATRIX IS SINGULAR AT K =', K
             RETURN
         END IF
     enddo
-    !             RIGHT-HAND SIDE
+    !  RIGHT-HAND SIDE
     !	ENTRY GLUSUB( A, B )
     ENTRY GLUSUB( A, N, N1, B, EPS, WK, IP, IER )
-    !             FORWARD ELIMINATION PROCESS
+    !  FORWARD ELIMINATION PROCESS
     DO K = 1, N
         IF( IP(K)/=K ) THEN
             W = B(IP(K))
             B(IP(K)) = B(K)
             B(K) = W
         END IF
-        !
+
         T = B(K)
         B(K+1:N) = B(K+1:N) + A(K+1:N,K)*T
-
     enddo
-    !             BACKWARD SUBSTITUTION PROCESS
+    !   BACKWARD SUBSTITUTION PROCESS
     B(N) = B(N)/A(N,N)
     DO K = N-1, 1, -1
         T = B(K+1)

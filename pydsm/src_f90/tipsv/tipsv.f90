@@ -145,8 +145,7 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
         !c computing of the number and the location of grid points
         iimax = int(tlen * 2.d0)
         call calgrid( nzone,vrmin,vrmax,vpv,vsv,rmin,rmax,iimax,1,tlen, vmin,gridpar,dzpar )
-        call calra(inlayer,jnlayer,jnslay,jnllay,&
-                dzpar,nzone,vrmin,vrmax,iphase,rmin,nslay,nllay,nlayer,ra,re )
+        call calra(inlayer,jnlayer,jnslay,jnllay,dzpar,nzone,vrmin,vrmax,iphase,rmin,nslay,nllay,nlayer,ra,re )
         !c --- checking the parameter
         if ( inlayer > maxnlay ) stop 'The number of grid points is too large.'
         if ( nslay > maxnslay ) stop 'The number of the grid points in the solid is too large.'
@@ -154,14 +153,14 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
         if ( jnlayer > 2*maxnlay ) stop 'The number of the total grid points is too large.'
         if ( ( jnslay > 2*maxnslay ).or.( jnllay>2*maxnllay ) ) stop 'The number of the total grid points is too large.'
         !c computing the stack points
-        call calsp( maxnzone,ndc,nsl,nll,iphase,nlayer,nllay,&
+        call calsp(ndc,nsl,nll,iphase,nlayer,nllay,&
                 isp,jsp,ksp,issp,ilsp,lsp,jssp,isdr,jsdr,ildr,jdr,kdr )
         !c computing the source location
-        call calspo( maxnlay,maxnzone,vrmax,iphase,inlayer,r0,rmin,rmax,ra,isp,spo,spn )
+        call calspo(vrmax,iphase,inlayer,r0,rmin,rmax,ra,isp,spo,spn )
         !c ******************* Computing the matrix elements *******************
 
     !c computing the structure grid points
-    call calstg( maxnlay,maxnzone,nzone,rrho,vpv,vph,vsv,vsh,eta,nlayer,ra,rmax,&
+    call calstg( nzone,rrho,vpv,vph,vsv,vsh,eta,nlayer,ra,rmax,&
                 vnp,vra,rho,kappa,ecKx,ecKy,ecKz,mu,ecL,ecN,r0,spn,ecC0,ecF0,ecL0 )
 
     rhoinv(1:vnp)=1.d0/rho(1:vnp)
@@ -226,7 +225,7 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
         endif
     enddo
  !       c Computing the modified operator of the 1st derivative
-    call caltstg( maxnlay,maxnzone,nzone,rrho,vpv,vph,vsv,vsh,eta,nlayer,ra,rmax,vra,kappa,ecKx,ecKy,ecKz,mu,ecL,ecN )
+    call caltstg( nzone,rrho,vpv,vph,vsv,vsh,eta,nlayer,ra,rmax,vra,kappa,ecKx,ecKy,ecKz,mu,ecL,ecN )
     isl = 0
     do i=1,ndc+1
         if ( iphase(i)==1 ) then
@@ -337,9 +336,8 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                 !    c computing the coefficient matrix elements
                  !   c --- renewing  mdr
                 if (  mod(l,50)==0  ) then
-                    call calmdr( omega,l,nzone,vrmax,vmin,rmax,sufzone )
-                    call calspdr( maxnzone,nzone,iphase,nlayer,&
-                                jjdr,kkdr )
+                    !call calmdr( omega,l,nzone,vrmax,vmin,rmax,sufzone )
+                    call calspdr( nzone,iphase,nlayer,jjdr,kkdr )
                     nn = kkdr(nzone) + 2 * nlayer(nzone) + 1
                 endif
                 !c computing the matrix elements
@@ -416,14 +414,14 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
     if ( jnlayer>2*maxnlay ) stop 'The number of the total grid points is too large.'
     if ( ( jnslay>2*maxnslay ).or.( jnllay>2*maxnllay ) ) stop 'The number of the total grid points is too large.'
     !c computing the stack points
-    call calsp( maxnzone,ndc,nsl,nll,iphase,nlayer,nllay,&
+    call calsp(ndc,nsl,nll,iphase,nlayer,nllay,&
          isp,jsp,ksp,issp,ilsp,lsp,jssp,isdr,jsdr,ildr,jdr,kdr )
 !    c computing the source location
-    call calspo(maxnlay,maxnzone,vrmax,iphase,inlayer,r0,rmin,rmax,ra,isp,spo,spn )
+    call calspo(vrmax,iphase,inlayer,r0,rmin,rmax,ra,isp,spo,spn )
 
     !c ******************* Computing the matrix elements *******************
    !    c computing the structure grid points
-    call calstg(maxnlay,maxnzone,nzone,rrho,vpv,vph,vsv,vsh,eta,nlayer,ra,rmax,&
+    call calstg(nzone,rrho,vpv,vph,vsv,vsh,eta,nlayer,ra,rmax,&
          vnp,vra,rho,kappa,ecKx,ecKy,ecKz,mu,ecL,ecN,r0,spn,ecC0,ecF0,ecL0 )
     !call calinv( vnp,rho,kappa,rhoinv,kappainv )
     rhoinv(1:vnp) = 1.d0 / rho(1:vnp)
@@ -480,7 +478,7 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
         endif
     enddo
     !c Computing the modified operator of the 1st derivative
-    call caltstg( maxnlay,maxnzone,nzone,rrho,vpv,vph,vsv,vsh,eta,nlayer,ra,rmax,vra,kappa,ecKx,ecKy,ecKz,mu,ecL,ecN )
+    call caltstg( nzone,rrho,vpv,vph,vsv,vsh,eta,nlayer,ra,rmax,vra,kappa,ecKx,ecKy,ecKz,mu,ecL,ecN )
     isl = 0
     do i=1,ndc+1
         if ( iphase(i)==1 ) then
@@ -594,8 +592,7 @@ subroutine tipsv(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                 !c computing the coefficient matrix elements
                 !c --- renewing  mdr
                 if (  mod(l,50)==0  ) then
-                    call calmdr( omega,l,nzone,vrmax,vmin,rmax,sufzone )
-                    call calspdr( maxnzone,nzone,iphase,nlayer,jjdr,kkdr )
+                    call calspdr( nzone,iphase,nlayer,jjdr,kkdr )
                     nn = kkdr(nzone) + 2 * nlayer(nzone) + 1
                 endif
                 !c ***** Computing the trial function *****

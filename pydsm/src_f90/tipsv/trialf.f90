@@ -8,7 +8,6 @@ subroutine calbvec( l,theta,phi,plm,bvec )
 !----------------------------------------------------------
     use parameters
     implicit none
-
     integer,intent(in):: l
     integer:: m,i
     double precision:: theta,phi,x,plm(3,0:3),fact,coef
@@ -21,7 +20,7 @@ subroutine calbvec( l,theta,phi,plm,bvec )
     do m=0,min0(l,2)
         fact = 1
         if ( m/=0 ) then
-            do  i=l-m+1,l+m
+            do i=l-m+1,l+m
                 fact = fact * dble(i)
             enddo
         endif
