@@ -29,8 +29,10 @@ nspc 256
 sampling_hz 20
 # prem, ak135
 seismic_model prem 
-# 0: P-SV+SH, 1: P-SV, 2: SH
+# 0: P-SV+SH, 1: P-SV, 2: SH (default: 0)
 mode 0
+# 0: quiet, 1: talkative (default: 0)
+verbose 0
 ```
 This input file can be runned in parallel from a Unix shell using:
 ```shell
