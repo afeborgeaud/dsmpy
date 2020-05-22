@@ -50,12 +50,20 @@ if __name__ == '__main__':
     if rank == 0:
         input_file = PyDSMInputFile(sys.argv[1])
         params = input_file.read()
-        dataset = Dataset.dataset_from_sac(params['sac_files'])
         seismic_model = SeismicModel.model_from_name(params['seismic_model'])
         tlen = params['tlen']
         nspc = params['nspc']
         sampling_hz = params['sampling_hz']
         mode = params['mode']
+        verbose = params['verbose']
+
+        start_time = time.time()
+        dataset = Dataset.dataset_from_sac(params['sac_files'],
+                                           verbose=verbose)
+        end_time = time.time()
+        if verbose == 1:
+            print('Initalizing dataset finished in {} s'
+                  .format(end_time - start_time))
     else:
         params = None
         dataset = None
@@ -64,6 +72,7 @@ if __name__ == '__main__':
         nspc = None
         sampling_hz = None
         mode = None
+        verbose = None
     
     # run pydsm
     start_time = time.time()
@@ -71,16 +80,21 @@ if __name__ == '__main__':
                                            tlen,
                                            nspc,
                                            sampling_hz,
-                                           comm, mode=mode)
+                                           comm, mode=mode,
+                                           verbose=verbose)
     end_time = time.time()
     print('rank {}: DSM finished in {} s'
           .format(rank, end_time-start_time))
 
     if rank == 0:
+        start_time = time.time()
         for output in outputs:
             output.set_source_time_function(None)
             output.to_time_domain()
             output.write(params['output_folder'], format='sac')
+        end_time = time.time()
+        print('rank{}: finished FFT and writing in {} s'
+              .format(rank, end_time-start_time))
 
         #plot(outputs[0], params['sac_files'][0])
     
