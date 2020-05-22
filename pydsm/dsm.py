@@ -37,6 +37,7 @@ class PyDSMInputFile:
     
     def read(self):
         params = dict()
+        params['verbose'] = 0
         with open(self.input_file, 'r') as f:
             for line in f:
                 if line.strip().startswith('#'):
@@ -64,6 +65,8 @@ class PyDSMInputFile:
         elif key == 'output_folder':
             full_path = os.path.expanduser(value.strip())
             value_parsed = full_path
+        elif key == 'verbose':
+            value_parsed = int(value)
         else:
             print('Warning: key {} undefined. Ignoring.'.format(key))
             return None, None
@@ -848,7 +851,8 @@ def compute_parallel(
 def compute_dataset_parallel(
         dataset, seismic_model,
         tlen, nspc, sampling_hz,
-        comm, mode=0, write_to_file=False):
+        comm, mode=0, write_to_file=False,
+        verbose=0):
     """Compute spectra using DSM with data parallelization.
 
     Args:
@@ -861,10 +865,6 @@ def compute_dataset_parallel(
         outputs ([PyDSMOutput]): list of PyDSMOutput with one
             entry for each event in dataset
     """
-    if mode not in {0, 1, 2, None}:
-        raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
-                           .format(mode))
-
     rank = comm.Get_rank()
     n_cores = comm.Get_size()
 
@@ -877,9 +877,14 @@ def compute_dataset_parallel(
         scalar_dict['imin'] = 0
         scalar_dict['imax'] = nspc
         scalar_dict['nzone'] = seismic_model._nzone
+        scalar_dict['mode'] = mode
     else:
         scalar_dict = None
     scalar_dict = comm.bcast(scalar_dict, root=0)
+
+    if scalar_dict['mode'] not in {0, 1, 2}:
+        raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
+                           .format(mode))
 
     if rank == 0:
         rho = seismic_model.get_rho()
@@ -957,7 +962,8 @@ def compute_dataset_parallel(
     nr = np.empty(1, dtype=np.int64)
     comm.Scatter(sendcounts_sta, nr, root=0)
 
-    #print('rank {}: nr={}'.format(rank, nr))
+    if verbose == 1:
+        print('rank {}: nr={}'.format(rank, nr))
 
     lon_local = np.empty(nr, dtype=np.float64)
     lat_local = np.empty(nr, dtype=np.float64)
@@ -1015,15 +1021,14 @@ def compute_dataset_parallel(
         lon_local, phi_local, theta_local)
 
     start_time = time.time()
-    #print('rank {}: mode={}'.format(rank, mode))
-    if mode == 0:
+    if scalar_dict['mode'] == 0:
         spcs_local = _tipsv(
             *input_local.get_inputs_for_tipsv(),
             write_to_file=False)
         spcs_local += _tish(
             *input_local.get_inputs_for_tish(),
             write_to_file=False)
-    elif mode == 1:
+    elif scalar_dict['mode'] == 1:
         spcs_local = _tipsv(
             *input_local.get_inputs_for_tipsv(),
             write_to_file=False)
