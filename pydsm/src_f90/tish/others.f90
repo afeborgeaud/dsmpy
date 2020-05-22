@@ -82,9 +82,9 @@ subroutine calthetaphi(ievla,ievlo,istla,istlo,theta,phi)
 !----------------------------------------------------------
     use parameters
     implicit none
-    double precision:: ievla,ievlo,istla,istlo
+    double precision,intent(in):: ievla,ievlo,istla,istlo
     double precision:: evla,evlo,stla,stlo
-    double precision:: theta,phi
+    double precision,intent(out):: theta,phi
     double precision:: gcarc,az
     double precision:: tc,ts
 
@@ -118,30 +118,31 @@ subroutine calthetaphi(ievla,ievlo,istla,istlo,theta,phi)
     return
 end
 
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine translat(geodetic,geocentric)
-!----------------------------------------------------------
-    use parameters
-    implicit none
-    double precision:: geocentric, geodetic
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      use parameters
+      implicit none
+      double precision,intent(in):: geodetic
+      double precision,intent(out):: geocentric
+      double precision:: tmp_geodetic
+      integer:: flag
 
-    integer:: flag
+      flag = 0
+      tmp_geodetic=geodetic
+      if(90<geodetic ) then
+            tmp_geodetic = 180 - geodetic
+            flag = 1
+      endif
 
-    flag = 0
-    if(geodetic > 90.d0) then
-        geodetic = 180 - geodetic
-        flag = 1
-    endif
+      tmp_geodetic = tmp_geodetic / 180 * pi
+      geocentric = datan((1-flattening)*(1-flattening)*dtan(tmp_geodetic))
+      geocentric = geocentric * 180 / pi
+      !      if(geocentric < 0.d0 ) geocentric = 1.8d2 + geocentric
+      if(flag == 1) geocentric = 180 - geocentric
 
-    geodetic = geodetic / 180 * pi
-    geocentric = datan( (1 - flattening) * (1 - flattening)&
-        * dtan(geodetic) )
-    geocentric = geocentric * 180 / pi
-    if(flag == 1) geocentric = 180 - geocentric
-
-    return
-end
-
+      return
+      end
 !----------------------------------------------------------
 subroutine calgrid( nzone,vrmin,vrmax,vs,rmin,rmax,&
     imax,lmin,tlen,vmin,gridpar,dzpar )
