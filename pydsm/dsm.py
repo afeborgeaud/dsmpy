@@ -878,6 +878,7 @@ def compute_dataset_parallel(
         scalar_dict['imax'] = nspc
         scalar_dict['nzone'] = seismic_model._nzone
         scalar_dict['mode'] = mode
+        scalar_dict['verbose'] = verbose
     else:
         scalar_dict = None
     scalar_dict = comm.bcast(scalar_dict, root=0)
@@ -962,7 +963,7 @@ def compute_dataset_parallel(
     nr = np.empty(1, dtype=np.int64)
     comm.Scatter(sendcounts_sta, nr, root=0)
 
-    if verbose == 1:
+    if scalar_dict['verbose'] >= 1:
         print('rank {}: nr={}'.format(rank, nr))
 
     lon_local = np.empty(nr, dtype=np.float64)

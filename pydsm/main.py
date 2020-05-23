@@ -61,7 +61,7 @@ if __name__ == '__main__':
         dataset = Dataset.dataset_from_sac(params['sac_files'],
                                            verbose=verbose)
         end_time = time.time()
-        if verbose == 1:
+        if verbose >= 1:
             print('Initalizing dataset finished in {} s'
                   .format(end_time - start_time))
     else:

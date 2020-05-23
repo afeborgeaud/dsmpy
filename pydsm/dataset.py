@@ -88,7 +88,7 @@ class Dataset:
         n_before = len(headers)
         dataset_info.drop_duplicates(inplace=True)
         n_after = len(dataset_info)
-        if verbose == 1:
+        if verbose >= 1:
             print('Dropped {} sac files'.format(n_before - n_after))
             
         dataset_info.sort_values(by='evids', inplace=True)
@@ -139,6 +139,8 @@ class Dataset:
         dividers = Dataset._round_dividers(dividers, n_cores)
         assert np.sum(dividers) == n_cores
         if (dividers == 0).sum() > 0:
+            if verbose == 2:
+                print('dividers: {}'.format(dividers))
             raise RuntimeError(
                 'n_cores ({}) must be >= number of eqs ({})'
                 .format(n_cores, len(self.events)))
@@ -172,6 +174,11 @@ class Dataset:
     @staticmethod
     def _round_dividers(dividers, n_cores):
         dividers_rounded = np.round(dividers).astype(np.int64)
+        if np.sum(dividers_rounded) < n_cores:
+            dividers_fixed = np.where(
+                dividers_rounded == 0, 1, dividers_rounded)
+            if np.sum(dividers_fixed) <= n_cores:
+                dividers_rounded = dividers_fixed
         dividers_sorted = np.sort(dividers)
         i = -1
         while np.sum(dividers_rounded) != n_cores:
