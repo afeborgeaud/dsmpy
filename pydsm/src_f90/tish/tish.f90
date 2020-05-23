@@ -78,7 +78,6 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
     integer,parameter:: lda=2
     data eps/ -1.d0 /
 
-    integer :: mpii
     complex(dp), intent(out) :: outputu(3,nr,imin:imax)
 
 ! --- computing the required parameters ---
@@ -87,7 +86,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
     rmax = vrmax(nzone)
     ndc = nzone - 1
 
-    if ( (r0 < rmin) .or. (r0 > rmax) ) then
+    if ( r0 < rmin .or. r0 > rmax ) then
         write(*,*) 'Location of the source is improper.'
         return
     endif
@@ -96,7 +95,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
     iimax = imax
     if( (rmax-r0) < shallowdepth) then ! option for shallow events
 ! computing of the number and the location of grid points
-        iimax = int(tlen * 2.d0)
+        iimax = int(tlen * 2)
         call calgrid( nzone,vrmin,vrmax,vsv,rmin,rmax, &
             iimax,1,tlen,vmin,gridpar,dzpar )
         call calra ( nnlayer,gridpar,dzpar,nzone,vrmin,vrmax, &
@@ -118,26 +117,20 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
         vnp,vra,rho,ecL,ecN)
         call calgstg( spn,rrho,vsv,vsh,gra,gvra,rmax,grho,gecL,gecN,r0,mu0 )
         do i=1,ndc+1
-            call calmatc( nlayer(i),vnp,vra,rho,2,0,0, &
-            ra( isp(i) ),t( jsp(i) ),work( jsp(i) ) )
-            call calmatc( nlayer(i),vnp,vra,ecL ,2,1,1, &
-            ra( isp(i) ),h1( jsp(i) ),work( jsp(i) ) )
-            call calmatc( nlayer(i),vnp,vra,ecL ,1,1,0, &
-            ra( isp(i) ),h2( jsp(i) ),work( jsp(i) ) )
-            call calmatc( nlayer(i),vnp,vra,ecL ,0,0,0, &
-            ra( isp(i) ),h3( jsp(i) ),work( jsp(i) ) )
-            call calmatc( nlayer(i),vnp,vra,ecN ,0,0,0, &
-               ra( isp(i) ),h4( jsp(i) ),work( jsp(i) ) )
-            call caltl( nlayer(i),vnp,vra,rho, &
-               ra( isp(i) ),work( jsp(i) ) )
+            call calmatc( nlayer(i),vnp,vra,rho,2,0,0,ra( isp(i) ),t( jsp(i) ),work( jsp(i) ) )
+            call calmatc( nlayer(i),vnp,vra,ecL,2,1,1,ra( isp(i) ),h1( jsp(i) ),work( jsp(i) ) )
+            call calmatc( nlayer(i),vnp,vra,ecL,1,1,0,ra( isp(i) ),h2( jsp(i) ),work( jsp(i) ) )
+            call calmatc( nlayer(i),vnp,vra,ecL,0,0,0,ra( isp(i) ),h3( jsp(i) ),work( jsp(i) ) )
+            call calmatc( nlayer(i),vnp,vra,ecN,0,0,0,ra( isp(i) ),h4( jsp(i) ),work( jsp(i) ) )
+            call caltl( nlayer(i),vnp,vra,rho,ra( isp(i) ),work( jsp(i) ) )
             t(jsp(i):jsp(i)+4*nlayer(i)-1)=(t(jsp(i):jsp(i)+4*nlayer(i)-1)&
-             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2d0
+             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2
             call calhl( nlayer(i),vnp,vra,ecL,ra( isp(i) ),work( jsp(i) ) )
             h3(jsp(i):jsp(i)+4*nlayer(i)-1)=(h3(jsp(i):jsp(i)+4*nlayer(i)-1)&
-             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2d0
+             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2
             call calhl( nlayer(i),vnp,vra,ecN,ra( isp(i) ),work( jsp(i) ) )
             h4(jsp(i):jsp(i)+4*nlayer(i)-1)=(h4(jsp(i):jsp(i)+4*nlayer(i)-1)&
-             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2d0
+             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2
         enddo
         call calmatc( 2,3,gvra,grho,2,0,0,gra,gt, work )
         call calmatc( 2,3,gvra,gecL ,2,1,1,gra,gh1,work )
@@ -145,13 +138,13 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
         call calmatc( 2,3,gvra,gecL ,0,0,0,gra,gh3,work )
         call calmatc( 2,3,gvra,gecN ,0,0,0,gra,gh4,work )
         call caltl( 2,3,gvra,grho,gra,work )
-        gt(1:8)=(gt(1:8)+work(1:8))/2d0
+        gt(1:8)=(gt(1:8)+work(1:8))/2
 
         call calhl( 2,3,gvra,gecL, gra,work )
-        gh3(1:8)=(gh3(1:8)+work(1:8))/2d0
+        gh3(1:8)=(gh3(1:8)+work(1:8))/2
 
         call calhl( 2,3,gvra,gecN, gra,work )
-        gh4(1:8)=(gh4(1:8)+work(1:8))/2d0
+        gh4(1:8)=(gh4(1:8)+work(1:8))/2
 
         nn = nnlayer + 1
         ns = isp(spn) + dint(spo)
@@ -167,7 +160,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                 endif
             endif
             if(ii==2) i=imax
-            omega = 2.d0 * pi * dble(i) / tlen
+            omega = 2 * pi * dble(i) / tlen
             comega2 = dcmplx( omega, -omegai ) * dcmplx( omega, -omegai )
 
             call callsuf(omega,nzone,vrmax,vsv,lsuf)
@@ -177,10 +170,9 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
             a2(1:lda,1:nn)=0
             do j=1,ndc+1
                 !cala0
-                cwork(jsp(j):jsp(j)+4*nlayer(j)-1)= &
-                 comega2*(t(jsp(j):jsp(j)+4*nlayer(j)-1))&
+                cwork(jsp(j):jsp(j)+4*nlayer(j)-1)= comega2*(t(jsp(j):jsp(j)+4*nlayer(j)-1))&
                 -coef(j)*(h1(jsp(j):jsp(j)+4*nlayer(j)-1)-h2(jsp(j):jsp(j)+4*nlayer(j)-1)&
-                +h3(jsp(j):jsp(j)+4*nlayer(j)-1)-2d0*h4(jsp(j):jsp(j)+4*nlayer(j)-1))
+                +h3(jsp(j):jsp(j)+4*nlayer(j)-1)-2*h4(jsp(j):jsp(j)+4*nlayer(j)-1))
                 call overlap( nlayer(j),cwork(jsp(j)),a0( 1,isp(j) ) )
                 !cala2
                 cwork(jsp(j):jsp(j)+4*nlayer(j)-1)=-coef(j)* h4(jsp(j):jsp(j)+4*nlayer(j)-1)
@@ -189,48 +181,46 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
 
             kc = 1
             ismall = 0
-            maxamp = -1.d0
+            maxamp = -1
             ltmp(ii) = maxlmax
             do l=0,maxlmax ! l-loop
                 if( ismall>20 ) then
                     if(ltmp(ii)>l) ltmp(ii) = l
                     exit
                 endif
-!
+
                ! initialize
                 tmpr(1:maxnlay+1) = 0.d0
-                lsq = dsqrt( dble(l)*dble(l+1) )
+                lsq = dsqrt( l*(l+1d0) )
 ! computing the coefficient matrix elements
 ! --- Initializing the matrix elements
                 a(1:lda,1:nn)=0
                 ga2(1:lda,1:3)=0
 
                 ! Computing the coefficient matrix 'a' in the solid part. cala
-                a(1:2,1:nn) = a0(1:2,1:nn) + dcmplx(l*(l+1)) * a2(1:2,1:nn)
+                a(1:2,1:nn) = a0(1:2,1:nn) + l*(l+1) * a2(1:2,1:nn)
 
                 !c Computing the coefficient matrix 'a' in the solid part. calga
                 aa(1:4) = comega2 * t(ins:ins+3)&
-                - coef(spn) * dcmplx( h1(ins:ins+3)-h2(ins:ins+3)+h3(ins:ins+3)+dble(l*(l+1)-2)*h4(ins:ins+3) )
+                - coef(spn) * ( h1(ins:ins+3)-h2(ins:ins+3)+h3(ins:ins+3)+dble(l*(l+1)-2)*h4(ins:ins+3) )
                 ga(1:8)=comega2*gt(1:8)&
-                - coef(spn)*dcmplx( gh1(1:8)-gh2(1:8)+gh3(1:8)+dble(l*(l+1)-2)*gh4(1:8) )
+                - coef(spn)*( gh1(1:8)-gh2(1:8)+gh3(1:8)+(l*(l+1)-2)*gh4(1:8) )
 
 
                 call overlap( 2,ga,ga2 )
-!
+
                 do m=-2,2 ! m-loop
-                    if (  m/=0 .and. iabs(m)<=iabs(l)  ) then
+                    if (  m/=0 .and. iabs(m)<=iabs(l) ) then
                         g(1:nn)=0
-                        call calg2( l,m,spo,r0,mt,mu0,coef(spn), &
-                               ga,aa,ga2,gdr,g( isp(spn) ) )
+                        call calg2( l,m,spo,r0,mt,mu0,coef(spn),ga,aa,ga2,gdr,g(isp(spn)) )
                         if( mod(l,100)==0) then
                             if ( m==-2 .or. m==-l ) then
                                 call dclisb0( a,nn,1,lda,g,eps,dr,z,ier)
                             else
                                 call dcsbsub0( a,nn,1,lda,g,eps,dr,z,ier)
                             endif
-                            do jj=1,nn !sum up c of the same l
-                                tmpr(jj) = tmpr(jj) + cdabs(g(jj))
-                            enddo
+                            !sum up c of the same l
+                            tmpr(1:nn) = tmpr(1:nn) + cdabs(g(1:nn))
                         else
                             if ( m==-2 .or. m==-l ) then
                                 call dclisb( a(1,kc),nn-kc+1,1,lda,ns-kc+1 &
@@ -240,11 +230,8 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                                      ,g(kc),eps,dr,z,ier)
                             endif
                         endif
-    !
-                        if( mod(l,100)==0) then
-                            call calcutd(nzone,nlayer,tmpr,ratc,nn,ra,kc)
-                        endif
 
+                        if( mod(l,100)==0) call calcutd(nzone,nlayer,tmpr,ratc,nn,ra,kc)
                         call calamp(g(nn),l,lsuf,maxamp,ismall,ratl)
                     endif
                 enddo ! m-loop
@@ -254,10 +241,8 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
     endif ! option for shallow events
 
 ! computing of the number and the location of grid points
-    call calgrid( nzone,vrmin,vrmax,vsv,rmin,rmax, &
-            iimax,1,tlen,vmin,gridpar,dzpar )
-    call calra ( nnlayer,gridpar,dzpar,nzone,vrmin,vrmax, &
-            rmin,rmax,nlayer,ra,re )
+    call calgrid( nzone,vrmin,vrmax,vsv,rmin,rmax,iimax,1,tlen,vmin,gridpar,dzpar )
+    call calra ( nnlayer,gridpar,dzpar,nzone,vrmin,vrmax,rmin,rmax,nlayer,ra,re )
 ! --- checking the parameter
     if ( nnlayer>maxnlay ) then
         write(*,*) 'The number of grid points is too large.'
@@ -271,45 +256,37 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
     call calgra( isp,ra,r0,spn,spo,gra )
 ! ******************* Computing the matrix elements *******************
 ! computing the structure grid points
-    call calstg( nzone,rrho,vsv,vsh, &
-            nnlayer,nlayer,ra,rmax,vnp,vra,rho,ecL,ecN)
-    call calgstg( spn,rrho,vsv,vsh, &
-            gra,gvra,rmax,grho,gecL,gecN,r0,mu0 )
+    call calstg( nzone,rrho,vsv,vsh,nnlayer,nlayer,ra,rmax,vnp,vra,rho,ecL,ecN)
+    call calgstg( spn,rrho,vsv,vsh,gra,gvra,rmax,grho,gecL,gecN,r0,mu0 )
     do i=1,ndc+1
-        call calmatc( nlayer(i),vnp,vra,rho,2,0,0, &
-            ra( isp(i) ),t( jsp(i) ),work( jsp(i) ) )
-        call calmatc( nlayer(i),vnp,vra,ecL ,2,1,1, &
-            ra( isp(i) ),h1( jsp(i) ),work( jsp(i) ) )
-        call calmatc( nlayer(i),vnp,vra,ecL ,1,1,0, &
-            ra( isp(i) ),h2( jsp(i) ),work( jsp(i) ) )
-        call calmatc( nlayer(i),vnp,vra,ecL ,0,0,0, &
-            ra( isp(i) ),h3( jsp(i) ),work( jsp(i) ) )
-        call calmatc( nlayer(i),vnp,vra,ecN ,0,0,0, &
-            ra( isp(i) ),h4( jsp(i) ),work( jsp(i) ) )
-        call caltl( nlayer(i),vnp,vra,rho, &
-               ra( isp(i) ),work( jsp(i) ) )
+        call calmatc( nlayer(i),vnp,vra,rho,2,0,0,ra( isp(i) ),t( jsp(i) ),work( jsp(i) ) )
+        call calmatc( nlayer(i),vnp,vra,ecL,2,1,1,ra( isp(i) ),h1( jsp(i) ),work( jsp(i) ) )
+        call calmatc( nlayer(i),vnp,vra,ecL,1,1,0,ra( isp(i) ),h2( jsp(i) ),work( jsp(i) ) )
+        call calmatc( nlayer(i),vnp,vra,ecL,0,0,0,ra( isp(i) ),h3( jsp(i) ),work( jsp(i) ) )
+        call calmatc( nlayer(i),vnp,vra,ecN,0,0,0,ra( isp(i) ),h4( jsp(i) ),work( jsp(i) ) )
+        call caltl( nlayer(i),vnp,vra,rho,ra(isp(i)),work( jsp(i) ) )
         t(jsp(i):jsp(i)+4*nlayer(i)-1)=(t(jsp(i):jsp(i)+4*nlayer(i)-1)&
-             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2d0
+             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2
         call calhl( nlayer(i),vnp,vra,ecL,ra( isp(i) ),work( jsp(i) ) )
         h3(jsp(i):jsp(i)+4*nlayer(i)-1)=(h3(jsp(i):jsp(i)+4*nlayer(i)-1)&
-             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2d0
+             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2
         call calhl( nlayer(i),vnp,vra,ecN,ra( isp(i) ),work( jsp(i) ) )
         h4(jsp(i):jsp(i)+4*nlayer(i)-1)=(h4(jsp(i):jsp(i)+4*nlayer(i)-1)&
-             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2d0
+             +work(jsp(i):jsp(i)+4*nlayer(i)-1))/2
     enddo
-    call calmatc( 2,3,gvra,grho,2,0,0,gra,gt, work )
-    call calmatc( 2,3,gvra,gecL ,2,1,1,gra,gh1,work )
-    call calmatc( 2,3,gvra,gecL ,1,1,0,gra,gh2,work )
-    call calmatc( 2,3,gvra,gecL ,0,0,0,gra,gh3,work )
-    call calmatc( 2,3,gvra,gecN ,0,0,0,gra,gh4,work )
+    call calmatc(2,3,gvra,grho,2,0,0,gra,gt, work)
+    call calmatc(2,3,gvra,gecL,2,1,1,gra,gh1,work)
+    call calmatc(2,3,gvra,gecL,1,1,0,gra,gh2,work)
+    call calmatc(2,3,gvra,gecL,0,0,0,gra,gh3,work)
+    call calmatc(2,3,gvra,gecN,0,0,0,gra,gh4,work)
     call caltl( 2,3,gvra,grho,gra,work )
-    gt(1:8)=(gt(1:8)+work(1:8))/2d0
+    gt(1:8)=(gt(1:8)+work(1:8))/2
 
-    call calhl( 2,3,gvra,gecL, gra,work )
-    gh3(1:8)=(gh3(1:8)+work(1:8))/2d0
+    call calhl( 2,3,gvra,gecL,gra,work )
+    gh3(1:8)=(gh3(1:8)+work(1:8))/2
 
-    call calhl( 2,3,gvra,gecN, gra,work )
-    gh4(1:8)=(gh4(1:8)+work(1:8))/2d0
+    call calhl( 2,3,gvra,gecN,gra,work )
+    gh4(1:8)=(gh4(1:8)+work(1:8))/2
 
 ! ******************** Computing the displacement *********************
     nn = nnlayer + 1
@@ -321,7 +298,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
         u( 1:3,1:nr )=0
 
         if ( i/=0 ) then
-            omega = 2.d0 * pi * dble(i) / tlen
+            omega = 2 * pi * i / tlen
             comega2 = dcmplx( omega, -omegai ) * dcmplx( omega, -omegai )
             call callsuf(omega,nzone,vrmax,vsv,lsuf)
 
@@ -338,22 +315,20 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                 +h3(jsp(j):jsp(j)+4*nlayer(j)-1)-2d0*h4(jsp(j):jsp(j)+4*nlayer(j)-1))
                 call overlap( nlayer(j),cwork(jsp(j)),a0( 1,isp(j) ) )
                 cwork(jsp(j):jsp(j)+4*nlayer(j)-1)=-coef(j)*( h4(jsp(j):jsp(j)+4*nlayer(j)-1) )
-
                 call overlap( nlayer(j),cwork(jsp(j)),a2( 1,isp(j) ) )
             enddo
 
             kc = 1
             ismall = 0
-            maxamp = -1.d0
+            maxamp = -1
             llog = maxlmax
             do l=0,maxlmax ! l-loop
                 if( ismall>20 ) then
                     if(llog>l) llog = l
                     cycle
                 endif
-!
-                tmpr(1:maxnlay+1) = 0.d0
 
+                tmpr(1:maxnlay+1) = 0
                 lsq = dsqrt( l*(l+1d0) )
 ! ***** Computing the trial function *****
                 do ir=1,nr
@@ -367,25 +342,20 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                 a(1:2,1:nn) = a0(1:2,1:nn) + l*(l+1) * a2(1:2,1:nn)
 
                 !c Computing the coefficient matrix 'a' in the solid part. calga
-                aa(1:4) = comega2 * t(ins:ins+3)&
-                - coef(spn) * ( h1(ins:ins+3)-h2(ins:ins+3)+h3(ins:ins+3)+(l*(l+1)-2)*h4(ins:ins+3) )
+                aa(1:4)=comega2*t(ins:ins+3)-coef(spn)*(h1(ins:ins+3)-h2(ins:ins+3)+h3(ins:ins+3)+(l*(l+1)-2)*h4(ins:ins+3))
                 ga(1:8)=comega2*gt(1:8)- coef(spn)*( gh1(1:8)-gh2(1:8)+gh3(1:8)+(l*(l+1)-2)*gh4(1:8))
-
-
                 call overlap( 2,ga,ga2 )
 
                 do m=-2,2 ! m-loop
-                    if ( ( m/=0 ).and.( iabs(m)<=iabs(l) ) ) then
+                    if ( m/=0 .and. iabs(m)<=iabs(l) ) then
                         g(1:nn)=0
-                        call calg2( l,m,spo,r0,mt,mu0,coef(spn), &
-                        ga,aa,ga2,gdr,g( isp(spn) ) )
+                        call calg2( l,m,spo,r0,mt,mu0,coef(spn),ga,aa,ga2,gdr,g( isp(spn) ) )
                         if( mod(l,100)==0) then
                             if ( m==-2 .or. m==-l ) then
                                 call dclisb0( a,nn,1,lda,g,eps,dr,z,ier)
                             else
                                 call dcsbsub0( a,nn,1,lda,g,eps,dr,z,ier)
                             endif
-
                             tmpr(1:nn) = tmpr(1:nn) + cdabs(g(1:nn))
                         else
                             if ( m==-2 .or. m==-l ) then
@@ -397,9 +367,7 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
                             endif
                         endif
 
-                        if( mod(l,100)==0) then
-                            call calcutd(nzone,nlayer,tmpr,ratc,nn,ra,kc)
-                        endif
+                        if( mod(l,100)==0) call calcutd(nzone,nlayer,tmpr,ratc,nn,ra,kc)
 
                         call calamp(g(nn),l,lsuf,maxamp,ismall,ratl)
                         u(2:3,1:nr) = u(2:3,1:nr) + g(nn) * bvec(2:3,m,1:nr) / lsq
@@ -409,24 +377,22 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
         endif
 ! ************************** Files Handling **************************
         outputu(1:3,1:nr,i) = u(1:3,1:nr)
-
-        if (write_to_file .and. i==imax) then
-            write(*,*) "kakikomimasu"
-            do ir = 1 ,nr
-                open(unit=1,file=output(ir),position='append',status='replace', &
-                  access='stream', form='unformatted', convert='big_endian')
-                write(1) tlen,np,1,3,omegai,lat(ir),lon(ir)
-                write(1) eqlat,eqlon,r0
-
-                do mpii= imin, imax
-                    write(1) mpii,dble(outputu(1,ir,mpii)),dimag(outputu(1,ir,mpii))
-                    write(1) dble(outputu(2,ir,mpii)),dimag(outputu(2,ir,mpii))
-                    write(1) dble(outputu(3,ir,mpii)),dimag(outputu(3,ir,mpii))
-                enddo
-                close(1)
-            enddo
-        endif
     enddo                   ! omega-loop
+
+    if (write_to_file) then
+        write(*,*) "kakikomimasu"
+        do ir = 1 ,nr
+            open(1,file=output(ir),status='replace',access='stream',form='unformatted', convert='big_endian')
+            write(1) tlen,np,1,3,omegai,lat(ir),lon(ir),eqlat,eqlon,r0
+
+            do i= imin, imax
+                write(1) i,dble(outputu(1,ir,i)),dimag(outputu(1,ir,i))
+                write(1) dble(outputu(2,ir,i)),dimag(outputu(2,ir,i))
+                write(1) dble(outputu(3,ir,i)),dimag(outputu(3,ir,i))
+            enddo
+            close(1)
+        enddo
+    endif
     return
 end subroutine tish
 
