@@ -19,4 +19,4 @@ tish: $(OBJS)
 %.o: %.mod
 
 clean:
-	rm -f $(OBJS) $(PROGS)
+	rm -f $(OBJS) $(PROGS) parameters.mod
