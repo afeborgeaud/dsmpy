@@ -1,6 +1,8 @@
 import numpy as np
 from pydsm._tish import parameters
 import bisect
+from pydsm.modelparameters import ModelParameters, ParameterType
+import matplotlib.pyplot as plt
 
 class SeismicModel:
     """Represent a seismic Earth model for computation using DSM.
@@ -328,7 +330,7 @@ class SeismicModel:
             vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa)
 
-    def radial_boxcar_mesh(self, nodes):
+    def boxcar_mesh(self, model_parameters):
         """
         Args:
             nodes (ndarray): nodes of the boxcar mesh
@@ -337,24 +339,50 @@ class SeismicModel:
             mesh (SeismicModel): mesh with boxcar polynomials
         """
         model = self.__copy__()
-        for node in nodes:
+        for node in model_parameters.get_nodes():
             model = model._add_boundary(node)
         mesh = model.__copy__()
-        for i, r in enumerate(model._vrmin):
-            if r in nodes:
+        for i in range(mesh._nzone):
+            mesh._set_all_layers(i, np.zeros(4, dtype=np.float64))
+        nodes = model_parameters.get_nodes()
+        for i in range(model_parameters._n_nodes-1):
+            indexes = (set(np.where(mesh._vrmin < nodes[i+1])[0])
+                & set(np.where(mesh._vrmin >= nodes[i])[0]))
+            for index in indexes:
                 mesh._set_all_layers(
-                    i, np.array([1, 0, 0, 0], dtype=np.float64))
-            else:
-                mesh._set_all_layers(
-                    i, np.array([0, 0, 0, 0], dtype=np.float64))
+                    index, np.array([1, 0, 0, 0], dtype=np.float64))
         return model, mesh
 
-#    def multiply(self, nodes, values):
-#        assert values.shape == (len(nodes)-1, 8)
-#        mesh = self.__copy__()
-#        for i, r in enumerate(mesh._vrmin):
-#            if r in nodes:
+    def multiply(self, nodes, values):
+        assert values.shape == (len(nodes)-1, 8)
+        mesh = self.__copy__()
+        for i in range(len(nodes)-1):
+            indexes = (set(np.where(self._vrmin < nodes[i+1])[0])
+                & set(np.where(self._vrmin >= nodes[i])[0]))
+            for index in indexes:
+                mesh._rho[:, index] *= values[i, 0]
+                mesh._vpv[:, index] *= values[i, 1]
+                mesh._vph[:, index] *= values[i, 2]
+                mesh._vsv[:, index] *= values[i, 3]
+                mesh._vsh[:, index] *= values[i, 4]
+                mesh._eta[:, index] *= values[i, 5]
+                mesh._qmu[index] *= values[i, 6]
+                mesh._qkappa[index] *= values[i, 7]
+        return mesh
 
+    def __add__(self, other):
+        assert np.allclose(self._vrmin, other._vrmin)
+        assert np.allclose(self._vrmax, other._vrmax)
+        model = self.__copy__()
+        model._rho += other._rho
+        model._vpv += other._vpv
+        model._vph += other._vph
+        model._vsv += other._vsv
+        model._vsh += other._vsh
+        model._eta += other._eta
+        model._qmu += other._qmu
+        model._qkappa += other._qkappa
+        return model
 
     def _set_all_layers(self, index, values):
         """
@@ -415,9 +443,46 @@ class SeismicModel:
             self._eta.copy(),
             self._qmu.copy(),
             self._qkappa.copy())
+    
+    def get_zone(self, r):
+        return bisect.bisect_right(self._vrmin, r) - 1
+
+    def evaluate(self, r, poly):
+        x = r / 6371.
+        return (poly[0] 
+               + poly[1]*x
+               + poly[2]*x**2
+               + poly[3]*x**3)
+    
+    def get_values(self, dr=1):
+        rs = np.linspace(0, 6371, int(6371/dr))
+        values = [self.evaluate(r, self._vsh[:, self.get_zone(r)])
+                  for r in rs]
+        return rs, values
 
 if __name__ == '__main__':
     prem = SeismicModel.prem()
-    model = prem._add_boundary(3700.)
-    print(prem._qmu)
-    print(model._qmu)
+    # model parameters
+    types = [ParameterType.VSV, ParameterType.VSH]
+    radii = np.array([3480., 3700.], dtype=np.float64)
+    model_params = ModelParameters(types, radii)
+    # mesh
+    model, mesh = prem.boxcar_mesh(model_params)
+    # multiply mesh with values
+    values_dict = {
+        ParameterType.VSV: -0.1,
+        ParameterType.VSH: 0.1}
+    values_mat = model_params.get_values_matrix(values_dict)
+    mesh_ = mesh.multiply(model_params.get_nodes(), values_mat)
+    model_ = model + mesh_
+    # figure
+    rs, values = model_.get_values()
+    rs_prem, values_prem = prem.get_values()
+    fig, ax = plt.subplots(1,1)
+    ax.plot(values_prem, rs_prem, color='blue')
+    ax.plot(values, rs, color='red')
+    ax.set_ylim(0, 6371)
+    ax.set(
+        xlabel='Velocity (km/s)',
+        ylabel='Radius (km)')
+    plt.show()
