@@ -79,9 +79,9 @@ subroutine pinput_tipsv(parameter_file,&
     return
 end subroutine
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
 subroutine calthetaphi(ievla,ievlo,istla,istlo,theta,phi)
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
     use parameters
     implicit none
     double precision,intent(in):: ievla,ievlo,istla,istlo
@@ -111,12 +111,13 @@ subroutine calthetaphi(ievla,ievlo,istla,istlo,theta,phi)
     gcarc = gcarc * 180 / pi
 
     theta = gcarc
-    phi   = 180 - az
+    phi = 180 - az
     return
 end
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
+!----------------------------------------------------------
 subroutine translat(geodetic,geocentric)
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
     use parameters
     implicit none
     double precision,intent(in):: geodetic
@@ -134,25 +135,26 @@ subroutine translat(geodetic,geocentric)
     tmp_geodetic = tmp_geodetic / 180 * pi
     geocentric = datan((1-flattening)*(1-flattening)*dtan(tmp_geodetic))
     geocentric = geocentric * 180 / pi
-    !      if(geocentric < 0.d0 ) geocentric = 1.8d2 + geocentric
     if(flag == 1) geocentric = 180 - geocentric
 
     return
-    end
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+end
+
+!----------------------------------------------------------
 subroutine calnl( nzone,vs,iphase,nsl,nll )
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
 ! counting of nsl and nll.
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    integer:: nzone,iphase(*),nsl,nll
-    double precision:: vs(4,*)
+!----------------------------------------------------------
+    implicit none
+    integer,intent(in):: nzone
+    integer:: nsl,nll,iphase(nzone)
+    double precision,intent(in):: vs(4,*)
     integer:: i
 
     nsl = 0
     nll = 0
     do i=1,nzone
-        if ( ( vs(1,i)==0.d0 ).and.( vs(2,i)==0.d0 ).and.&
-            ( vs(3,i)==0.d0 ).and.( vs(4,i)==0.d0 ) ) then
+        if ( vs(1,i)== 0 .and. vs(2,i)==0 .and. vs(3,i)==0 .and. vs(4,i)==0 ) then
             nll = nll + 1
             iphase(i) = 2
         else
@@ -163,10 +165,10 @@ subroutine calnl( nzone,vs,iphase,nsl,nll )
     return
 end
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
 subroutine calgrid( nzone,vrmin,vrmax,vp,vs,rmin,rmax,&
     imax,lmin,tlen,vmin,gridpar,dzpar )
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
     use parameters
     implicit none
     integer:: nzone,imax,lmin
@@ -177,22 +179,19 @@ subroutine calgrid( nzone,vrmin,vrmax,vp,vs,rmin,rmax,&
 
     do izone=1,nzone
         ! computing the S-velocity at each zone
-        if ( vs(1,izone)==0.d0 ) then
+        if ( vs(1,izone)==0 ) then
             v(1:4) = vp(1:4,izone)
         else
             v(1:4) = vs(1:4,izone)
         endif
-        vs1 = 0.d0
-        vs2 = 0.d0
+        vs1 = 0
+        vs2 = 0
         do j=1,4
             if ( j==1 ) then
-                coef1 = 1.d0
+                coef1 = 1
+                coef2 = 1
             else
                 coef1 = coef1 * ( vrmin(izone) / rmax )
-            endif
-            if ( j==1 ) then
-                coef2 = 1.d0
-            else
                 coef2 = coef2 * ( vrmax(izone) / rmax )
             endif
             vs1 = vs1 + v(j) * coef1
@@ -201,7 +200,7 @@ subroutine calgrid( nzone,vrmin,vrmax,vp,vs,rmin,rmax,&
         ! computing rh
         rh = vrmax(izone) - vrmin(izone)
         ! computing omega,amax
-        omega = 2.d0 * pi * dble(imax) / tlen
+        omega = 2 * pi * imax / tlen
         if ( vs1>=vs2 ) then
             vmin(izone) = vs2
         else
@@ -209,23 +208,20 @@ subroutine calgrid( nzone,vrmin,vrmax,vp,vs,rmin,rmax,&
         endif
         amax = vrmax(izone)
         gtmp = ( omega * omega ) / ( vmin(izone) * vmin(izone) ) &
-            - ( (dble(lmin)+0.5d0) * (dble(lmin)+0.5d0) )&
-            / ( amax * amax )
-        if ( gtmp>0.d0 ) then
-            dzpar(izone)   = dsqrt( 1.d0/gtmp )
+            -  (lmin+0.5d0) * (lmin+0.5d0)  / ( amax * amax )
+        if ( gtmp>0 ) then
+            dzpar(izone)   = dsqrt( 1/gtmp )
             gridpar(izone) = rh / dzpar(izone)
         else
-            dzpar(izone)   = 0.d0
-            gridpar(izone) = 0.d0
+            dzpar(izone)   = 0
+            gridpar(izone) = 0
         endif
     enddo
     ! rearangement of gridpar
-    gtmp = 0.d0
+    gtmp = sum(gridpar(1:nzone))
+
     do izone=1,nzone
-        gtmp = gtmp + gridpar(izone)
-    enddo
-    do izone=1,nzone
-        if ( gridpar(izone)>0.d0 ) then
+        if ( gridpar(izone)>0 ) then
             gridpar(izone) = gridpar(izone) / gtmp
         else
             rh = vrmax(izone) - vrmin(izone)
@@ -233,24 +229,19 @@ subroutine calgrid( nzone,vrmin,vrmax,vp,vs,rmin,rmax,&
         endif
     enddo
     ! re-rearangement of gridpar
-    gtmp = 0.d0
-    do izone=1,nzone
-        gtmp = gtmp + gridpar(izone)
-    enddo
-    do izone=1,nzone
-        gridpar(izone) = gridpar(izone) / gtmp
-    enddo
-    !
+    gtmp = sum(gridpar(1:nzone))
+
+    gridpar(1:nzone) = gridpar(1:nzone) / gtmp
+
     return
 end
-!
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
+!----------------------------------------------------------
 subroutine calra(inlayer,jnlayer,jnslay,jnllay,&
-    dzpar,nzone,vrmin,vrmax,iphase,&
-    rmin,nslay,nllay,nnl,ra,re )
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    dzpar,nzone,vrmin,vrmax,iphase,rmin,nslay,nllay,nnl,ra,re )
+!----------------------------------------------------------
 ! Computing the number and the location of grid points.
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
     use parameters
     implicit none
     integer:: inlayer,jnlayer,jnslay,jnllay
@@ -263,7 +254,7 @@ subroutine calra(inlayer,jnlayer,jnslay,jnllay,&
     ! Initializing the data
     nslay = 0
     nllay = 0
-    inlayer = 0
+
     ra(1:maxnlay+maxnzone+1)=0
 
     nnl(1:nzone)=0
@@ -271,14 +262,14 @@ subroutine calra(inlayer,jnlayer,jnslay,jnllay,&
     jnlayer = 0
     jnslay = 0
     jnllay = 0
-    !
-    !	tnlayer = nlayer / (2**(idr-1))
+
+    ! tnlayer = nlayer / (2**(idr-1))
     ! computing the number and the location of the grid points
     ra(1) = rmin
     itmp = 1
     do izone=1,nzone
         rh = vrmax(izone) - vrmin(izone)
-        if(dzpar(izone)==0.d0) then
+        if(dzpar(izone)==0) then
             ntmp = 1
         else
             ntmp = int( sqrt(3.3d0 / re ) * rh / dzpar(izone)&
@@ -298,29 +289,25 @@ subroutine calra(inlayer,jnlayer,jnslay,jnllay,&
             ra(itmp) = vrmin(izone) + rh * dble(i) / dble( nnl(izone) )
         enddo
     enddo
-    !
+
     ! recouting the total number of grid points
-    inlayer = 0
-    do  izone=1,nzone
-        inlayer = inlayer + nnl(izone)
-    enddo
+    inlayer = sum(nnl(1:nzone))
+
     jnlayer = jnlayer + inlayer
     jnslay  = jnslay  + nslay
     jnllay  = jnllay  + nllay
-    !
+
     return
 end
-!
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine calsp( maxnzone,ndc,nsl,nll,&
-    iphase,nlayer,nllay,&
-    isp,jsp,ksp,issp,ilsp,lsp,jssp,&
-    isdr,jsdr,ildr,jdr,kdr )
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
+!----------------------------------------------------------
+subroutine calsp(ndc,nsl,nll,iphase,nlayer,nllay,&
+    isp,jsp,ksp,issp,ilsp,lsp,jssp,isdr,jsdr,ildr,jdr,kdr )
+!----------------------------------------------------------
 ! Computing the stack points.
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
+    use parameters
     implicit none
-    integer:: maxnzone
     integer:: ndc,nsl,nll,iphase(*),nlayer(maxnzone)
     integer:: nllay
     integer:: isp(maxnzone),jsp(maxnzone),ksp(maxnzone)
@@ -328,7 +315,7 @@ subroutine calsp( maxnzone,ndc,nsl,nll,&
     integer:: lsp(maxnzone),jssp(maxnzone)
     integer:: isdr,jsdr,ildr,jdr,kdr
     integer:: i,isl,ill
-    !
+
     ! Initialization of the data
     isp = 0
     jsp = 0
@@ -353,7 +340,7 @@ subroutine calsp( maxnzone,ndc,nsl,nll,&
     jssp(1) = 1
     isl = 0
     ill = 0
-    do  i=1,ndc
+    do i=1,ndc
         isp(i+1) = isp(i) + nlayer(i)
         if ( iphase(i)==1 ) then
             jsp(i+1) = jsp(i) + 16 * nlayer(i)
@@ -384,35 +371,31 @@ subroutine calsp( maxnzone,ndc,nsl,nll,&
     return
     end
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine calspo( maxnlay,maxnzone,&
-    rdc,iphase,inlayer,&
-    r0,rmin,rmax,ra,isp,spo,spn )
+!----------------------------------------------------------
+subroutine calspo( rdc,iphase,inlayer,r0,rmin,rmax,ra,isp,spo,spn )
+    use parameters
     implicit none
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
 ! Computing the source location.
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    integer:: maxnlay,maxnzone,iphase(*)
+!----------------------------------------------------------
+    integer:: iphase(*)
     integer:: inlayer,isp(maxnzone),spn
     double precision:: rdc(*),r0,rmin,rmax,ra(maxnlay+maxnzone+1),spo
     integer:: itmp
-    !
+
     ! checking the parameter
-    if ( (r0<rmin).or.(r0>rmax) ) stop 'The source location is improper.(calspo)'
+    if ( r0<rmin .or. r0>rmax ) stop 'The source location is improper.(calspo)'
     spo = 0
     ! computing 'spo'
     if ( r0==rmax ) then
-        spo = dble( inlayer ) - 0.01d0
+        spo = inlayer - 0.01d0
         r0 = ra(inlayer) + (spo-dble(inlayer-1)) * ( ra(inlayer+1) -ra(inlayer) )
     else
         itmp = 2
-110 continue
-        if ( r0<ra(itmp) ) then
-            continue
-        else
-           itmp = itmp + 1
-            goto 110
-        endif
+        do
+            if ( r0<ra(itmp) ) exit
+            itmp = itmp + 1
+        enddo
         spo = dble(itmp-2)+ ( r0-ra(itmp-1) )   / ( ra(itmp)-ra(itmp-1) )
     ! temporal handling
         if ( (spo-dble(itmp-2))<0.01d0 ) then
@@ -427,36 +410,33 @@ subroutine calspo( maxnlay,maxnzone,&
 ! computing 'spn'
     spn = 0
     itmp = 1
-130 continue
-    if ( iphase(itmp)==1 ) then
-        spn = spn + 1
-        if ( r0<=rdc(itmp) ) then
-          continue
-        else
+
+    do
+        if ( iphase(itmp)==1 ) then
+            spn = spn + 1
+            if ( r0<=rdc(itmp) ) exit
             itmp = itmp + 1
-            goto 130
+        else
+            spn = spn + 1
+            if ( r0<=rdc(itmp) ) stop 'The source is in the liquid layer.(calspo)'
+            itmp = itmp + 1
         endif
-    else
-        spn = spn + 1
-        if ( r0<=rdc(itmp) ) stop 'The source is in the liquid layer.(calspo)'
-        itmp = itmp + 1
-        goto 130
-    endif
+    enddo
 ! changing 'spo'
     spo = spo - dble( isp(spn) - 1 )
 
     return
     end
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine calstg( maxnlay,maxnzone,nzone,rrho,&
-    vpv,vph,vsv,vsh,eta,nnl,ra,rmax,&
+!----------------------------------------------------------
+subroutine calstg( nzone,rrho,vpv,vph,vsv,vsh,eta,nnl,ra,rmax,&
     vnp,vra,rho,kappa,ecKx,ecKy,ecKz,&
     mu,ecL,ecN, r0,spn,ecC0,ecF0,ecL0 )
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ! Computing the structure grid points.
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    integer:: maxnlay,maxnzone,nzone,nnl(*),vnp,spn
+!----------------------------------------------------------
+    use parameters
+    implicit none
+    integer:: nzone,nnl(*),vnp,spn
     double precision:: rrho(4,*),vpv(4,*),vph(4,*),vsv(4,*),vsh(4,*),eta(4,*)
     double precision:: ra(*),rmax
     double precision:: vra(*),rho(*),kappa(*),ecKx(*),ecKy(*),ecKz(*)
@@ -465,17 +445,17 @@ subroutine calstg( maxnlay,maxnzone,nzone,rrho,&
     double precision:: r0,ecA0,ecC0,ecF0,ecL0
     double precision:: trho,tvpv,tvph,tvsv,tvsh,teta,coef
     integer:: izone,i,j,itmp,jtmp
-    !
+
     ! initializing the data
-    vra(1: maxnlay+2*maxnzone+1)=0
-    rho(1: maxnlay+2*maxnzone+1)=0
-    kappa(1: maxnlay+2*maxnzone+1)=0
-    ecKx(1: maxnlay+2*maxnzone+1)=0
-    ecKy(1: maxnlay+2*maxnzone+1 )=0
-    ecKz(1: maxnlay+2*maxnzone+1 )=0
-    mu(1: maxnlay+2*maxnzone+1 )=0
-    ecL(1: maxnlay+2*maxnzone+1 )=0
-    ecN(1: maxnlay+2*maxnzone+1 )=0
+    vra(1:maxnlay+2*maxnzone+1)=0
+    rho(1:maxnlay+2*maxnzone+1)=0
+    kappa(1:maxnlay+2*maxnzone+1)=0
+    ecKx(1:maxnlay+2*maxnzone+1)=0
+    ecKy(1:maxnlay+2*maxnzone+1)=0
+    ecKz(1:maxnlay+2*maxnzone+1)=0
+    mu(1:maxnlay+2*maxnzone+1)=0
+    ecL(1:maxnlay+2*maxnzone+1)=0
+    ecN(1:maxnlay+2*maxnzone+1)=0
     ! computing the structure grid points
     itmp = 0
     jtmp = 0
@@ -485,12 +465,12 @@ subroutine calstg( maxnlay,maxnzone,nzone,rrho,&
             jtmp = jtmp + 1
             vra(itmp) = ra(jtmp)
             ! --- evaluating the density and elastic constants at this point
-            trho = 0.d0
-            tvpv = 0.d0
-            tvph = 0.d0
-            tvsv = 0.d0
-            tvsh = 0.d0
-            teta = 0.d0
+            trho = 0
+            tvpv = 0
+            tvph = 0
+            tvsv = 0
+            tvsh = 0
+            teta = 0
             do j=1,4
                 if ( j==1 ) then
                     coef = 1.d0
@@ -510,7 +490,7 @@ subroutine calstg( maxnlay,maxnzone,nzone,rrho,&
             ecA = trho * tvph * tvph
             ecC = trho * tvpv * tvpv
             ecF = teta * ( ecA - 2.d0 * ecL(itmp) )
-            kappa(itmp) = ( 4.d0 * ecA + ecC     + 4.d0 * ecF - 4.d0 * ecN(itmp) ) / 9.d0
+            kappa(itmp) = ( 4.d0 * ecA + ecC + 4.d0 * ecF - 4.d0 * ecN(itmp) ) / 9.d0
             ecKx(itmp) = ecA - 4.d0 / 3.d0 * ecN(itmp)
             ecKy(itmp) = ecF + 2.d0 / 3.d0 * ecN(itmp)
             ecKz(itmp) = ( ecC + 2.d0 * ecF ) / 3.d0
@@ -518,41 +498,40 @@ subroutine calstg( maxnlay,maxnzone,nzone,rrho,&
         jtmp = jtmp - 1
     enddo
     vnp = itmp
-    !
-    trho = 0.d0
-    tvpv = 0.d0
-    tvph = 0.d0
-    tvsv = 0.d0
-    tvsh = 0.d0
-    teta = 0.d0
+
+    trho = 0
+    tvpv = 0
+    tvph = 0
+    tvsv = 0
+    tvsh = 0
+    teta = 0
     do j=1,4
         if ( j==1 ) then
-            coef = 1.d0
+            coef = 1
         else
             coef = coef * ( r0 / rmax )
         endif
-        trho  = trho  + rrho(j,spn)  * coef
-        tvpv  = tvpv  + vpv(j,spn)   * coef
-        tvph  = tvph  + vph(j,spn)   * coef
-        tvsv  = tvsv  + vsv(j,spn)   * coef
-        tvsh  = tvsh  + vsh(j,spn)   * coef
-        teta  = teta  + eta(j,spn)   * coef
+        trho = trho + rrho(j,spn) * coef
+        tvpv = tvpv + vpv(j,spn)  * coef
+        tvph = tvph + vph(j,spn)  * coef
+        tvsv = tvsv + vsv(j,spn)  * coef
+        tvsh = tvsh + vsh(j,spn)  * coef
+        teta = teta + eta(j,spn)  * coef
     enddo
     ecL0 = trho * tvsv * tvsv
     ecA0 = trho * tvph * tvph
     ecC0 = trho * tvpv * tvpv
-    ecF0 = teta * ( ecA0 - 2.d0 * ecL0 )
-    !
+    ecF0 = teta * ( ecA0 - 2 * ecL0 )
     return
 end
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine caltstg( maxnlay,maxnzone,nzone,rrho,vpv,vph,vsv,vsh,eta,nnl,ra,rmax,tvra,tkappa,tecKx,tecKy,tecKz,tmu,tecL,tecN)
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
+subroutine caltstg( nzone,rrho,vpv,vph,vsv,vsh,eta,nnl,ra,rmax,tvra,tkappa,tecKx,tecKy,tecKz,tmu,tecL,tecN)
 ! Computing the structure grid points.
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
+    use parameters
     implicit none
-    integer:: maxnlay,maxnzone,nzone,nnl(*)
+    integer:: nzone,nnl(*)
     double precision:: rrho(4,*),vpv(4,*),vph(4,*),vsv(4,*),vsh(4,*),eta(4,*)
     double precision:: ra(*),rmax
     double precision:: tvra(*),tkappa(*),tmu(*)
@@ -578,17 +557,17 @@ subroutine caltstg( maxnlay,maxnzone,nzone,rrho,vpv,vph,vsv,vsh,eta,nnl,ra,rmax,
             jtmp = jtmp + 1
             tvra(itmp) = ra(jtmp)
             ! --- evaluating the density and elastic constants at this point
-            trho = 0.d0
-            tvpv = 0.d0
-            tvph = 0.d0
-            tvsv = 0.d0
-            tvsh = 0.d0
-            teta = 0.d0
+            trho = 0
+            tvpv = 0
+            tvph = 0
+            tvsv = 0
+            tvsh = 0
+            teta = 0
             do j=1,4
                 if ( j==1 ) then
-                    coef = 1.d0
+                    coef = 1
                 else
-                    coef = coef * ( tvra(itmp) / rmax )
+                    coef = coef * ( tvra(itmp) / rmax)
                 endif
                 trho = trho + rrho(j,izone) * coef
                 tvpv  = tvpv  + vpv(j,izone)   * coef
@@ -602,26 +581,27 @@ subroutine caltstg( maxnlay,maxnzone,nzone,rrho,vpv,vph,vsv,vsh,eta,nnl,ra,rmax,
             ecA = trho * tvph * tvph
             ecC = trho * tvpv * tvpv
             ecF = teta * ( ecA - 2.d0 * tecL(itmp) )
-            tkappa(itmp) = ( 4.d0 * ecA + ecC  + 4.d0 * ecF - 4.d0 * tecN(itmp) )/ 9.d0
-            tecKx(itmp) = ecA - 4.d0 / 3.d0 * tecN(itmp)
-            tecKy(itmp) = ecF + 2.d0 / 3.d0 * tecN(itmp)
-            tecKz(itmp) = ( ecC + 2.d0 * ecF ) / 3.d0
+            tkappa(itmp) = ( 4 * ecA + ecC  + 4 * ecF - 4 * tecN(itmp) )/ 9d0
+            tecKx(itmp) = ecA - 4 / 3 * tecN(itmp)
+            tecKy(itmp) = ecF + 2d0 / 3 * tecN(itmp)
+            tecKz(itmp) = ( ecC + 2 * ecF ) / 3.d0
         enddo
         jtmp = jtmp - 1
     enddo
     return
 end
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine calspdr( maxnzone,nzone,iphase,nlayer,jjdr,kkdr )
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
+subroutine calspdr( nzone,iphase,nlayer,jjdr,kkdr )
+!----------------------------------------------------------
+    use parameters
     implicit none
-    integer:: maxnzone,nzone,iphase(*)
+    integer:: nzone,iphase(*)
     integer:: nlayer(maxnzone),jjdr(*),kkdr(*)
     integer:: izone
     jjdr(1) = 1
     kkdr(1) = 1
-    do  izone=1,nzone-1
+    do izone=1,nzone-1
         if ( iphase(izone)==1 ) then
             jjdr(izone+1) = jjdr(izone) + 16 * nlayer(izone)
             if ( iphase(izone+1)==1 ) then
@@ -641,51 +621,22 @@ subroutine calspdr( maxnzone,nzone,iphase,nlayer,jjdr,kkdr )
     return
 end
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine calmdr( omega,l,nzone,vrmax,vmin,rmax,sufzone )
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    use parameters
-    implicit none
-    integer:: l,nzone,sufzone
-    double precision:: omega,vrmax(*),vmin(*),rmax
-    integer:: izone
-    double precision:: gtmp,tdzpar
-    !
-    sufzone = 0
-    do  izone=1,nzone
-        gtmp = ( omega * omega ) / ( vmin(izone) * vmin(izone) )&
-            - ( (dble(l)+0.5d0) * (dble(l)+0.5d0) )&
-            / ( vrmax(izone) * vrmax(izone) )
-        if ( gtmp>0.d0 ) then
-            tdzpar = dsqrt( 1.d0/gtmp )
-        else
-            if ( vrmax(izone)>rmax*(1-2.d0*pi/(dble(l)+0.50)) ) then
-                tdzpar = 0.d0
-            else
-                sufzone = izone
-                tdzpar = 0.d0
-            endif
-        endif
-    enddo
-    !
-    return
-end
-!
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
 subroutine calamp( g,l,lsuf,maxamp,ismall,ratl )
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
     use parameters
     implicit none
-    integer:: ismall,l,lsuf
+    integer:: ismall
+    integer,intent(in)::l,lsuf
     double precision:: maxamp,ratl
     complex(dp),intent(in):: g(2)
     double precision:: amp,ampratio
 
-    ampratio = 0.d0
+    ampratio = 0
     amp = dsqrt( cdabs( g(1) )**2 + cdabs( g(2) )**2 )
     if ( amp>maxamp ) maxamp = amp
-    if ( (amp/=0.d0).and.(maxamp/=0.d0) )   ampratio = amp / maxamp
-    if ( ( ampratio<ratl ).and.( l>=lsuf ) ) then
+    if ( amp/=0 .and. maxamp/=0 )   ampratio = amp / maxamp
+    if ( ampratio<ratl .and. l>=lsuf ) then
         ismall = ismall + 1
     else
         ismall = 0
@@ -693,9 +644,9 @@ subroutine calamp( g,l,lsuf,maxamp,ismall,ratl )
     return
 end
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
 subroutine calcutd(nzone,nnl,tmpc,rat,nn,iphase,ra,kkdr,kc)
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
     use parameters
     implicit none
     integer:: nzone,nn,kkdr(*),kc,iphase(*),nnl(*)
@@ -727,30 +678,28 @@ subroutine calcutd(nzone,nnl,tmpc,rat,nn,iphase,ra,kkdr,kc)
             jz = jz + 1
         endif
     enddo
-    !
-    maxamp = -1.d0
-    do i=1,jz-1
-        amp(i) = cU(i)
-        if(maxamp<amp(i)) maxamp = amp(i)
-    enddo
-    !
+
+    amp(1:jz-1) = cU(1:jz-1)
+    maxamp=maxval(amp(1:jz-1))
+
+
+
     maxamp = maxamp * rat ! threshold value
-    !
+
     nc = 1
     do i=1,jz-1
         if(amp(i)>maxamp) then
             nc = i
-            goto 140
+            exit
         endif
     enddo
-140 continue
 
     i = 1
     do jj=1,nzone
         i = i + nnl(jj)
         ml(jj) = i
     enddo
-    !
+
     do jj=nzone,1,-1
         if(ml(jj)>nc) tzone = jj
     enddo
@@ -758,7 +707,7 @@ subroutine calcutd(nzone,nnl,tmpc,rat,nn,iphase,ra,kkdr,kc)
     rc = ra(nc)
 
     do i=1,jz-1
-        if( (ra(i)<=rc).and.(rc<ra(i+1)) ) then
+        if( ra(i)<=rc .and. rc<ra(i+1) ) then
             nc = i
             if(tzone==1) then ! case(tzone is innermost zone)
                 if(iphase(tzone)==1) kc = 1 + 2 * nc
@@ -766,8 +715,7 @@ subroutine calcutd(nzone,nnl,tmpc,rat,nn,iphase,ra,kkdr,kc)
             else
                 if(iphase(tzone)==1) then
                     kc = kkdr(tzone) + 2 * (nc - ml(tzone-1))
-                endif
-                if(iphase(tzone)==2) then
+                elseif(iphase(tzone)==2) then
                     kc = kkdr(tzone) + nc - ml(tzone-1)
                 endif
             endif
@@ -777,9 +725,9 @@ subroutine calcutd(nzone,nnl,tmpc,rat,nn,iphase,ra,kkdr,kc)
     return
 end
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
 subroutine callsuf(omega,nzone,vrmax,vsv,lsuf)
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
     implicit none
     integer:: nzone,lsuf
     double precision:: omega,vrmax(*),vsv(4,*)
@@ -787,17 +735,8 @@ subroutine callsuf(omega,nzone,vrmax,vsv,lsuf)
     double precision:: tvs,coef
     integer:: i
 
-    tvs = 0.d0
-    do i=1,4
-        if(i==1) then
-            coef = 1.d0
-        else
-            coef = coef
-        endif
-        tvs = tvs + ( vsv(i,nzone) ) * coef
-    enddo
+    tvs = sum(vsv(1:4,nzone))
 
     lsuf = int(omega * vrmax(nzone) / tvs - 0.5d0) + 1
     return
 end
-!
