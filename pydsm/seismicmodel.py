@@ -1,5 +1,6 @@
 import numpy as np
 from pydsm._tish import parameters
+import bisect
 
 class SeismicModel:
     """Represent a seismic Earth model for computation using DSM.
@@ -312,6 +313,7 @@ class SeismicModel:
 
         References:
         """
+        raise NotImplementedError("IASP91 not yet implemented")
         vrmin = None
         vrmax = None
         rho = None
@@ -325,3 +327,53 @@ class SeismicModel:
         return cls(
             vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa)
+
+    def _add_boundary(self, r: float):
+        """Add a boundary at radius=r (km).
+        
+        Returns:
+            SeismicModel with added boundary
+        """
+        model = self.__copy__()
+        if r in self._vrmin or r in self._vrmax:
+            return model
+        index = bisect.bisect_right(self._vrmin, r)
+        model._vrmin = np.insert(model._vrmin, index, r)
+        model._vrmax = np.insert(model._vrmax, index-1, r)
+        model._rho = np.insert(
+            model._rho, index-1, model._rho[:,index-1], axis=1)
+        model._vpv = np.insert(
+            model._vpv, index-1, model._vpv[:,index-1], axis=1)
+        model._vph = np.insert(
+            model._vph, index-1, model._vph[:,index-1], axis=1)
+        model._vsv = np.insert(
+            model._vsv, index-1, model._vsv[:,index-1], axis=1)
+        model._vsh = np.insert(
+            model._vsh, index-1, model._vsh[:,index-1], axis=1)
+        model._eta = np.insert(
+            model._eta, index-1, model._eta[:,index-1], axis=1)
+        model._qmu = np.insert(
+            model._qmu, index-1, model._qmu[index-1])
+        model._qkappa = np.insert(
+            model._qkappa, index-1, model._qkappa[index-1])
+        return model
+
+    def __copy__(self):
+        """Deep copy of SeismicModel."""
+        return SeismicModel(
+            self._vrmin.copy(),
+            self._vrmax.copy(),
+            self._rho.copy(),
+            self._vpv.copy(),
+            self._vph.copy(),
+            self._vsv.copy(),
+            self._vsh.copy(),
+            self._eta.copy(),
+            self._qmu.copy(),
+            self._qkappa.copy())
+
+if __name__ == '__main__':
+    prem = SeismicModel.prem()
+    model = prem._add_boundary(3700.)
+    print(prem._qmu)
+    print(model._qmu)
