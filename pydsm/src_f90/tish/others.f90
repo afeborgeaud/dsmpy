@@ -16,10 +16,10 @@ subroutine pinput_tish(parameter_file, &
     real(dp),dimension(maxnr), intent(out) :: theta,phi,lat,lon
     real(dp),intent(out) :: eqlat,eqlon,r0,mt(3,3)
     character*80,dimension(maxnr),intent(out) :: output
-    real(dp) :: stlat,stlon,eqlattmp
+    real(dp):: stlat,stlon,eqlattmp
     integer i,linenum,io
     logical:: file_exists
-    character*80::buffer
+    character*80:: buffer
     character*80,dimension(maxnline) :: lines
 
     inquire(file=parameter_file,exist=file_exists)
@@ -28,9 +28,9 @@ subroutine pinput_tish(parameter_file, &
     linenum=0
     open(unit=1,file=parameter_file,status='old',action='read')
     do
-        read(1, '(a)', iostat=io) buffer
+        read(1,'(a)', iostat=io) buffer
         buffer = adjustl(buffer)
-        if(buffer(1:1)=='c'.or.buffer(1:1)=='c'.or.buffer(1:1)=='!') cycle
+        if(buffer(1:1)=='c' .or. buffer(1:1)=='c' .or. buffer(1:1)=='!') cycle
         if(io/=0) exit
         linenum=linenum+1
         lines(linenum) = buffer
@@ -62,20 +62,20 @@ subroutine pinput_tish(parameter_file, &
 ! station
     if (nr > maxnr) stop 'nr is too large. (pinput)'
     do i=1,nr
-        read(lines(3*nzone+10+i),*) lat(i),lon(i)
+        read(lines(3*nzone+10+i), *) lat(i),lon(i)
         stlat = lat(i)
         stlon = lon(i)
         call translat(stlat,stlat)
         call calthetaphi(eqlattmp,eqlon,stlat,stlon,theta(i),phi(i))
     enddo
-    theta(1:nr) = theta(1:nr) / 1.8d2 * pi
-    phi(1:nr) = phi(1:nr) / 1.8d2 * pi
+    theta(1:nr) = theta(1:nr) / 180 * pi
+    phi(1:nr) = phi(1:nr) / 180 * pi
     do i=1,nr
         read(lines(3*nzone+10+nr+i),'(a)') output(i)
         output(i)=trim(output(i))
     enddo
     return
-    end
+end
 
 !----------------------------------------------------------
 subroutine calthetaphi(ievla,ievlo,istla,istlo,theta,phi)
@@ -90,59 +90,56 @@ subroutine calthetaphi(ievla,ievlo,istla,istlo,theta,phi)
 
     ! transformation to spherical coordinates
 
-    evla = 90.d0 - ievla
-    stla = 90.d0 - istla
+    evla = 90 - ievla
+    stla = 90 - istla
 
-    evla = evla / 1.8d2 * pi
-    evlo = ievlo / 1.8d2 * pi
-    stla = stla / 1.8d2 * pi
-    stlo = istlo / 1.8d2 * pi
+    evla = evla / 180 * pi
+    evlo = ievlo / 180 * pi
+    stla = stla / 180 * pi
+    stlo = istlo / 180 * pi
 
-    gcarc = dacos( dcos(evla) * dcos(stla)&
-        + dsin(evla) * dsin(stla) * dcos(evlo - stlo) )
+    gcarc=acos(cos(evla)*cos(stla)+sin(evla)*sin(stla)*cos(evlo-stlo))
 
-    tc = ( dcos(stla) * dsin(evla) &
-        - dsin(stla) * dcos(evla) * dcos(stlo - evlo) )&
-        / dsin(gcarc)
-    ts = dsin(stla) * dsin(stlo - evlo) / dsin(gcarc)
+    tc=(cos(stla)*sin(evla)-sin(stla)*cos(evla)*cos(stlo-evlo))/sin(gcarc)
+    ts = sin(stla) * sin(stlo - evlo) / sin(gcarc)
 
-    az = dacos(tc)
-    if( ts < 0.d0 ) az = -1.d0 * az
+    az = acos(tc)
+    if( ts < 0 ) az = - az
 
-    az = az * 1.8d2 / pi
+    az = az * 180 / pi
 
-    gcarc = gcarc * 1.8d2 / pi
+    gcarc = gcarc * 180 / pi
 
     theta = gcarc
-    phi   = 180.d0 - az
+    phi   = 180 - az
     return
 end
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!----------------------------------------------------------
 subroutine translat(geodetic,geocentric)
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      use parameters
-      implicit none
-      double precision,intent(in):: geodetic
-      double precision,intent(out):: geocentric
-      double precision:: tmp_geodetic
-      integer:: flag
+!----------------------------------------------------------
+    use parameters
+    implicit none
+    double precision,intent(in):: geodetic
+    double precision,intent(out):: geocentric
+    double precision:: tmp_geodetic
+    integer:: flag
 
-      flag = 0
-      tmp_geodetic=geodetic
-      if(90<geodetic ) then
-            tmp_geodetic = 180 - geodetic
-            flag = 1
-      endif
+    flag = 0
+    tmp_geodetic=geodetic
+    if(90<geodetic ) then
+        tmp_geodetic = 180 - geodetic
+        flag = 1
+    endif
 
-      tmp_geodetic = tmp_geodetic / 180 * pi
-      geocentric = datan((1-flattening)*(1-flattening)*dtan(tmp_geodetic))
-      geocentric = geocentric * 180 / pi
-      !      if(geocentric < 0.d0 ) geocentric = 1.8d2 + geocentric
-      if(flag == 1) geocentric = 180 - geocentric
+    tmp_geodetic = tmp_geodetic / 180 * pi
+    geocentric = datan((1-flattening)*(1-flattening)*dtan(tmp_geodetic))
+    geocentric = geocentric * 180 / pi
+    if(flag == 1) geocentric = 180 - geocentric
 
-      return
-      end
+    return
+end
+
 !----------------------------------------------------------
 subroutine calgrid( nzone,vrmin,vrmax,vs,rmin,rmax,&
     imax,lmin,tlen,vmin,gridpar,dzpar )
@@ -158,16 +155,16 @@ subroutine calgrid( nzone,vrmin,vrmax,vs,rmin,rmax,&
     do izone=1,nzone
         ! computing the S-velocity at each zone
         v(:) = vs(:,izone)
-        vs1 = 0.d0
-        vs2 = 0.d0
+        vs1 = 0
+        vs2 = 0
         do j=1,4
             if ( j==1 ) then
-                coef1 = 1.d0
+                coef1 = 1
             else
                 coef1 = coef1 * ( vrmin(izone) / rmax )
             endif
             if ( j==1 ) then
-                coef2 = 1.d0
+                coef2 = 1
             else
                 coef2 = coef2 * ( vrmax(izone) / rmax )
             endif
@@ -177,7 +174,7 @@ subroutine calgrid( nzone,vrmin,vrmax,vs,rmin,rmax,&
         ! computing rh
         rh = vrmax(izone) - vrmin(izone)
         ! computing omega,amax
-        omega = 2.d0 * pi * dble(imax) / tlen
+        omega = 2 * pi * imax / tlen
         if ( vs1>=vs2 ) then
             vmin(izone) = vs2
         else
@@ -185,24 +182,23 @@ subroutine calgrid( nzone,vrmin,vrmax,vs,rmin,rmax,&
         endif
         amax = vrmax(izone)
         gtmp = ( omega * omega ) / ( vmin(izone) * vmin(izone) ) &
-            - ( (dble(lmin)+0.5d0) * (dble(lmin)+0.5d0) )&
-            / ( amax * amax )
-        if ( gtmp>0.d0 ) then
-            dzpar(izone)   = dsqrt( 1.d0/gtmp )
+            - ( (lmin+0.5) * (lmin+0.5) ) / ( amax * amax )
+        if ( gtmp>0 ) then
+            dzpar(izone)   = dsqrt( 1/gtmp )
             gridpar(izone) = rh / dzpar(izone)
         else
-            dzpar(izone)   = 0.d0
-            gridpar(izone) = 0.d0
+            dzpar(izone)   = 0
+            gridpar(izone) = 0
         endif
     enddo
     ! rearangement of gridpar
     gtmp = sum(gridpar(1:nzone))
     do izone=1,nzone
-        if ( gridpar(izone)>0.d0 ) then
+        if ( gridpar(izone)>0 ) then
             gridpar(izone) = gridpar(izone) / gtmp
         else
             rh = vrmax(izone) - vrmin(izone)
-            gridpar(izone) = rh / ( rmax - rmin ) * 0.1d0
+            gridpar(izone) = rh / ( rmax - rmin ) * 0.1
         endif
     enddo
     ! re-rearangement of gridpar
@@ -228,7 +224,7 @@ subroutine calra(nlayer,gridpar,dzpar,nzone,vrmin,vrmax,&
     double precision:: rh,re
 
     ! Initializing the data
-    ra(1:maxnlay+maxnzone+1) = 0.d0
+    ra(1:maxnlay+maxnzone+1) = 0
     nnl(1:nzone) = 0
 
     ! computing the number and the location of the grid points
@@ -236,19 +232,17 @@ subroutine calra(nlayer,gridpar,dzpar,nzone,vrmin,vrmax,&
     itmp = 1
     do  izone=1,nzone
         rh = vrmax(izone) - vrmin(izone)
-        if(dzpar(izone)==0.d0) then
+        if(dzpar(izone)==0) then
             ntmp = 1
         else
-            ntmp = int( sqrt(3.3d0 / re ) * rh / dzpar(izone) &
-                / 2.d0 / pi  / 7.d-1 + 1 )
+            ntmp = int( sqrt(3.3 / re ) * rh / dzpar(izone) / 2 / pi  / 0.7 + 1 )
         endif
         ! ntmp (see Geller & Takeuchi 1995 6.2)
         nnl(izone) = ntmp
         if ( nnl(izone)<5 ) nnl(izone)=5
         do i=1,nnl(izone)
             itmp = itmp + 1
-            ra(itmp) = vrmin(izone)&
-                + rh * dble(i) / dble( nnl(izone) )
+            ra(itmp) = vrmin(izone) + rh * i / nnl(izone)
         enddo
     enddo
 
@@ -261,10 +255,14 @@ end
 !----------------------------------------------------------
 subroutine calra0( nlayer,nzone,vrmin,vrmax,nnl,ra )
 !----------------------------------------------------------
-!c Computing the number and the location of grid points.
+! Computing the number and the location of grid points.
 !----------------------------------------------------------
-    integer:: nlayer,nzone,nnl(nzone)
-    double precision:: vrmin(*),vrmax(*),ra(*)
+    implicit none
+    integer:: nlayer
+    integer,intent(in):: nzone
+    integer,intent(out):: nnl(nzone)
+    double precision,intent(in):: vrmin(*),vrmax(*)
+    double precision,intent(out):: ra(*)
     integer:: izone,itmp,i
     double precision:: rmin,rmax,rh
 
@@ -275,10 +273,10 @@ subroutine calra0( nlayer,nzone,vrmin,vrmax,nnl,ra )
     itmp = 1
     do izone=1,nzone
         rh = vrmax(izone) - vrmin(izone)
-        nnl(izone) = int( dble(nlayer) * rh / ( rmax - rmin ) ) + 1
+        nnl(izone) = int( nlayer * rh / ( rmax - rmin ) ) + 1
         do i=1,nnl(izone)
             itmp = itmp + 1
-            ra(itmp) = vrmin(izone) + rh * dble(i) / dble( nnl(izone) )
+            ra(itmp) = vrmin(izone) + rh * i / dble( nnl(izone) )
         enddo
     enddo
     ! recouting the total number of grid points
@@ -290,7 +288,9 @@ end
 !----------------------------------------------------------
 subroutine calgra( isp,ra,r0,spn,spo,gra )
 !----------------------------------------------------------
-    integer:: isp(*),spn,itmp
+    implicit none
+    integer,intent(in):: isp(*),spn
+    integer:: itmp
     double precision,intent(in):: ra(*),r0,spo
     double precision,intent(out):: gra(3)
 
@@ -306,7 +306,8 @@ subroutine calsp( ndc,nlayer,isp,jsp )
 !----------------------------------------------------------
 ! Computing the stack points.
 !----------------------------------------------------------
-    integer:: ndc,nlayer(*)
+    implicit none
+    integer,intent(in):: ndc,nlayer(*)
     integer:: isp(*),jsp(*)
     integer:: i
 
@@ -323,11 +324,10 @@ subroutine calsp( ndc,nlayer,isp,jsp )
 end
 
 !----------------------------------------------------------
-subroutine calspo( ndc,rdc,nlayer,r0,rmin,rmax,ra,&
-    isp,spo,spn )
+subroutine calspo( ndc,rdc,nlayer,r0,rmin,rmax,ra,isp,spo,spn )
 !----------------------------------------------------------
 ! Computing the source location.
-
+    implicit none
     integer:: ndc,nlayer,isp(*),spn
     double precision:: rdc(*),r0,rmin,rmax,ra(*),spo
     integer:: itmp
@@ -336,7 +336,7 @@ subroutine calspo( ndc,rdc,nlayer,r0,rmin,rmax,ra,&
     if ( r0<rmin .or. r0>rmax ) stop 'The source location is improper.(calspo)'
     ! computing 'spo'
     if ( r0==rmax ) then
-        spo = dble(nlayer) - 0.01d0
+        spo = nlayer - 0.01d0
         r0 = ra(nlayer) + (spo-dble(nlayer-1)) * ( ra(nlayer+1)-ra(nlayer) )
     else
         itmp = 2
@@ -348,11 +348,11 @@ subroutine calspo( ndc,rdc,nlayer,r0,rmin,rmax,ra,&
         spo = dble(itmp-2) + ( r0-ra(itmp-1) ) / ( ra(itmp)-ra(itmp-1) )
         !c temporal handling
         if ( (spo-dble(itmp-2))<0.01d0 ) then
-            spo = dble(itmp-2) + 0.01d0
+            spo = (itmp-2) + 0.01d0
             r0 = ra(itmp-1) + (spo-dble(itmp-2)) * ( ra(itmp)-ra(itmp-1) )
         endif
         if ( (spo-dble(itmp-2))>0.99d0 ) then
-            spo = dble(itmp-2) + 0.99d0
+            spo = (itmp-2) + 0.99d0
             r0 = ra(itmp-1) + (spo-dble(itmp-2)) * ( ra(itmp)-ra(itmp-1) )
         endif
 
@@ -363,21 +363,19 @@ subroutine calspo( ndc,rdc,nlayer,r0,rmin,rmax,ra,&
 
     do
         spn=spn+1
-        if(r0<=rdc(itmp))exit
+        if(r0<=rdc(itmp)) exit
         itmp=itmp+1
     enddo
 
     ! changing 'spo'
-    spo = spo - dble( isp(spn) - 1 )
+    spo = spo - ( isp(spn) - 1 )
 
     return
 end
 
 
 !----------------------------------------------------------
-subroutine calstg( nzone,rrho,vsv,vsh,&
-    nlayer,nnl,ra,rmax,vnp,vra,rho,&
-    ecL,ecN )
+subroutine calstg( nzone,rrho,vsv,vsh,nlayer,nnl,ra,rmax,vnp,vra,rho,ecL,ecN )
 !----------------------------------------------------------
 !c Computing the structure grid points.
 !----------------------------------------------------------
@@ -389,10 +387,10 @@ subroutine calstg( nzone,rrho,vsv,vsh,&
     integer:: izone,i,j,itmp,jtmp
 
     ! initializing the data
-    vra(1:nlayer+nzone+1) = 0.d0
-    rho(1:nlayer+nzone+1) = 0.d0
-    ecL(1:nlayer+nzone+1) = 0.d0
-    ecN(1:nlayer+nzone+1) = 0.d0
+    vra(1:nlayer+nzone+1) = 0
+    rho(1:nlayer+nzone+1) = 0
+    ecL(1:nlayer+nzone+1) = 0
+    ecN(1:nlayer+nzone+1) = 0
 
     !c computing the structure grid points
     itmp = 0
@@ -403,18 +401,18 @@ subroutine calstg( nzone,rrho,vsv,vsh,&
             jtmp = jtmp + 1
             vra(itmp) = ra(jtmp)
     !c --- evaluating the density and elastic constants at this point
-            trho = 0.d0
-            tvsv = 0.d0
-            tvsh = 0.d0
+            trho = 0
+            tvsv = 0
+            tvsh = 0
             do j=1,4
                 if ( j==1 ) then
-                    coef = 1.d0
+                    coef = 1
                 else
                     coef = coef * ( vra(itmp) / rmax )
                 endif
                 trho = trho + rrho(j,izone) * coef
-                tvsv = tvsv  + vsv(j,izone)   * coef
-                tvsh = tvsh  + vsh(j,izone)   * coef
+                tvsv = tvsv + vsv(j,izone) * coef
+                tvsh = tvsh + vsh(j,izone) * coef
             enddo
             rho(itmp) = trho
             ecL(itmp) = rho(itmp) * tvsv * tvsv
@@ -427,8 +425,7 @@ subroutine calstg( nzone,rrho,vsv,vsh,&
 end
 
 !----------------------------------------------------------
-subroutine calgstg( spn,rrho,vsv,vsh,&
-    ra,vra,rmax,rho,ecL,ecN,r0,mu0 )
+subroutine calgstg( spn,rrho,vsv,vsh,ra,vra,rmax,rho,ecL,ecN,r0,mu0 )
 !----------------------------------------------------------
 !c Computing the structure grid points.
     implicit none
@@ -440,21 +437,21 @@ subroutine calgstg( spn,rrho,vsv,vsh,&
     integer:: i,j
 
     ! initializing the data
-    vra(1:3) = 0.d0
-    rho(1:3) = 0.d0
-    ecL(1:3) = 0.d0
-    ecN(1:3) = 0.d0
+    vra(1:3) = 0
+    rho(1:3) = 0
+    ecL(1:3) = 0
+    ecN(1:3) = 0
 
-    !c computing the structure grid points
+    ! computing the structure grid points
     do i=1,3
         vra(i) = ra(i)
-        !c --- evaluating the density and elastic constants at this point
-        trho = 0.d0
-        tvsv = 0.d0
-        tvsh = 0.d0
+        ! --- evaluating the density and elastic constants at this point
+        trho = 0
+        tvsv = 0
+        tvsh = 0
         do j=1,4
             if ( j==1 ) then
-                coef = 1.d0
+                coef = 1
             else
                 coef = coef * ( vra(i) / rmax )
             endif
@@ -485,12 +482,12 @@ subroutine calcoef( nzone,omega,q,coef )
     double precision:: aa,bb
 
     do izone=1,nzone
-        if ( omega==0.d0 ) then
-            aa = 1.d0
+        if ( omega==0 ) then
+            aa = 1
         else
-            aa = 1.d0 + dlog( omega / ( 2.d0 * pi ) ) / ( pi * Q(izone) )
+            aa = 1 + dlog( omega / ( 2 * pi ) ) / ( pi * Q(izone) )
         endif
-        bb = 1.d0 / ( 2.d0 * Q(izone) )
+        bb = 1 / ( 2 * Q(izone) )
         coef(izone) = dcmplx( aa, bb ) * dcmplx( aa, bb )
     enddo
 
@@ -508,20 +505,16 @@ subroutine calcutd(nzone,nnl,tmpr,rat,nn,ra,kc)
     double precision:: rat,ra(*)
     integer:: nc
 
-    double precision:: cU(nn),rc
+    double precision:: rc
     double precision:: maxamp,amp(nn)
     integer:: jz,jj,i,ml(nzone),tzone
 
-    cU(1:nn) = tmpr(1:nn)
+    amp(1:nn) = tmpr(1:nn)
 
-    maxamp = -1.d0
-    do i=1,nn
-        amp(i) = cU(i)
-        maxamp = max(amp(i),maxamp)
-    enddo
+    maxamp = maxval(amp(1:nn))
 
     maxamp = maxamp * rat ! threshold value
-    if(maxamp==0.d0) then
+    if(maxamp==0) then
         kc = 1
         return
     endif
@@ -558,19 +551,14 @@ subroutine callsuf(omega,nzone,vrmax,vsv,lsuf)
     double precision:: tvs
     integer:: i
 
-    tvs = 0.d0
-
-    do i=1,4
-        tvs = tvs + ( vsv(i,nzone) )
-    enddo
-
+    tvs = sum (vsv(1:4,nzone) )
     lsuf = int(omega * vrmax(nzone) / tvs - 0.5d0) + 1
     return
 end
 
-!------------------------------------------------------------------------
+!----------------------------------------------------------
 subroutine calamp(g,l,lsuf,maxamp,ismall,ratl)
-!------------------------------------------------------------------------
+!----------------------------------------------------------
     use parameters
     implicit none
     integer:: l,lsuf,ismall
@@ -579,10 +567,10 @@ subroutine calamp(g,l,lsuf,maxamp,ismall,ratl)
 
     double precision:: amp,ampratio
 
-    ampratio = 0.d0
+    ampratio = 0
     amp = cdabs(g)
     if( maxamp<amp ) maxamp = amp
-    if ( amp /= 0.d0 .and. maxamp /= 0.d0 ) then
+    if ( amp /= 0 .and. maxamp /= 0 ) then
         ampratio = amp / maxamp
     endif
     if( ampratio<ratl .and. lsuf<l ) then
