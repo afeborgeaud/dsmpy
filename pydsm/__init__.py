@@ -54,8 +54,9 @@ def _build_tipsv(libroot):
             "f2py2e.main()".format(sys.path))
     sources = ['parameters.f90', 'tipsv.f90', 'others.f90', 'calmat.f90',
                'trialf.f90', 'dcsymbdl.f90', 'glu2.f90', 'rk3.f90']
-    # TODO -Ofast is a gfortran flag. Consider separate cases for other
-    # compilers
+    # TODO -Ofast is a gfortran flag for gcc >4.7? (not in 4.4.7).
+    # Consider separate cases for older version and other compilers
+    # For gcc 4.4.7 (ies clusters), use -O3 -fast-math
     flags = ['--noopt', '--f90flags=-Ofast', '--f77flags=-Ofast']
     f2py_opts = ['-c', '-m', 'tipsv'] + flags + sources
     root = os.path.join(ROOT_DIR, 'src_f90/tipsv/')
