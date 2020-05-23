@@ -139,7 +139,9 @@ class Dataset:
         dividers = Dataset._round_dividers(dividers, n_cores)
         assert np.sum(dividers) == n_cores
         if (dividers == 0).sum() > 0:
-            raise RuntimeError('n_cores must be >= number of eqs')
+            raise RuntimeError(
+                'n_cores ({}) must be >= number of eqs ({})'
+                .format(n_cores, len(self.events)))
         counts = self.nrs / dividers
         counts_ = []
         for i in range(len(dividers)):
