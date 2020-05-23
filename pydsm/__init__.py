@@ -25,7 +25,10 @@ def _build_tish(libroot):
             "f2py2e.main()".format(sys.path))
     sources = ['parameters.f90', 'tish.f90', 'others.f90', 'calmat.f90',
                'trialf.f90', 'dclisb.f90']
-    f2py_opts = ['-c', '-m', 'tish'] + sources
+    # TODO -Ofast is a gfortran flag. Consider separate cases for other
+    # compilers
+    flags = ['--noopt', '--f90flags=-Ofast', '--f77flags=-Ofast']
+    f2py_opts = ['-c', '-m', 'tish'] + flags + sources
     root = os.path.join(ROOT_DIR, 'src_f90/tish/')
     cwd = os.getcwd()
 
@@ -51,7 +54,10 @@ def _build_tipsv(libroot):
             "f2py2e.main()".format(sys.path))
     sources = ['parameters.f90', 'tipsv.f90', 'others.f90', 'calmat.f90',
                'trialf.f90', 'dcsymbdl.f90', 'glu2.f90', 'rk3.f90']
-    f2py_opts = ['-c', '-m', 'tipsv'] + sources
+    # TODO -Ofast is a gfortran flag. Consider separate cases for other
+    # compilers
+    flags = ['--noopt', '--f90flags=-Ofast', '--f77flags=-Ofast']
+    f2py_opts = ['-c', '-m', 'tipsv'] + flags + sources
     root = os.path.join(ROOT_DIR, 'src_f90/tipsv/')
     cwd = os.getcwd()
 
