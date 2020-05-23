@@ -18,7 +18,7 @@ Compiled using numpy.f2py
 ## Usage
 ### General use: pydsm input file. Run in parallel.
 A template input file is in *pydsm/tests/input_file/template.txt*. Its contents is as below
-```
+```shell
 sac_files ~/git/pydsm/tests/sac_files/*T
 output_folder ~/git/pydsm/tests/sac_files
 # duration of synthetics (in seconds)
