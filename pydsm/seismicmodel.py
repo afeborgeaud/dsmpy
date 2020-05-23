@@ -328,9 +328,53 @@ class SeismicModel:
             vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa)
 
+    def radial_boxcar_mesh(self, nodes):
+        """
+        Args:
+            nodes (ndarray): nodes of the boxcar mesh
+        Returns:
+            model (SeismicModel): copy of self with added nodes
+            mesh (SeismicModel): mesh with boxcar polynomials
+        """
+        model = self.__copy__()
+        for node in nodes:
+            model = model._add_boundary(node)
+        mesh = model.__copy__()
+        for i, r in enumerate(model._vrmin):
+            if r in nodes:
+                mesh._set_all_layers(
+                    i, np.array([1, 0, 0, 0], dtype=np.float64))
+            else:
+                mesh._set_all_layers(
+                    i, np.array([0, 0, 0, 0], dtype=np.float64))
+        return model, mesh
+
+#    def multiply(self, nodes, values):
+#        assert values.shape == (len(nodes)-1, 8)
+#        mesh = self.__copy__()
+#        for i, r in enumerate(mesh._vrmin):
+#            if r in nodes:
+
+
+    def _set_all_layers(self, index, values):
+        """
+        Args:
+            index (int): index of layer to be set
+            values (ndarray): values.shape = (4,)
+        """
+        assert values.shape == (4,)
+        assert values.dtype == np.float64
+        self._rho[:, index] = values
+        self._vpv[:, index] = values
+        self._vph[:, index] = values
+        self._vsv[:, index] = values
+        self._vsh[:, index] = values
+        self._eta[:, index] = values
+
+
     def _add_boundary(self, r: float):
         """Add a boundary at radius=r (km).
-        
+
         Returns:
             SeismicModel with added boundary
         """
