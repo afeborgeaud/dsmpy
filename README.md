@@ -95,4 +95,5 @@ components = outputs.components    # len(components) = 3
 - pandas
 - matplotlib
 - obspy
+- geographiclib
 - fftw3 (soon)
