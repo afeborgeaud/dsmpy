@@ -24,6 +24,6 @@ if __name__ == '__main__':
     _, axes = output_windowed.plot(axes=axes)
 
     fig_spc, axes_spc = output.plot_spcs()
-    _, axes_spc = output_windowed.plot(axes=axes_spc)
-    
+    _, axes_spc = output_windowed.plot_spcs(axes=axes_spc)
+
     plt.show()
