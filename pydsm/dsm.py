@@ -5,6 +5,8 @@ from pydsm._tish import _pinput as _pinput_sh
 from pydsm._tipsv import _pinput, _tipsv
 from pydsm.spc import spctime
 from pydsm import root_resources
+from pydsm.event import Event, MomentTensor
+from pydsm.station import Station
 import numpy as np
 from mpi4py import MPI
 import time
@@ -17,6 +19,8 @@ from obspy.core.util.attribdict import AttribDict
 import obspy.io.sac as sac
 import os
 import glob
+from pydsm.windows import Windows
+import matplotlib.pyplot as plt
 
 def _is_iterable(obj):
     try:
@@ -86,6 +90,8 @@ class PyDSMOutput:
         nspc (int): number of frequency points (must be 2**n)
         omegai (float):
     """
+    color_count = 0
+    colors = ('blue', 'red', 'green', 'orange', 'purple', 'brown')
 
     def __init__(
             self, spcs, stations, event,
@@ -161,9 +167,70 @@ class PyDSMOutput:
                 trace = Trace(data=data, header=stats)
                 traces.append(trace)
         return traces
+    
+    def window_spcs(self, windows, window_width):
+        gaussian_windows = windows.get_gaussian_windows_in_frequency_domain(
+            self.nspc, self.tlen, window_width)
+        spcs_windowed = np.zeros_like(self.spcs)
+        for i in range(self.nspc+1):
+            start = self.nspc - i
+            end = start + self.nspc + 1
+            spcs_windowed[:, :, i] = np.sum(
+                self.spcs * gaussian_windows[:, start:end], axis=2)
+        output = self.__copy__()
+        output.spcs = spcs_windowed
+        return output
 
     def get_nr(self):
         return len(self.stations)
+
+    def plot_spcs(self, axes=None):
+        freqs = np.linspace(
+            0, self.nspc/self.tlen, self.nspc+1, endpoint=True)
+        if axes is None:
+            fig, axes = plt.subplots(1, 3, sharey=True)
+        else:
+            assert len(axes) == 3
+            fig = None
+            PyDSMOutput.color_count += 1
+        for ir in range(len(self.stations)):
+            spcs_norm = np.abs(self.spcs[:, ir, :])
+            maxs = spcs_norm.max(axis=1).reshape((3, 1))
+            spcs_norm = 0.5 * (spcs_norm 
+                / maxs)
+            distance = self.event.get_epicentral_distance(self.stations[ir])
+            for icomp in range(3):
+                axes[icomp].plot(
+                    freqs, spcs_norm[icomp]+distance,
+                    color=PyDSMOutput.colors[
+                        PyDSMOutput.color_count%len(PyDSMOutput.colors)])
+                axes[icomp].set_xlabel('Frequency (Hz)')
+                axes[icomp].set_title(self.components[icomp])
+            axes[0].set_ylabel('Distance (deg)')
+        return fig, axes
+    
+    def plot(self, axes=None):
+        if axes is None:
+            fig, axes = plt.subplots(1, 3, sharey=True, sharex=True)
+        else:
+            assert len(axes) == 3
+            fig = None
+            PyDSMOutput.color_count += 1
+        for ir in range(len(self.stations)):
+            us_norm = self.us[:, ir, :]
+            maxs = us_norm.max(axis=1).reshape((3, 1))
+            us_norm = 0.5 * (us_norm 
+                / maxs)
+            distance = self.event.get_epicentral_distance(self.stations[ir])
+            for icomp in range(3):
+                axes[icomp].plot(
+                    self.ts, us_norm[icomp]+distance,
+                    color=PyDSMOutput.colors[
+                        PyDSMOutput.color_count%len(PyDSMOutput.colors)])
+                axes[icomp].set_xlabel('Time (s)')
+                axes[icomp].set_title(self.components[icomp])
+            axes[0].set_ylabel('Distance (deg)')
+        return fig, axes
     
     def __getitem__(self, key):
         """Override __getitem__. Allows following indexations:
@@ -193,6 +260,12 @@ class PyDSMOutput:
                 raise KeyError('Station {} not in list'.format(key[1]))
         else:
             raise KeyError('key {} undefined'.format(key))
+
+    def __copy__(self):
+        output = PyDSMOutput(
+            self.spcs, self.stations, self.event,
+            self.sampling_hz, self.tlen, self.nspc, self.omegai)
+        return output
 
 
 class DSMInput:
@@ -533,123 +606,6 @@ class PyDSMInput(DSMInput):
         event = Event(event_id, self.eqlat, self.eqlon,
                       6371. - self.r0, self.mt, None)
         return event
-
-
-class Station:
-    """Represent a seismic station.
-
-    Args:
-        name (str): station name
-        network (str): network code
-        latitude (float): geographic latitude
-        longitude (float): geographic longitude
-
-    Attributes:
-        name (str): station name
-        network (str): network code
-        latitude (float): geographic latitude
-        longitude (float): geographic longitude
-    """
-
-    def __init__(self, name: str, network: str,
-                 latitude: float, longitude: float):
-        self.name = name
-        self.network = network
-        self.latitude = latitude
-        self.longitude = longitude
-
-    def __repr__(self):
-        return self.name + '_' + self.network
-
-    def __eq__(self, other):
-        if self.__repr__() == other:
-            return True
-        else:
-            return False
-
-class Event:
-    """Represent an earthquake point-source.
-
-    Args:
-        event_id (str): GCMT event name
-        latitude (float): centroid geographic latitude 
-            [-90, 90] in degree
-        longitude (float): centroid longitude 
-            [-180, 180] in degree
-        depth (float) centroid depth in km
-        mt (ndarray(3, 3)): moment tensor
-        source_time_function (SourceTimeFunction): SourceTimeFunction
-            object
-    
-    Attributes:
-        event_id (str): GCMT event name
-        latitude (float) centroid geographic latitude 
-            [-90, 90] in degree
-        longitude (float): centroid longitude 
-            [-180, 180] in degree
-        depth (float) centroid depth in km
-        mt (ndarray(3, 3)): moment tensor
-        source_time_function (SourceTimeFunction): SourceTimeFunction
-            object
-    """
-
-    def __init__(self, event_id, latitude, longitude, depth, mt,
-                 source_time_function):
-        self.event_id = event_id
-        self.latitude = latitude
-        self.longitude = longitude
-        self.depth = depth
-        self.mt = mt
-        self.source_time_function = source_time_function
-
-    @classmethod
-    def event_from_catalog(cls, cat, event_id):
-        """Build Event from GCMT catalog
-        Args:
-            cat (ndarray): event catalog.
-                see pydsm.utils.cmtcatalog.read_catalog()
-            event_id (str): GCMT event identifier
-                (e.g., '201906291959A')
-        Returns:
-            event (Event): Event object
-        """
-        event = None
-        try:
-            event = cat[cat == event_id][0]
-        except:
-            warnings.warn('Event {} not found'.format(event_id))
-        return event
-
-    def __repr__(self):
-        return self.event_id
-
-    def __eq__(self, event_id):
-        return self.event_id == event_id
-
-
-class MomentTensor:
-    """Represent a point-source moment tensor."""
-
-    def __init__(self, Mrr, Mrt, Mrp, Mtt, Mtp, Mpp):
-        self.Mrr = Mrr
-        self.Mrt = Mrt
-        self.Mrp = Mrp
-        self.Mtt = Mtt
-        self.Mtp = Mtp
-        self.Mpp = Mpp
-        if np.abs(np.array([Mrr, Mrt, Mrp, Mtt, Mtp, Mpp])).max() > 1e4:
-            warnings.warn("Moment tensor should be in units of 10**25 dyne cm")
-
-    def to_array(self):
-        mt = np.zeros((3, 3), dtype=np.float64)
-        mt[0, 0] = self.Mrr
-        mt[0, 1] = self.Mrt
-        mt[0, 2] = self.Mrp
-        mt[1, 1] = self.Mtt
-        mt[1, 2] = self.Mtp
-        mt[2, 2] = self.Mpp
-        return mt
-
 
 def compute(pydsm_input, write_to_file=False,
             mode=0):
