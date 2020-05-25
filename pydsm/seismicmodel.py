@@ -343,18 +343,21 @@ class SeismicModel:
             model = model._add_boundary(node)
         mesh = model.__copy__()
         for i in range(mesh._nzone):
-            mesh._set_all_layers(i, np.zeros(4, dtype=np.float64))
+            mesh._set_all_layers(i, np.zeros(4, dtype=np.float64), 0.)
         nodes = model_parameters.get_nodes()
         for i in range(model_parameters._n_nodes-1):
             indexes = (set(np.where(mesh._vrmin < nodes[i+1])[0])
                 & set(np.where(mesh._vrmin >= nodes[i])[0]))
             for index in indexes:
                 mesh._set_all_layers(
-                    index, np.array([1, 0, 0, 0], dtype=np.float64))
+                    index, np.array([1, 0, 0, 0], dtype=np.float64), 1.)
+        model._nzone = model._rho.shape[1]
+        mesh._nzone = mesh._rho.shape[1]
         return model, mesh
 
     def multiply(self, nodes, values):
         assert values.shape == (len(nodes)-1, 8)
+        assert values.dtype == np.float64
         mesh = self.__copy__()
         for i in range(len(nodes)-1):
             indexes = (set(np.where(self._vrmin < nodes[i+1])[0])
@@ -384,7 +387,7 @@ class SeismicModel:
         model._qkappa += other._qkappa
         return model
 
-    def _set_all_layers(self, index, values):
+    def _set_all_layers(self, index, values, scalar_value=0.):
         """
         Args:
             index (int): index of layer to be set
@@ -398,7 +401,8 @@ class SeismicModel:
         self._vsv[:, index] = values
         self._vsh[:, index] = values
         self._eta[:, index] = values
-
+        self._qmu[index] = scalar_value
+        self._qkappa[index] = scalar_value
 
     def _add_boundary(self, r: float):
         """Add a boundary at radius=r (km).
@@ -433,16 +437,16 @@ class SeismicModel:
     def __copy__(self):
         """Deep copy of SeismicModel."""
         return SeismicModel(
-            self._vrmin.copy(),
-            self._vrmax.copy(),
-            self._rho.copy(),
-            self._vpv.copy(),
-            self._vph.copy(),
-            self._vsv.copy(),
-            self._vsh.copy(),
-            self._eta.copy(),
-            self._qmu.copy(),
-            self._qkappa.copy())
+            np.array(self._vrmin, dtype=np.float64),
+            np.array(self._vrmax, dtype=np.float64),
+            np.array(self._rho, dtype=np.float64),
+            np.array(self._vpv, dtype=np.float64),
+            np.array(self._vph, dtype=np.float64),
+            np.array(self._vsv, dtype=np.float64),
+            np.array(self._vsh, dtype=np.float64),
+            np.array(self._eta, dtype=np.float64),
+            np.array(self._qmu, dtype=np.float64),
+            np.array(self._qkappa, dtype=np.float64))
     
     def get_zone(self, r):
         return bisect.bisect_right(self._vrmin, r) - 1
@@ -456,15 +460,41 @@ class SeismicModel:
     
     def get_values(self, dr=1):
         rs = np.linspace(0, 6371, int(6371/dr))
-        values = [self.evaluate(r, self._vsh[:, self.get_zone(r)])
-                  for r in rs]
+        values = {'rho':[self.evaluate(r, self._rho[:, self.get_zone(r)])
+                  for r in rs],
+                  'vpv':[self.evaluate(r, self._vpv[:, self.get_zone(r)])
+                  for r in rs],
+                  'vph':[self.evaluate(r, self._vph[:, self.get_zone(r)])
+                  for r in rs],
+                  'vsv':[self.evaluate(r, self._vsv[:, self.get_zone(r)])
+                  for r in rs],
+                  'vsh':[self.evaluate(r, self._vsh[:, self.get_zone(r)])
+                  for r in rs],
+                  'eta':[self.evaluate(r, self._eta[:, self.get_zone(r)])
+                  for r in rs],
+                  'qmu':[self._qmu[self.get_zone(r)]
+                  for r in rs],
+                  'qkappa':[self._qkappa[self.get_zone(r)]
+                  for r in rs]}
         return rs, values
+    
+    def plot(self):
+        rs, values = self.get_values(dr=1.)
+        fig, ax = plt.subplots(1,1)
+        for key in values.keys() - {'qmu', 'qkappa', 'eta'}:
+            ax.plot(values[key], rs, label=key)
+        ax.set_ylim(0, 6371)
+        ax.set(
+            xlabel='Velocity (km/s)',
+            ylabel='Radius (km)')
+        ax.legend()
+        return fig, ax
 
 if __name__ == '__main__':
     prem = SeismicModel.prem()
     # model parameters
     types = [ParameterType.VSV, ParameterType.VSH]
-    radii = np.array([3480., 3700.], dtype=np.float64)
+    radii = np.array([3480., 3630.], dtype=np.float64)
     model_params = ModelParameters(types, radii)
     # mesh
     model, mesh = prem.boxcar_mesh(model_params)

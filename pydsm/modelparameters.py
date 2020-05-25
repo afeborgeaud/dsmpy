@@ -13,7 +13,7 @@ class ModelParameters:
         return self._radii
 
     def get_values_matrix(self, values_dict):
-        values_mat = np.zeros((self._n_nodes-1, 8))
+        values_mat = np.zeros((self._n_nodes-1, 8), np.float64)
         for key, values in values_dict.items():
             values_mat[:, key] = values
         return values_mat

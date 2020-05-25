@@ -91,4 +91,10 @@ class MomentTensor:
         mt[1, 1] = self.Mtt
         mt[1, 2] = self.Mtp
         mt[2, 2] = self.Mpp
+        
+        # TODO this apparently fixed the bug with zero amp >= 90 degree
+        # but should check with Fortran DSM
+        mt[1, 0] = mt[0, 1]
+        mt[2, 0] = mt[0, 2]
+        mt[2, 1] = mt[1, 2]
         return mt

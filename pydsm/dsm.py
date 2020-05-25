@@ -21,6 +21,7 @@ import os
 import glob
 from pydsm.windows import Windows
 import matplotlib.pyplot as plt
+import pickle
 
 def _is_iterable(obj):
     try:
@@ -115,10 +116,15 @@ class PyDSMOutput:
             pydsm_input.sampling_hz,
             pydsm_input.tlen, pydsm_input.nspc, pydsm_input.omegai)
 
-    def to_time_domain(self):
-        spct = spctime.SpcTime(self.tlen, self.nspc,
+    def to_time_domain(self, source_time_function=None):
+        if source_time_function is None:
+            spct = spctime.SpcTime(self.tlen, self.nspc,
                                self.sampling_hz, self.omegai,
                                self.event.source_time_function)
+        else:
+            spct = spctime.SpcTime(self.tlen, self.nspc,
+                               self.sampling_hz, self.omegai,
+                               source_time_function)
         us = spct.spctime(self.spcs)
         self.us = us
         self.ts = np.linspace(0, self.tlen,
@@ -138,6 +144,16 @@ class PyDSMOutput:
                 tr.stats.station, tr.stats.network, tr.stats.sac.kevnm,
                 tr.stats.component, format))
             tr.write(os.path.join(root_path, filename), format=format)
+
+    def save(self, path):
+        with open(path, 'wb') as f:
+            pickle.dump(self, f)
+
+    @staticmethod
+    def load(path):
+        with open(path, 'rb') as f:
+            output = pickle.load(f)
+        return output
 
     def get_traces(self):
         traces = []
@@ -184,7 +200,7 @@ class PyDSMOutput:
     def get_nr(self):
         return len(self.stations)
 
-    def plot_spcs(self, axes=None):
+    def plot_spc(self, axes=None):
         freqs = np.linspace(
             0, self.nspc/self.tlen, self.nspc+1, endpoint=True)
         if axes is None:
@@ -209,25 +225,38 @@ class PyDSMOutput:
             axes[0].set_ylabel('Distance (deg)')
         return fig, axes
     
-    def plot(self, axes=None):
+    def plot(self, slowness=0, axes=None):
         if axes is None:
             fig, axes = plt.subplots(1, 3, sharey=True, sharex=True)
         else:
             assert len(axes) == 3
             fig = None
             PyDSMOutput.color_count += 1
+        distances = np.zeros(len(self.stations))
+        for ir in range(len(self.stations)):
+            distances[ir] = self.event.get_epicentral_distance(
+                self.stations[ir])
+        distance_min = distances.min()
         for ir in range(len(self.stations)):
             us_norm = self.us[:, ir, :]
             maxs = us_norm.max(axis=1).reshape((3, 1))
-            us_norm = 0.5 * (us_norm 
-                / maxs)
-            distance = self.event.get_epicentral_distance(self.stations[ir])
+            maxs = np.where(maxs==0, np.inf, maxs)
+            maxs_inv = 1 / maxs
+            us_norm = 0.5 * (us_norm * maxs_inv)
+            distance = distances[ir]
+            reduce_time = (distance - distance_min) * slowness
+            reduce_start_index = int(reduce_time * self.sampling_hz)
             for icomp in range(3):
                 axes[icomp].plot(
-                    self.ts, us_norm[icomp]+distance,
+                    self.ts[reduce_start_index:] - reduce_time,
+                    us_norm[icomp, reduce_start_index:]+distance,
                     color=PyDSMOutput.colors[
                         PyDSMOutput.color_count%len(PyDSMOutput.colors)])
-                axes[icomp].set_xlabel('Time (s)')
+                if slowness == 0:
+                    axes[icomp].set_xlabel('Time (s)')
+                else:
+                    axes[icomp].set_xlabel('Time - {:.1f}*distance (s)'
+                                           .format(slowness))
                 axes[icomp].set_title(self.components[icomp])
             axes[0].set_ylabel('Distance (deg)')
         return fig, axes
@@ -653,21 +682,24 @@ def compute(pydsm_input, write_to_file=False,
     return dsm_output
 
 def compute_parallel(
-        pydsm_input, comm, mode=0, write_to_file=False):
+        pydsm_input, comm, mode=0, write_to_file=False,
+        verbose=0):
     """Compute spectra using DSM with data parallelization.
     """
-    if mode not in {0, 1, 2}:
-        raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
-                           .format(mode))
-
     rank = comm.Get_rank()
     n_cores = comm.Get_size()
 
     if rank == 0:
         scalar_dict = pydsm_input._get_scalar_dict()
+        scalar_dict['verbose'] = verbose
+        scalar_dict['mode'] = mode
     else:
         scalar_dict = None
     scalar_dict = comm.bcast(scalar_dict, root=0)
+
+    if mode not in {0, 1, 2}:
+        raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
+                           .format(mode))
 
     if rank == 0:
         rho = pydsm_input.rho
@@ -768,8 +800,17 @@ def compute_parallel(
         lon_local, phi_local, theta_local)
 
     start_time = time.time()
-    spcs_local = _tish(*input_local.get_inputs_for_tish(),
-                       write_to_file=False)
+    if scalar_dict['mode'] == 0:
+        spcs_local = _tish(*input_local.get_inputs_for_tish(),
+                           write_to_file=False)
+        spcs_local += _tipsv(*input_local.get_inputs_for_tipsv(),
+                             write_to_file=False)
+    elif scalar_dict['mode'] == 1:
+        spcs_local = _tipsv(*input_local.get_inputs_for_tipsv(),
+                             write_to_file=False)
+    else:
+        spcs_local = _tish(*input_local.get_inputs_for_tish(),
+                           write_to_file=False)         
     end_time = time.time()
     print('{} paths: processor {} in {} s'
           .format(input_local.nr, rank, end_time - start_time))
@@ -798,8 +839,14 @@ def compute_parallel(
                  [spcs_gathered, spcs_chunk_sizes, spcs_start_indices,
                   MPI.DOUBLE_COMPLEX],
                  root=0)
-
-    return spcs_gathered
+    if rank == 0:
+        spcs_gathered = spcs_gathered.transpose(0,2,1)
+        output = PyDSMOutput.output_from_pydsm_input(
+            spcs_gathered, pydsm_input)
+    else:
+        output = None
+        
+    return output
 
 
 # TODO implements mode when tipsv ready

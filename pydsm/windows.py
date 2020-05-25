@@ -64,10 +64,13 @@ class Windows:
         coeff = np.sqrt(0.5 * np.pi) * window_width
         gauss_windows = np.ones((len(self.stations), 2*nspc+1),
                                  dtype=np.complex128)
+        tau = tlen / nspc
         for i, t in enumerate(self.travel_times):
             if t == -1:
                 continue
             else:
+                # add max period / 2 to center the gaussian
+                t += tau / 2.
                 gauss_windows[i] = (coeff
                     * np.exp(-omegas**2 * window_width**2 / 8 + 1j*omegas*t))
         return gauss_windows
