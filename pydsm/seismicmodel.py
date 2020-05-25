@@ -3,6 +3,7 @@ from pydsm._tish import parameters
 import bisect
 from pydsm.modelparameters import ModelParameters, ParameterType
 import matplotlib.pyplot as plt
+import pickle
 
 class SeismicModel:
     """Represent a seismic Earth model for computation using DSM.
@@ -489,6 +490,16 @@ class SeismicModel:
             ylabel='Radius (km)')
         ax.legend()
         return fig, ax
+
+    def save(self, path):
+        with open(path, 'wb') as f:
+            pickle.dump(self, f)
+
+    @staticmethod
+    def load(path):
+        with open(path, 'rb') as f:
+            model = pickle.load(f)
+        return model
 
 if __name__ == '__main__':
     prem = SeismicModel.prem()
