@@ -1,7 +1,7 @@
 # pydsm
 Python package for parallel seismic waveform computation in spherically homogeneous transversely isotropic (VTI) media using the direct solution method (DSM).<br/>
 Contains:
-- Python3 wrapper for the direct solution method (DSM; Kawai et al. 2006)
+- Python3 wrapper for the direct solution method (DSM; [Kawai et al. 2006](https://doi.org/10.1111/j.1365-246X.2005.02829.x))
 - Minimal Python3 implementations of key utilities of Kibrary (https://github.com/kensuke1984/Kibrary)
 
 Compiled using numpy.f2py
