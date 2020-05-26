@@ -949,8 +949,7 @@ subroutine calya( aa,bb,l2,ra,r0,ya,yb,yc,yd )
 end
 
 !----------------------------------------------------------
-subroutine calg( l,m,coef1,coef2,lsq,ecC0,ecF0,ecL0,&
-          ya,yb,yc,yd,ra,r0,mt,g )
+subroutine calg( l,m,coef1,coef2,lsq,ecC0,ecF0,ecL0,ya,yb,yc,yd,ra,r0,mt,g )
 !----------------------------------------------------------
 ! Computing the excitation vector using Geller and Hatori(1995).
 !                                1995.7     N.Takeuchi
@@ -982,8 +981,8 @@ subroutine calg( l,m,coef1,coef2,lsq,ecC0,ecF0,ecL0,&
     else
         sgn = -1
     endif
-    b1 = dsqrt( (2*l+1)/(16*pi) )
-    if ( l/=0 ) b2 = dsqrt( (2*l+1)*(l-1)*(l+2)/(64*pi) )
+    b1 = dsqrt( (2*l+1)/pi/16 )
+    if ( l/=0 ) b2 = dsqrt( (2*l+1d0)*(l-1)*(l+2)/pi/64 )
 
     if ( iabs(m)==2 ) then
         dd = 0
