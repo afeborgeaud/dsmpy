@@ -17,7 +17,8 @@ Compiled using numpy.f2py
 
 ## Usage
 ### General use: pydsm input file. Run in parallel.
-A template input file is in *pydsm/tests/input_files/template.txt*. Its contents is as below
+A template input file is in ```pydsm/tests/input_files/template.txt```. Its content is as below:
+
 ```shell
 sac_files ~/git/pydsm/tests/sac_files/*T
 output_folder ~/git/pydsm/tests/sac_files
@@ -35,7 +36,9 @@ mode 0
 # 0: quiet, 1: talkative, 2: debug (default: 0)
 verbose 0
 ```
+
 This input file can be runned in parallel from a Unix shell using:
+
 ```shell
 # from pydsm git folder
 n_proc=2 # n_proc should be greater than the number of earthquakes in the list of sac_files
