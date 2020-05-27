@@ -94,7 +94,8 @@ class PyDSMOutput:
     color_count = 0
     colors = (
         'blue', 'red', 'green', 'orange',
-        'purple', 'brown', 'pink', 'cyan')
+        'purple', 'brown', 'pink', 'cyan',
+        'magenta', '')
 
     def __init__(
             self, spcs, stations, event,
@@ -210,13 +211,13 @@ class PyDSMOutput:
             return 0.5 * ys / maxs
         elif mode == 'none':
             # TODO ensure minimum distance
-            # maxs = ys.max(axis=(1,2)).reshape(3, 1, 1)
             maxs = ys[:,0,:].max(axis=1).reshape(3, 1, 1)
-            return 0.5 * ys / maxs
+            return .8 * ys / maxs
 
     def _plot(
-        self, xs, ys, axes=None, distance_min=0., distance_max=np.inf,
-        label=None, normalize='self', xlabel='Time (s)', slowness=0.):
+        self, xs, ys, color='black', axes=None, distance_min=0.,
+        distance_max=np.inf, label=None, normalize='self',
+        xlabel='Time (s)', slowness=0.):
         if axes is None:
             fig, axes = plt.subplots(1, 3, sharey=True, sharex=True)
         else:
@@ -233,8 +234,6 @@ class PyDSMOutput:
         ys_ = self._normalize(ys[:,indexes,:], mode=normalize)
         distances_ = distances[indexes]
         for ir in range(indexes.sum()):
-            # if (distances[ir]<distance_min) or (distances[ir]>distance_max):
-            #     continue
             label_ = label if ir==len(self.stations)-1 else None
             # reduced time plots
             reduce_time = (distances_[ir] - distance_min) * slowness
@@ -244,9 +243,7 @@ class PyDSMOutput:
                     xs[reduce_index:] - reduce_time,
                     (ys_[icomp, ir, reduce_index:]
                     + distances_[ir]),
-                    color=PyDSMOutput.colors[
-                        PyDSMOutput.color_count%len(PyDSMOutput.colors)],
-                        label=label_)
+                    color=color, label=label_)
                 axes[icomp].set_xlabel(xlabel)
                 axes[icomp].set_title(self.components[icomp])
                 if label is not None:
@@ -255,7 +252,7 @@ class PyDSMOutput:
         return fig, axes
     
     def plot_spc(
-            self, axes=None, distance_min=0.,
+            self, color='black', axes=None, distance_min=0.,
             distance_max=np.inf, label=None, normalize='self'):
         """Plot a frequency-domain (spectra) record section.
         Args:
@@ -269,12 +266,13 @@ class PyDSMOutput:
         freqs = np.linspace(
             0, self.nspc/self.tlen, self.nspc+1, endpoint=True)
         return self._plot(
-            freqs, np.abs(self.spcs), axes=axes, distance_min=distance_min,
+            freqs, np.abs(self.spcs), color=color, axes=axes,
+            distance_min=distance_min,
             distance_max=distance_max, label=label, normalize=normalize,
             xlabel='Frequency (Hz)')
     
     def plot(
-            self, axes=None, distance_min=0.,
+            self, color='black', axes=None, distance_min=0.,
             distance_max=np.inf, label=None, normalize='self',
             slowness=0.):
         if self.us is None:
@@ -294,7 +292,8 @@ class PyDSMOutput:
         else:
             xlabel = 'Time (s)'
         return self._plot(
-            self.ts, self.us, axes=axes, distance_min=distance_min,
+            self.ts, self.us, color=color, axes=axes, 
+            distance_min=distance_min,
             distance_max=distance_max, label=label, normalize=normalize,
             xlabel=xlabel, slowness=slowness)
     
