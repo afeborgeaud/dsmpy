@@ -479,11 +479,21 @@ class SeismicModel:
                   for r in rs]}
         return rs, values
     
-    def plot(self):
+    def plot(self, ax=None, parameters=None, colors=None):
         rs, values = self.get_values(dr=1.)
-        fig, ax = plt.subplots(1,1)
-        for key in values.keys() - {'qmu', 'qkappa', 'eta'}:
-            ax.plot(values[key], rs, label=key)
+        if ax == None:
+            fig, ax = plt.subplots(1,1)
+        else:
+            fig = None
+        if parameters is None:
+            parameters = values.keys() - {'qmu', 'qkappa', 'eta'}
+        else:
+            assert len(parameters) == len(colors)
+        for i,key in enumerate(parameters):
+            if colors is not None:
+                ax.plot(values[key], rs, label=key, color=colors[i])
+            else:
+                ax.plot(values[key], rs, label=key)
         ax.set_ylim(0, 6371)
         ax.set(
             xlabel='Velocity (km/s)',

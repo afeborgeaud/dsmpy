@@ -7,6 +7,7 @@ from pydsm.spc import spctime
 from pydsm import root_resources
 from pydsm.event import Event, MomentTensor
 from pydsm.station import Station
+from pydsm.utils.functions import moving_average
 import numpy as np
 from mpi4py import MPI
 import time
@@ -92,7 +93,9 @@ class PyDSMOutput:
         omegai (float):
     """
     color_count = 0
-    colors = ('blue', 'red', 'green', 'orange', 'purple', 'brown')
+    colors = (
+        'blue', 'red', 'green', 'orange',
+        'purple', 'brown', 'pink', 'cyan')
 
     def __init__(
             self, spcs, stations, event,
@@ -200,66 +203,101 @@ class PyDSMOutput:
     def get_nr(self):
         return len(self.stations)
 
-    def plot_spc(self, axes=None):
-        freqs = np.linspace(
-            0, self.nspc/self.tlen, self.nspc+1, endpoint=True)
-        if axes is None:
-            fig, axes = plt.subplots(1, 3, sharey=True)
-        else:
-            assert len(axes) == 3
-            fig = None
-            PyDSMOutput.color_count += 1
-        for ir in range(len(self.stations)):
-            spcs_norm = np.abs(self.spcs[:, ir, :])
-            maxs = spcs_norm.max(axis=1).reshape((3, 1))
-            spcs_norm = 0.5 * (spcs_norm 
-                / maxs)
-            distance = self.event.get_epicentral_distance(self.stations[ir])
-            for icomp in range(3):
-                axes[icomp].plot(
-                    freqs, spcs_norm[icomp]+distance,
-                    color=PyDSMOutput.colors[
-                        PyDSMOutput.color_count%len(PyDSMOutput.colors)])
-                axes[icomp].set_xlabel('Frequency (Hz)')
-                axes[icomp].set_title(self.components[icomp])
-            axes[0].set_ylabel('Distance (deg)')
-        return fig, axes
-    
-    def plot(self, slowness=0, axes=None):
+    def _normalize(self, ys, mode='self'):
+        if mode == 'self':
+            maxs = ys.max(axis=2).reshape(3, -1)
+            maxs = np.where(maxs==0, np.inf, maxs)
+            maxs = maxs.reshape((*ys.shape[:2], 1))
+            return 0.5 * ys / maxs
+        elif mode == 'none':
+            # TODO ensure minimum distance
+            # maxs = ys.max(axis=(1,2)).reshape(3, 1, 1)
+            maxs = ys[:,0,:].max(axis=1).reshape(3, 1, 1)
+            return 0.5 * ys / maxs
+
+    def _plot(
+        self, xs, ys, axes=None, distance_min=0., distance_max=np.inf,
+        label=None, normalize='self', xlabel='Time (s)', slowness=0.):
         if axes is None:
             fig, axes = plt.subplots(1, 3, sharey=True, sharex=True)
         else:
             assert len(axes) == 3
             fig = None
             PyDSMOutput.color_count += 1
-        distances = np.zeros(len(self.stations))
+        distances = np.zeros(len(self.stations), dtype=np.float64)
         for ir in range(len(self.stations)):
             distances[ir] = self.event.get_epicentral_distance(
                 self.stations[ir])
-        distance_min = distances.min()
-        for ir in range(len(self.stations)):
-            us_norm = self.us[:, ir, :]
-            maxs = us_norm.max(axis=1).reshape((3, 1))
-            maxs = np.where(maxs==0, np.inf, maxs)
-            maxs_inv = 1 / maxs
-            us_norm = 0.5 * (us_norm * maxs_inv)
-            distance = distances[ir]
-            reduce_time = (distance - distance_min) * slowness
-            reduce_start_index = int(reduce_time * self.sampling_hz)
+        if distance_min == 0:
+            distance_min = distances.min()
+        indexes = (distances >= distance_min) & (distances <= distance_max)
+        ys_ = self._normalize(ys[:,indexes,:], mode=normalize)
+        distances_ = distances[indexes]
+        for ir in range(indexes.sum()):
+            # if (distances[ir]<distance_min) or (distances[ir]>distance_max):
+            #     continue
+            label_ = label if ir==len(self.stations)-1 else None
+            # reduced time plots
+            reduce_time = (distances_[ir] - distance_min) * slowness
+            reduce_index = int(reduce_time * self.sampling_hz)
             for icomp in range(3):
                 axes[icomp].plot(
-                    self.ts[reduce_start_index:] - reduce_time,
-                    us_norm[icomp, reduce_start_index:]+distance,
+                    xs[reduce_index:] - reduce_time,
+                    (ys_[icomp, ir, reduce_index:]
+                    + distances_[ir]),
                     color=PyDSMOutput.colors[
-                        PyDSMOutput.color_count%len(PyDSMOutput.colors)])
-                if slowness == 0:
-                    axes[icomp].set_xlabel('Time (s)')
-                else:
-                    axes[icomp].set_xlabel('Time - {:.1f}*distance (s)'
-                                           .format(slowness))
+                        PyDSMOutput.color_count%len(PyDSMOutput.colors)],
+                        label=label_)
+                axes[icomp].set_xlabel(xlabel)
                 axes[icomp].set_title(self.components[icomp])
+                if label is not None:
+                    axes[icomp].legend()
             axes[0].set_ylabel('Distance (deg)')
         return fig, axes
+    
+    def plot_spc(
+            self, axes=None, distance_min=0.,
+            distance_max=np.inf, label=None, normalize='self'):
+        """Plot a frequency-domain (spectra) record section.
+        Args:
+            axes (matplotlib.axes): ax on which to plot
+            distance_min (float): minimum epicentral distance (deg)
+            distance_max (float): maximum epicentral distance (deg)
+            label (str): label for model name
+            normalize (str): 'self' for self-normalization
+                or 'none' to see amplitude decay with distance
+        """
+        freqs = np.linspace(
+            0, self.nspc/self.tlen, self.nspc+1, endpoint=True)
+        return self._plot(
+            freqs, np.abs(self.spcs), axes=axes, distance_min=distance_min,
+            distance_max=distance_max, label=label, normalize=normalize,
+            xlabel='Frequency (Hz)')
+    
+    def plot(
+            self, axes=None, distance_min=0.,
+            distance_max=np.inf, label=None, normalize='self',
+            slowness=0.):
+        if self.us is None:
+            self.to_time_domain()
+        """Plot a (time-domain) record section.
+        Args:
+            axes (matplotlib.axes): ax on which to plot
+            distance_min (float): minimum epicentral distance (deg)
+            distance_max (float): maximum epicentral distance (deg)
+            label (str): label for model name
+            normalize (str): 'self' for self-normalization
+                or 'none' to see amplitude decay with distance
+        """
+        if slowness != 0:
+            xlabel = ('Time - {:.1f}*distance (s)'
+                      .format(slowness))
+        else:
+            xlabel = 'Time (s)'
+        return self._plot(
+            self.ts, self.us, axes=axes, distance_min=distance_min,
+            distance_max=distance_max, label=label, normalize=normalize,
+            xlabel=xlabel, slowness=slowness)
     
     def __getitem__(self, key):
         """Override __getitem__. Allows following indexations:
