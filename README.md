@@ -1,7 +1,7 @@
 # pydsm
-Python package for parallel seismic waveform computation in spherically homogeneous transversely anisotropic (VTI) media using the direct solution method (DSM).<br/>
+Python package for parallel seismic waveform computation in spherically homogeneous transversely isotropic (VTI) media using the direct solution method (DSM).<br/>
 Contains:
-- Python3 wrapper for the direct solution method (DSM; Kawai et al. 2006)
+- Python3 wrapper for the direct solution method (DSM; [Kawai et al. 2006](https://doi.org/10.1111/j.1365-246X.2005.02829.x))
 - Minimal Python3 implementations of key utilities of Kibrary (https://github.com/kensuke1984/Kibrary)
 
 Compiled using numpy.f2py
@@ -9,7 +9,7 @@ Compiled using numpy.f2py
 - GNU GCC 8.3.1
 
 ## Installation
-- export PYTHONPATH=$PYTHONPATH:<path_of_pydsm_folder> <br/>
+- export PYTHONPATH="$PYTHONPATH:<path_of_pydsm_folder>"  
 *Warning: at the moment, the pydsm folder must be named `pydsm' for the imports to work (not, e.g., pydsm-master)*
 
 ## Test
@@ -17,7 +17,8 @@ Compiled using numpy.f2py
 
 ## Usage
 ### General use: pydsm input file. Run in parallel.
-A template input file is in *pydsm/tests/input_file/template.txt*. Its contents is as below
+A template input file is in ```pydsm/tests/input_files/template.txt```. Its content is as below:
+
 ```shell
 sac_files ~/git/pydsm/tests/sac_files/*T
 output_folder ~/git/pydsm/tests/sac_files
@@ -35,7 +36,9 @@ mode 0
 # 0: quiet, 1: talkative, 2: debug (default: 0)
 verbose 0
 ```
+
 This input file can be runned in parallel from a Unix shell using:
+
 ```shell
 # from pydsm git folder
 n_proc=2 # n_proc should be greater than the number of earthquakes in the list of sac_files
