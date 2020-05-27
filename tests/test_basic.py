@@ -1,15 +1,17 @@
 from pydsm import dsm, seismicmodel
+from pydsm.event import Event
+from pydsm.station import Station
 from pydsm.utils.cmtcatalog import read_catalog
 
 if __name__ == '__main__':
     # load gcmt catalog
     catalog = read_catalog()
     # get event from catalog
-    event = dsm.Event.event_from_catalog(
+    event = Event.event_from_catalog(
         catalog, '200707211534A')
     # define station FCC
     stations = [
-        dsm.Station(
+        Station(
             name='FCC', network='CN',
             latitude=58.7592, longitude=-94.0884), 
         ]

@@ -1,6 +1,6 @@
 from obspy import read_events
 from pydsm import root_resources
-from pydsm.dsm import Event
+from pydsm.event import Event
 from pydsm.spc.spctime import SourceTimeFunction
 import numpy as np
 import warnings

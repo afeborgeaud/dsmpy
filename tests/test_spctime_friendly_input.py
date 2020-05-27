@@ -5,21 +5,23 @@ import sys
 from pydsm import dsm, rootdsm_sh
 from pydsm.spc import spctime
 from pydsm.seismicmodel import SeismicModel
+from pydsm.station import Station
+from pydsm.event import Event, MomentTensor
 
 from pydsm._tish import _pinput, _tish
 
 def get_input():
     seismic_model = SeismicModel.ak135()
 
-    mt = dsm.MomentTensor(Mrr=-0.193, Mrt=0.0998, Mrp=-0.148,
+    mt = MomentTensor(Mrr=-0.193, Mrt=0.0998, Mrp=-0.148,
                                  Mtt=0.0571, Mtp=-0.141, Mpp=0.136)
     source_time_function = None
 
-    event = dsm.Event('', -1.600000023841858, -78.05000305175781,
+    event = Event('', -1.600000023841858, -78.05000305175781,
                       6371-6195.2, mt.to_array(),
                       source_time_function=source_time_function)
     stations = [
-        dsm.Station('109C', 'TA', 32.88890075683594, -117.1051025390625)]
+        Station('109C', 'TA', 32.88890075683594, -117.1051025390625)]
     tlen = 3276.8
     nspc = 64
     source_time_function = None

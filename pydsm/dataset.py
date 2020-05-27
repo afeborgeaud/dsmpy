@@ -2,7 +2,8 @@ from pydsm.dsm import PyDSMInput
 import numpy as np
 from obspy import read
 import pandas as pd
-from pydsm.dsm import Event, Station, MomentTensor
+from pydsm.event import Event, MomentTensor
+from pydsm.station import Station
 from pydsm._tish import _calthetaphi
 from pydsm import root_resources
 from pydsm.utils.cmtcatalog import read_catalog
