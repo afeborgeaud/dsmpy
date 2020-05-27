@@ -9,7 +9,7 @@ Python libraries are compiled from Fortran sources using numpy.f2py and gfortran
 - If you have gfortran <4.8, you can change the compiler flag from '-Ofast' to '-O3' in ```pydsm/__init__.py```
 
 ## Installation
-- export PYTHONPATH="$PYTHONPATH:<path_of_pydsm_folder>"  
+- ```export PYTHONPATH="$PYTHONPATH:<path_of_pydsm_folder>"```  
 *Warning: at the moment, the pydsm folder must be named `pydsm' for the imports to work (not, e.g., pydsm-master)*
 
 ## Dependencies:
@@ -33,7 +33,7 @@ conda activate pydsm
 ```
 
 ## Test
-- test scripts are in pydsm/tests
+- test scripts are in ```pydsm/tests```
 
 ## Usage
 ### General use: pydsm input file. Run in parallel.
