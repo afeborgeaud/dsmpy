@@ -102,3 +102,14 @@ components = outputs.components    # len(components) = 3
 - obspy
 - geographiclib
 - fftw3 (soon)
+
+Dependencies can be installed using the Conda package manager:
+```shell
+# create environment pydsm
+conda create -n pydsm
+# install dependencies
+conda install -n pydsm numpy mpi4py pandas matplotlib -y
+conda install -n pydsm -c conda-forge obspy geographiclib -y
+# activate env
+conda activate pydsm
+```
