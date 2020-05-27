@@ -7,7 +7,6 @@ from pydsm.spc import spctime
 from pydsm import root_resources
 from pydsm.event import Event, MomentTensor
 from pydsm.station import Station
-from pydsm.utils.functions import moving_average
 import numpy as np
 from mpi4py import MPI
 import time
