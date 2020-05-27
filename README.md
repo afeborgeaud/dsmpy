@@ -6,7 +6,7 @@ Contains:
 
 Python libraries are compiled from Fortran sources using numpy.f2py and gfortran.<br>
 - gfortran >4.8 is required for succesful compilation because of optimization flag '-Ofast'.
-- If you have gfortran <4.8, you can change the compiler flag from '-Ofast' to '-O3' in ```pydsm/__init__.py```
+- If you have gfortran <4.8, you can change the compiler flag from '-Ofast' to '-O3' in ```pydsm/pydsm/__init__.py```
 
 ## Installation
 - ```export PYTHONPATH="$PYTHONPATH:<path_of_pydsm_folder>"```  
