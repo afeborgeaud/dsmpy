@@ -7,6 +7,7 @@ from pydsm.spc import spctime
 from pydsm import root_resources
 from pydsm.event import Event, MomentTensor
 from pydsm.station import Station
+from pydsm.seismicmodel import SeismicModel
 import numpy as np
 from mpi4py import MPI
 import time
@@ -19,9 +20,11 @@ from obspy.core.util.attribdict import AttribDict
 import obspy.io.sac as sac
 import os
 import glob
-from pydsm.windows import Windows
 import matplotlib.pyplot as plt
 import pickle
+
+default_params = dict(
+        re=0.01, ratc=1e-10, ratl=1e-5, omegai=0.0014053864092981234)
 
 def _is_iterable(obj):
     try:
@@ -99,7 +102,8 @@ class PyDSMOutput:
 
     def __init__(
             self, spcs, stations, event,
-            sampling_hz, tlen, nspc, omegai):
+            sampling_hz, tlen, nspc,
+            omegai=default_params['omegai']):
         self.spcs = spcs
         self.stations = stations
         self.event = event
@@ -188,8 +192,10 @@ class PyDSMOutput:
         return traces
     
     def window_spcs(self, windows, window_width):
-        gaussian_windows = windows.get_gaussian_windows_in_frequency_domain(
+        gaussian_windows = [
+            window.get_gaussian_window_in_frequency_domain(
             self.nspc, self.tlen, window_width)
+            for window in windows]
         spcs_windowed = np.zeros_like(self.spcs)
         for i in range(self.nspc+1):
             start = self.nspc - i
@@ -336,8 +342,6 @@ class PyDSMOutput:
 class DSMInput:
     """Input parameters for Fortran DSM.
     """
-    default_params = dict(
-        re=0.01, ratc=1e-10, ratl=1e-5, omegai=0.0014053864092981234)
 
     def __init__(
             self, re, ratc, ratl, tlen, nspc, omegai, imin, imax, nzone,
@@ -464,7 +468,7 @@ class DSMInput:
         eqlat = event.latitude
         eqlon = event.longitude
         r0 = 6371. - event.depth
-        mt = event.mt
+        mt = event.mt.to_array()
 
         # receiver parameters
         nr = len(stations)
@@ -500,10 +504,10 @@ class DSMInput:
             output[i, :] = arr
 
         # parameters for DSM computation (advanced)
-        re = DSMInput.default_params['re']
-        ratc = DSMInput.default_params['ratc']
-        ratl = DSMInput.default_params['ratl']
-        omegai = DSMInput.default_params['omegai']
+        re = default_params['re']
+        ratc = default_params['ratc']
+        ratl = default_params['ratl']
+        omegai = default_params['omegai']
         imin = 0
         imax = nspc
 
@@ -669,7 +673,7 @@ class PyDSMInput(DSMInput):
         else:
             raise RuntimeError('{}'.format(event_id))
         event = Event(event_id, self.eqlat, self.eqlon,
-                      6371. - self.r0, self.mt, None)
+                      6371. - self.r0, self.mt, None, None)
         return event
 
 def compute(pydsm_input, write_to_file=False,
@@ -898,7 +902,7 @@ def compute_dataset_parallel(
         dataset (Dataset): dataset of events & stations
         comm (MPI.COMM_WORLD): MPI communicator
         mode (int): computation mode. 0: both, 1: P-SV, 2: SH
-        write_to_file (bool): write output in Kibrary format
+        write_to_file (bool): write output in Kibrary format (default: False)
     
     Returns:
         outputs ([PyDSMOutput]): list of PyDSMOutput with one
@@ -908,7 +912,7 @@ def compute_dataset_parallel(
     n_cores = comm.Get_size()
 
     if rank == 0:
-        scalar_dict = dict(DSMInput.default_params)
+        scalar_dict = dict(default_params)
         scalar_dict.update(tish_parameters)
         scalar_dict['tlen'] = tlen
         scalar_dict['nspc'] = nspc
@@ -1121,6 +1125,197 @@ def compute_dataset_parallel(
                 scalar_dict['nspc'],
                 scalar_dict['omegai'])
             outputs.append(output)
+    else:
+        outputs = None
+
+    return outputs
+
+def _get_models_array(models, maxnzone):
+    """
+    Args:
+        models (list(SeismicModels)):
+    Returns:
+    """
+    n = len(models)
+    model_arr = np.empty((4, maxnzone, 6, n), dtype=np.float64, order='F')
+    model_scal_arr = np.empty((maxnzone, 4, n), dtype=np.float64, order='F')
+    for i in range(n):
+        model_arr[:,:,0,i] = models[i].get_rho()
+        model_arr[:,:,1,i] = models[i].get_vpv()
+        model_arr[:,:,2,i] = models[i].get_vph()
+        model_arr[:,:,3,i] = models[i].get_vsv()
+        model_arr[:,:,4,i] = models[i].get_vsh()
+        model_arr[:,:,5,i] = models[i].get_eta()
+        model_scal_arr[:,0,i] = models[i].get_qmu()
+        model_scal_arr[:,1,i] = models[i].get_qkappa()
+        model_scal_arr[:,2,i] = models[i].get_vrmin()
+        model_scal_arr[:,3,i] = models[i].get_vrmax()
+    return model_arr, model_scal_arr
+
+def compute_models_parallel(
+        dataset, models,
+        tlen, nspc, sampling_hz,
+        comm, mode=0, write_to_file=False,
+        verbose=0):
+    """Perform a model grid search with model parallelization.
+    Args:
+        dataset (pydsm.Dataset): dataset
+        models ([pydsm.SeismicModel]): list of seismic models
+        tlen (float):
+        nspc (int):
+        sampling_hz (int): 
+        mode (int): computation mode. 0: both, 1: P-SV, 2: SH (default: 0)
+        write_to_file (bool): write output in Kibrary format (default: False)
+        verbose (int): debugging parameter (default: 0)
+    Returns:
+        outputs (list(list(PyDSMOutput))): "shape" = (n_models, n_events)
+    """
+    rank = comm.Get_rank()
+    n_cores = comm.Get_size()
+
+    maxnzone = tish_parameters['maxnzone']
+
+    if rank == 0:
+        model_indexes = np.array(list(range(len(models))), dtype='i')
+        n_models = len(models) // n_cores
+        n0_models = len(models) - n_models * (n_cores - 1)
+        sendcounts = np.array([n_models for i in range(n_cores)], dtype='i')
+        sendcounts[0] = n0_models
+        displacements = sendcounts.cumsum() - sendcounts[0]
+    else:
+        sendcounts = None
+        displacements = None
+        model_indexes = None
+    
+    nmod = np.empty(1, dtype='i')
+    comm.Scatter(sendcounts, nmod, root=0)
+    nmod = int(nmod[0])
+
+    model_indexes_local = np.empty(nmod, dtype='i')
+    
+    if verbose >= 1:
+        print('rank {}: nmod={}'.format(rank, nmod))
+
+    comm.Scatterv(
+        [model_indexes, sendcounts, displacements, MPI.INT],
+        model_indexes_local, root=0)
+
+    # broadcast models
+    if rank == 0:
+        model_arr, model_scal_arr = _get_models_array(models, maxnzone)
+        sendcounts_mod = tuple([size*4*maxnzone*6 for size in sendcounts])
+        displacements_mod = tuple([i*4*maxnzone*6 for i in displacements])
+        sendcounts_scal_mod = tuple([size*maxnzone*4 for size in sendcounts])
+        displacements_scal_mod = tuple([i*maxnzone*4 for i in displacements])
+    else:
+        model_arr, model_scal_arr = None, None
+        sendcounts_mod = None
+        displacements_mod = None
+        sendcounts_scal_mod = None
+        displacements_scal_mod = None
+
+    model_arr_local = np.empty(
+            (4, maxnzone, 6, nmod), dtype=np.float64, order='F')
+    model_scal_arr_local = np.empty(
+        (maxnzone, 4, nmod), dtype=np.float64, order='F')
+    
+    comm.Scatterv(
+        [model_arr, sendcounts_mod, displacements_mod, MPI.DOUBLE],
+        model_arr_local, root=0)
+    comm.Scatterv(
+        [model_scal_arr, sendcounts_scal_mod,
+        displacements_scal_mod, MPI.DOUBLE],
+        model_scal_arr_local, root=0)
+
+    # TODO broadcast dataset
+
+
+    model_event_spc_local = np.empty(
+        (len(dataset.events), 3, nspc+1, dataset.nr, nmod),
+        dtype=np.complex128, order='F')
+    countmod = 0
+    for imod in range(nmod):
+        nzone = np.where(model_scal_arr_local[:,3,imod] == 0)[0][0]
+        model_i = SeismicModel(
+            model_scal_arr_local[:nzone,2,imod],
+            model_scal_arr_local[:nzone,3,imod],
+            model_arr_local[:,:nzone,0,imod],
+            model_arr_local[:,:nzone,1,imod],
+            model_arr_local[:,:nzone,2,imod],
+            model_arr_local[:,:nzone,3,imod],
+            model_arr_local[:,:nzone,4,imod],
+            model_arr_local[:,:nzone,5,imod],
+            model_scal_arr_local[:nzone,0,imod],
+            model_scal_arr_local[:nzone,1,imod],
+            None)
+        for iev in range(len(dataset.events)):
+            start, end = dataset.get_bounds_from_event_index(iev)
+            input_local = PyDSMInput.input_from_arrays(
+                dataset.events[iev], dataset.stations[start:end],
+                model_i, tlen, nspc, sampling_hz)
+
+            if mode == 0:
+                spcs_local = _tipsv(
+                    *input_local.get_inputs_for_tipsv(),
+                    write_to_file=False)
+                spcs_local += _tish(
+                    *input_local.get_inputs_for_tish(),
+                    write_to_file=False)
+            elif mode == 1:
+                spcs_local = _tipsv(
+                    *input_local.get_inputs_for_tipsv(),
+                    write_to_file=False)
+            else:
+                spcs_local = _tish(
+                    *input_local.get_inputs_for_tish(),
+                    write_to_file=False)
+            # TODO change the order of outputu in DSM 
+            # to have nr as the last dimension
+            spcs_local = np.array(spcs_local.transpose(0, 2, 1), order='F')
+            model_event_spc_local[iev, ..., countmod] = spcs_local
+            if verbose == 2:
+                print(rank, model_event_spc_local[0, 2, 15, 0, 0])
+        countmod += 1
+
+    comm.Barrier()
+    if rank == 0:
+        counts_spcs = tuple(
+            [size * len(dataset.events) * 3 * (nspc+1) * dataset.nr
+            for size in sendcounts])
+        displacements_spcs = tuple(
+            [j * len(dataset.events) * 3 * (nspc+1) * dataset.nr
+            for j in displacements])
+
+        model_event_spc_gather = np.empty(
+            (len(dataset.events), 3, nspc+1, dataset.nr, len(models)),
+            dtype=np.complex128, order='F')
+    else:
+        model_event_spc_gather = None
+        counts_spcs = None
+        displacements_spcs = None
+    
+    comm.Gatherv(
+        model_event_spc_local,
+        [model_event_spc_gather, counts_spcs, displacements_spcs,
+        MPI.DOUBLE_COMPLEX], root=0)
+
+    if rank == 0:
+        model_event_spc_gather = model_event_spc_gather.transpose(4,0,1,3,2)
+        outputs = list()
+        for imod in range(len(models)):
+            output_event_list = list()
+            for iev in range(len(dataset.events)):
+                # (n_mod, n_events, 3, nspc+1, n_sta
+                start, end = dataset.get_bounds_from_event_index(iev)
+                output = PyDSMOutput(
+                    model_event_spc_gather[imod, iev],
+                    dataset.stations[start:end],
+                    dataset.events[iev],
+                    sampling_hz,
+                    tlen,
+                    nspc)
+                output_event_list.append(output)
+            outputs.append(output_event_list)
     else:
         outputs = None
 

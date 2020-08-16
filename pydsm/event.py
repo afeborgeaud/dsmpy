@@ -31,13 +31,14 @@ class Event:
     """
 
     def __init__(self, event_id, latitude, longitude, depth, mt,
-                 source_time_function):
+                 centroid_time, source_time_function):
         self.event_id = event_id
         self.latitude = latitude
         self.longitude = longitude
         self.depth = depth
         self.mt = mt
         self.source_time_function = source_time_function
+        self.centroid_time = centroid_time
 
     @classmethod
     def event_from_catalog(cls, cat, event_id):
@@ -63,6 +64,12 @@ class Event:
                 station.latitude, station.longitude,
                 6371., tish_parameters['flattening'])
 
+    def get_epicentral_distance_(self, sta_lat, sta_lon):
+        return calc_dist(
+                self.latitude, self.longitude,
+                sta_lat, sta_lon,
+                6371., tish_parameters['flattening'])
+
     def __repr__(self):
         return self.event_id
 
@@ -73,13 +80,14 @@ class Event:
 class MomentTensor:
     """Represent a point-source moment tensor."""
 
-    def __init__(self, Mrr, Mrt, Mrp, Mtt, Mtp, Mpp):
+    def __init__(self, Mrr, Mrt, Mrp, Mtt, Mtp, Mpp, Mw=None):
         self.Mrr = Mrr
         self.Mrt = Mrt
         self.Mrp = Mrp
         self.Mtt = Mtt
         self.Mtp = Mtp
         self.Mpp = Mpp
+        self.Mw = Mw
         if np.abs(np.array([Mrr, Mrt, Mrp, Mtt, Mtp, Mpp])).max() > 1e4:
             warnings.warn("Moment tensor should be in units of 10**25 dyne cm")
 

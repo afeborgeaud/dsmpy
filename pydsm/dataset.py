@@ -1,6 +1,7 @@
 from pydsm.dsm import PyDSMInput
 import numpy as np
 from obspy import read
+import obspy.signal.filter
 import pandas as pd
 from pydsm.event import Event, MomentTensor
 from pydsm.station import Station
@@ -13,7 +14,7 @@ class Dataset:
     """
     def __init__(
             self, lats, lons, phis, thetas, eqlats, eqlons,
-            r0s, mts, nrs, stations, events):
+            r0s, mts, nrs, stations, events, data=[], sampling=20):
         self.lats = lats
         self.lons = lons
         self.phis = phis
@@ -26,6 +27,8 @@ class Dataset:
         self.nr = len(self.lats)
         self.stations = stations
         self.events = events
+        self.data = data
+        self.sampling = sampling
 
     @classmethod
     def dataset_from_files(cls, parameter_files, mode=1):
@@ -54,11 +57,40 @@ class Dataset:
         return cls(
             lats, lons, phis, thetas, eqlats, eqlons,
             r0s, mts, nrs, stations, events)
+    
+    @classmethod
+    def dataset_from_arrays(cls, events, stations, sampling_hz):
+        eqlats = np.array([e.latitude for e in events])
+        eqlons = np.array([e.longitude for e in events])
+        r0s = np.array([6371. - e.depth for e in events])
+        mts = np.array([e.mt for e in events])
+        nrs = np.array([len(stas) for stas in stations])
+        lats = np.array([s.latitude for stas in stations for s in stas])
+        lons = np.array([s.longitude for stas in stations for s in stas])
+
+        thetas = np.zeros(len(lats), dtype=np.float64)
+        phis = np.zeros(len(lats), dtype=np.float64)
+        count = 0
+        for i in range(len(events)):
+            for sta in stations[i]:
+                theta_phi = _calthetaphi(
+                    sta.latitude, sta.longitude,
+                    events[i].latitude, events[i].longitude)
+                thetas[count], phis[count] = theta_phi
+                count += 1
+        
+        stations_ = np.concatenate(stations)
+        events_ = np.array(events)
+
+        return cls(lats, lons, phis, thetas, eqlats, eqlons,
+            r0s, mts, nrs, stations_, events_, data=[], sampling=sampling_hz)
 
     @classmethod
-    def dataset_from_sac(cls, sac_files, verbose=0):
-        headers = [read(sac_file, headonly=True)[0]
+    def dataset_from_sac(cls, sac_files, verbose=0, headonly=True):
+        headers = [read(sac_file, headonly=headonly)[0]
                    for sac_file in sac_files]
+
+        sampling = headers[0].stats.sampling_rate
 
         lats = []
         lons = []
@@ -68,6 +100,8 @@ class Dataset:
         eqlons = []
         eqdeps = []
         evids = []
+        data = []
+        indices = list(range(len(headers)))
 
         for h in headers:
             lats.append(h.stats.sac.stla)
@@ -78,11 +112,13 @@ class Dataset:
             eqlons.append(h.stats.sac.evlo)
             eqdeps.append(h.stats.sac.evdp)
             evids.append(h.stats.sac.kevnm)
+            tr_filt = h.filter('lowpass', freq=1., zerophase=True)
+            data.append(tr_filt.data)
         
         dataset_info = pd.DataFrame(dict(
             lats=lats, lons=lons, names=names,
             nets=nets, eqlats=eqlats, eqlons=eqlons,
-            eqdeps=eqdeps, evids=evids
+            eqdeps=eqdeps, evids=evids, indices=indices
         ))
         # drop dupplicate sac files with identical source/receiver
         # values, due to multiple seismic components
@@ -118,11 +154,14 @@ class Dataset:
         mts = np.array([e.mt for e in events_])
         source_time_functions = np.array(
             [e.source_time_function for e  in events_])
+        centroid_times = np.array([e.centroid_time for e in events_])
 
         events = [
-            Event(id, lat, lon, depth, mt, source_time_function)
-            for id, lat, lon, depth, mt, source_time_function
-            in zip(evids, eqlats, eqlons, eqdeps, mts, source_time_functions)]
+            Event(id, lat, lon, depth, mt, ctime, source_time_function)
+            for id, lat, lon, depth, mt, ctime, source_time_function
+            in zip(
+                evids, eqlats, eqlons, eqdeps,
+                mts, centroid_times, source_time_functions)]
         stations = dataset_info.apply(
             lambda x: Station(x.names, x.nets, x.lats, x.lons),
             axis=1).values
@@ -130,11 +169,15 @@ class Dataset:
         lons = np.array(lons, dtype=np.float64)
         lats = np.array(lats, dtype=np.float64)
 
+        data_ = np.array(
+            [data[i] for i in dataset_info.indices.values],
+            dtype=np.float64)
+
         return cls(
             lats, lons, phis, thetas, eqlats, eqlons,
-            r0s, mts, nrs, stations, events)
+            r0s, mts, nrs, stations, events, data_, sampling)
 
-    def get_chunks_station(self, n_cores):
+    def get_chunks_station(self, n_cores, verbose=0):
         chunk_size = self.nr // n_cores
         dividers = self.nrs / chunk_size
         dividers = Dataset._round_dividers(dividers, n_cores)
@@ -171,6 +214,12 @@ class Dataset:
     def get_chunks_mt(self, n_cores):
         counts, displacements = self.get_chunks_eq(n_cores)
         return 9*counts, displacements
+
+    def filter(self, freq, freq1=0., mode='lowpass', zerophase=False):
+        for i in range(len(self.data)):
+            if mode == 'lowpass':
+                self.data[i] = obspy.signal.filter.lowpass(
+                    self.data[i], freq, df=self.sampling, zerophase=zerophase)
     
     @staticmethod
     def _round_dividers(dividers, n_cores):
@@ -196,4 +245,9 @@ class Dataset:
         splits.fill(int(chunk_size))
         splits[-1] = size - (n-1) * int(chunk_size)
         return splits
+
+    def get_bounds_from_event_index(self, ievent):
+        start = self.nrs[:ievent].sum()
+        end = start + self.nrs[ievent]
+        return start, end
 

@@ -22,14 +22,13 @@ class SeismicModel:
         eta (ndarray): radial anisotropy []
         qmu (ndarray): shear anelasic factor []
         qkappa (ndarray): bulk anelasic factor []
-        model_id (str): model identifier (e.g., 'prem')
     
     Attributes:
     """
 
     def __init__(
             self, vrmin, vrmax, rho, vpv, vph,
-            vsv, vsh, eta, qmu, qkappa, model_id):
+            vsv, vsh, eta, qmu, qkappa):
         self._vrmin = vrmin
         self._vrmax = vrmax
         self._rho = rho
@@ -41,7 +40,6 @@ class SeismicModel:
         self._qmu = qmu
         self._qkappa = qkappa
         self._nzone = rho.shape[1]
-        self._model_id = model_id
 
     def __copy__(self):
         cls = self.__class__
@@ -55,10 +53,9 @@ class SeismicModel:
         eta = np.array(self._eta)
         qmu = np.array(self._qmu)
         qkappa = np.array(self._qkappa)
-        model_id = str(self._model_id)
         return self.__new__(
             vrmin, vrmax, rho, vpv, vph,
-            vsv, vsh, eta, qmu, qkappa, model_id)
+            vsv, vsh, eta, qmu, qkappa)
 
     def get_rho(self):
         return np.pad(
@@ -216,10 +213,9 @@ class SeismicModel:
             1327.7, 57823, 57823, 57823, 57823, 57823,
             57823, 57823, 57823, 57823, 57823
         ], dtype=np.float64)
-        model_id = 'ak135'
         return cls(
             vrmin, vrmax, rho, vpv, vph,
-            vsv, vsh, eta, qmu, qkappa, model_id)
+            vsv, vsh, eta, qmu, qkappa)
 
     @classmethod
     def prem(cls):
@@ -326,10 +322,9 @@ class SeismicModel:
             1327.7, 57823, 57823, 57823, 57823,
             57823, 57823, 57823, 57823, 57823, 57823, 57823
         ], dtype=np.float64)
-        model_id = 'prem'
         return cls(
             vrmin, vrmax, rho, vpv, vph,
-            vsv, vsh, eta, qmu, qkappa, model_id)
+            vsv, vsh, eta, qmu, qkappa)
 
     @classmethod
     def iasp91(cls): # TODO
@@ -348,10 +343,9 @@ class SeismicModel:
         eta = None
         qmu = None
         qkappa = None
-        model_id = 'iasp91'
         return cls(
             vrmin, vrmax, rho, vpv, vph,
-            vsv, vsh, eta, qmu, qkappa, model_id)
+            vsv, vsh, eta, qmu, qkappa)
 
     def boxcar_mesh(self, model_parameters):
         """
@@ -390,9 +384,17 @@ class SeismicModel:
         """
         model = self.__copy__()
         nodes = []
-        for r in model_parameters._nodes:
-            model = model._add_boundary(r)
-            nodes.append(r)
+        for i in range(model_parameters._n_nodes-1):
+            ri = model_parameters._radii[i]
+            ri_half = ri + (model_parameters._radii[i+1]
+                - model_parameters._radii[i]) / 2.
+            model = model._add_boundary(ri)
+            model = model._add_boundary(ri_half)
+            nodes.append(ri)
+            nodes.append(ri_half)
+        r_top = model_parameters._radii[-1]
+        model._add_boundary(r_top)
+        nodes.append(r_top)
 
         mesh = model.__copy__()
         for i in range(mesh._nzone):
@@ -420,7 +422,7 @@ class SeismicModel:
         return model, mesh
 
     def multiply(self, nodes, values):
-        # assert values.shape == (len(nodes)-1, 8)
+        assert values.shape == (len(nodes)-1, 8)
         assert values.dtype == np.float64
         mesh = self.__copy__()
         for i in range(len(nodes)-1):
@@ -437,52 +439,78 @@ class SeismicModel:
                     mesh._qmu[index] *= values[i, 6]
                     mesh._qkappa[index] *= values[i, 7]
             elif self._mesh_type == 'triangle':
+                f0 = np.zeros(8, dtype=np.float64)
+                f0[values[i,:] != 0] = 1.
                 if i == 0:
                     for index in indexes:
-                        mesh._rho[:, index] *= values[i, 0]
-                        mesh._vpv[:, index] *= values[i, 1]
-                        mesh._vph[:, index] *= values[i, 2]
-                        mesh._vsv[:, index] *= values[i, 3]
-                        mesh._vsh[:, index] *= values[i, 4]
-                        mesh._eta[:, index] *= values[i, 5]
+                        mesh._rho[:, index] *= np.array(
+                            [f0[0], values[i, 0], 0, 0])
+                        mesh._vpv[:, index] *= np.array(
+                            [f0[1], values[i, 1], 0, 0])
+                        mesh._vph[:, index] *= np.array(
+                            [f0[2], values[i, 2], 0, 0])
+                        mesh._vsv[:, index] *= np.array(
+                            [f0[3], values[i, 3], 0, 0])
+                        mesh._vsh[:, index] *= np.array(
+                            [f0[4], values[i, 4], 0, 0])
+                        mesh._eta[:, index] *= np.array(
+                            [f0[5], values[i, 5], 0, 0])
                         mesh._qmu[index] *= values[i, 6]
                         mesh._qkappa[index] *= values[i, 7]
                 elif i == len(nodes) - 2:
-                    a_add = np.array([1., 0., 0., 0.])
-                    a_mul = np.array([-1., -1., 0., 0.])
                     for index in indexes:
-                        mesh._rho[:, index] *= values[i-1, 0]
-                        mesh._vpv[:, index] *= values[i-1, 1]
-                        mesh._vph[:, index] *= values[i-1, 2]
-                        mesh._vsv[:, index] *= values[i-1, 3]
-                        mesh._vsh[:, index] *= values[i-1, 4]
-                        mesh._eta[:, index] *= values[i-1, 5]
-                        mesh._qmu[index] *= values[i-1, 6]
-                        mesh._qkappa[index] *= values[i-1, 7]
+                        mesh._rho[:, index] *= np.array(
+                            [f0[0], values[i+1, 0], 0, 0])
+                        mesh._vpv[:, index] *= np.array(
+                            [f0[1], values[i+1, 1], 0, 0])
+                        mesh._vph[:, index] *= np.array(
+                            [f0[2], values[i+1, 2], 0, 0])
+                        mesh._vsv[:, index] *= np.array(
+                            [f0[3], values[i+1, 3], 0, 0])
+                        mesh._vsh[:, index] *= np.array(
+                            [f0[4], values[i+1, 4], 0, 0])
+                        mesh._eta[:, index] *= np.array(
+                            [f0[5], values[i+1, 5], 0, 0])
+                        mesh._qmu[index] *= values[i+1, 6]
+                        mesh._qkappa[index] *= values[i+1, 7]
                 else:
+                    f1 = np.zeros(8, dtype=np.float64)
+                    f1[values[i+1,:] != 0] = 1.
                     for index in indexes:
-                        a_add = np.array([1., 0., 0., 0.])
-                        a_mul = np.array([-1., -1., 0., 0.])
                         mesh._rho[:, index] = (
-                            mesh._rho[:,index] * values[i, 0]
-                            + (a_mul*mesh._rho[:,index] + a_add) * values[i-1, 0])
+                            mesh._rho[:,index]
+                            * np.array([f0[0], values[i+1, 0], 0, 0])
+                            + mesh._rho[:,index]
+                            * np.array([f1[0], values[i+1, 0], 0, 0]))
                         mesh._vpv[:, index] = (
-                            mesh._vpv[:,index] * values[i, 1]
-                            + (a_mul*mesh._vpv[:,index] + a_add) * values[i-1, 1])
+                            mesh._vpv[:,index]
+                            * np.array([f0[1], values[i+1, 0], 0, 0])
+                            + mesh._vpv[:,index]
+                            * np.array([f1[1], values[i+1, 0], 0, 0]))
                         mesh._vph[:, index] = (
-                            mesh._vph[:,index] * values[i, 2]
-                            + (a_mul*mesh._vph[:,index] + a_add) * values[i-1, 2])
+                            mesh._vph[:,index]
+                            * np.array([f0[2], values[i+1, 0], 0, 0])
+                            + mesh._vph[:,index]
+                            * np.array([f1[2], values[i+1, 0], 0, 0]))
                         mesh._vsv[:, index] = (
-                            mesh._vsv[:,index] * values[i, 3]
-                            + (a_mul*mesh._vsv[:,index] + a_add) * values[i-1, 3])
+                            mesh._vsv[:,index]
+                            * np.array([f0[3], values[i+1, 0], 0, 0])
+                            + mesh._vsv[:,index]
+                            * np.array([f1[3], values[i+1, 0], 0, 0]))
                         mesh._vsh[:, index] = (
-                            mesh._vsh[:,index] * values[i, 4]
-                            + (a_mul*mesh._vsh[:,index] + a_add) * values[i-1, 4])
+                            mesh._vsh[:,index]
+                            * np.array([f0[4], values[i+1, 0], 0, 0])
+                            + mesh._vsh[:,index]
+                            * np.array([f1[4], values[i+1, 0], 0, 0]))
                         mesh._eta[:, index] = (
-                            mesh._eta[:,index] * values[i, 5]
-                            + (a_mul*mesh._eta[:,index] + a_add) * values[i-1, 5])
-                        mesh._qmu[index] *= values[i, 6]
-                        mesh._qkappa[index] *= values[i, 7]
+                            mesh._eta[:,index]
+                            * np.array([f0[5], values[i+1, 0], 0, 0])
+                            + mesh._eta[:,index]
+                            * np.array([f1[5], values[i+1, 0], 0, 0]))
+                        mesh._qmu[index] *= values[i+1, 6]
+                        mesh._qkappa[index] *= values[i+1, 7]
+                print(i)
+                print(mesh._vsh)
             else:
                 raise ValueError('Expect "boxcar" or "triangle"')
         return mesh
@@ -560,8 +588,7 @@ class SeismicModel:
             np.array(self._vsh, dtype=np.float64),
             np.array(self._eta, dtype=np.float64),
             np.array(self._qmu, dtype=np.float64),
-            np.array(self._qkappa, dtype=np.float64),
-            self._model_id)
+            np.array(self._qkappa, dtype=np.float64))
     
     def get_zone(self, r):
         return bisect.bisect_right(self._vrmin, r) - 1
@@ -640,25 +667,14 @@ if __name__ == '__main__':
     prem = SeismicModel.prem()
     # model parameters
     types = [ParameterType.VSV, ParameterType.VSH]
-    radii = np.array([3480+i*50 for i in range(8)], dtype=np.float64)
-    model_params = ModelParameters(types, radii, mesh_type='triangle')
+    radii = np.array([3480., 3630.], dtype=np.float64)
+    model_params = ModelParameters(types, radii)
     # mesh
     model, mesh = prem.triangle_mesh(model_params)
     # multiply mesh with values
-    print(model_params._n_nodes)
-    values = np.array([0.1 for i in range(model_params._n_nodes)])
-    values[1] *= .66
-    values[2] *= .33
-    values[3] *= -.33
-    values[4] *= -.66
-    values[5] *= -1
-    values[6] *= -.66
-    values[7] *= -.33
-    values[8] *= .33
-    values[9] *= .66
     values_dict = {
-        ParameterType.VSV: values,
-        ParameterType.VSH: values}
+        ParameterType.VSV: -0.1,
+        ParameterType.VSH: 0.1}
     values_mat = model_params.get_values_matrix(values_dict)
     mesh_ = mesh.multiply(model_params.get_nodes(), values_mat)
     model_ = model + mesh_

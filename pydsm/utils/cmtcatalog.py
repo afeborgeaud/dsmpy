@@ -1,6 +1,6 @@
 from obspy import read_events
 from pydsm import root_resources
-from pydsm.event import Event
+from pydsm.event import Event, MomentTensor
 from pydsm.spc.spctime import SourceTimeFunction
 import numpy as np
 import warnings
@@ -14,30 +14,34 @@ def convert_catalog(cat):
     events = np.empty(cat.count(), dtype=np.object)
     for i, event in enumerate(cat):
         tensor = event.preferred_focal_mechanism().moment_tensor.tensor
+        mw = [m for m in event.magnitudes 
+              if m.magnitude_type=='Mwc'][0].mag
+        centroid_time = [o for o in event.origins
+                        if o.origin_type == 'centroid'][0].time
         stf_obspy = (event.preferred_focal_mechanism().
             moment_tensor.source_time_function)
         source_time_function = SourceTimeFunction(
             stf_obspy.type, 0.5*stf_obspy.duration)
-        mt = _mt_from_tensor(tensor)
+        mt = _mt_from_tensor(tensor, mw)
         lon = event.origins[1].longitude
         lat = event.origins[1].latitude
         depth = event.origins[1].depth / 1000.
         event_id = [e.text for e in event.event_descriptions
                            if e.type == 'earthquake name'][0][1:]
-        event = Event(event_id, lat, lon, depth, mt, source_time_function)
+        event = Event(event_id, lat, lon, depth, mt,
+                      centroid_time, source_time_function)
         events[i] = event
     np.save(root_resources + 'gcmt', events)
 
-def _mt_from_tensor(tensor):
-    mt = np.zeros((3, 3), dtype=np.float64)
-    mt[0, 0] = tensor.m_rr
-    mt[0, 1] = tensor.m_rt
-    mt[0, 2] = tensor.m_rp
-    mt[1, 1] = tensor.m_tt
-    mt[1, 2] = tensor.m_tp
-    mt[2, 2] = tensor.m_pp
+def _mt_from_tensor(tensor, Mw):
+    m_rr = tensor.m_rr * 1e-18
+    m_rt = tensor.m_rt * 1e-18
+    m_rp = tensor.m_rp * 1e-18
+    m_tt = tensor.m_tt * 1e-18
+    m_tp = tensor.m_tp * 1e-18
+    m_pp = tensor.m_pp * 1e-18
     # unit conversion. DSM in units of 10**25 [dyne cm]
-    mt *= 1e-18
+    mt = MomentTensor(m_rr, m_rt, m_rp, m_tt, m_tp, m_pp, Mw)
     return mt
     # return np.array(
     #     [tensor.m_rr, tensor.m_rt, tensor.m_rp,
@@ -45,6 +49,10 @@ def _mt_from_tensor(tensor):
     #     dtype=np.float64)
 
 def read_catalog():
+    """Get the GCMT catalog.
+    Returns:
+        cat (ndarray): ndarray of pydsm.Event objects
+    """
     try:
         cat = np.load(root_resources + 'gcmt.npy', allow_pickle=True)
     except:

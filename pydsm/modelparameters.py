@@ -4,16 +4,29 @@ from enum import IntEnum
 class ModelParameters:
     """Represent model parameters.
     """
-    def __init__(self, types, radii):
+    def __init__(self, types, radii, mesh_type='boxcar'):
         self._types = types
         self._radii = radii
-        self._n_nodes = len(radii)
-    
+        self._mesh_type = mesh_type
+        if mesh_type == 'boxcar':
+            self._n_nodes = len(radii) - 1
+            self._nodes = np.array(radii)
+        elif mesh_type == 'triangle':
+            # self._n_nodes = int(
+            #     len(radii) - 1 + np.ceil((len(radii)-1) / 2))
+            self._n_nodes = 2 * len(radii) - 1
+            n = 2 * len(radii) - 1
+            self._nodes = np.zeros(n, dtype=np.float64)
+            for i in range(n-1):
+                self._nodes[i] = (radii[i//2] + (i % 2)
+                    * (radii[i//2+1] - radii[i//2]) / 2.)
+            self._nodes[-1] = radii[-1]
+                
     def get_nodes(self):
-        return self._radii
+        return self._nodes
 
     def get_values_matrix(self, values_dict):
-        values_mat = np.zeros((self._n_nodes-1, 8), np.float64)
+        values_mat = np.zeros((self._n_nodes, 8), np.float64)
         for key, values in values_dict.items():
             values_mat[:, key] = values
         return values_mat
