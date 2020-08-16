@@ -8,6 +8,7 @@ from pydsm.station import Station
 from pydsm._tish import _calthetaphi
 from pydsm import root_resources
 from pydsm.utils.cmtcatalog import read_catalog
+import matplotlib.pyplot as plt
 
 class Dataset:
     """Represent a dataset of events and stations.
@@ -220,6 +221,44 @@ class Dataset:
             if mode == 'lowpass':
                 self.data[i] = obspy.signal.filter.lowpass(
                     self.data[i], freq, df=self.sampling, zerophase=zerophase)
+
+    def get_bounds_from_event_index(self, ievent):
+        '''Return start,end indicies to slice 
+        self.stations[start:end].'''
+        start = self.nrs[:ievent].sum()
+        end = start + self.nrs[ievent]
+        return start, end
+
+    def plot_event(self, ievent, windows=None, align_zero=False, **kwargs):
+        start, end = self.get_bounds_from_event_index(ievent)
+        fig, ax = plt.subplots(1)
+        for i in range(start, end):
+            distance = self.events[ievent].get_epicentral_distance(
+                self.stations[i])
+
+            # select corresponding window
+            if windows is not None:
+                windows_tmp = list(filter(
+                    lambda w: ((w.station == self.stations[i])
+                                and (w.event == self.events[ievent])),
+                    windows))
+                window = windows_tmp[0].to_array()
+                i0 = int(window[0] * self.sampling)
+                i1 = int(window[1] * self.sampling)
+
+                data = self.data[i][i0:i1]
+                ts = np.linspace(window[0], window[1], len(data))
+            else:
+                data = self.data[i]
+                ts = np.linspace(0, len(data)/self.sampling, len(data))
+            if align_zero:
+                ts = np.linspace(
+                    0, len(data)/self.sampling, len(data))
+
+            norm = np.abs(data).max() * 2.
+            ax.plot(ts, data/norm+distance, **kwargs)
+            ax.set(xlabel='Time (s)', ylabel='Distance (deg)')
+        return fig, ax
     
     @staticmethod
     def _round_dividers(dividers, n_cores):
@@ -245,9 +284,3 @@ class Dataset:
         splits.fill(int(chunk_size))
         splits[-1] = size - (n-1) * int(chunk_size)
         return splits
-
-    def get_bounds_from_event_index(self, ievent):
-        start = self.nrs[:ievent].sum()
-        end = start + self.nrs[ievent]
-        return start, end
-

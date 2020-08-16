@@ -302,6 +302,44 @@ class PyDSMOutput:
             distance_min=distance_min,
             distance_max=distance_max, label=label, normalize=normalize,
             xlabel=xlabel, slowness=slowness)
+
+    def plot_component(
+            self, icomp, windows=None, ax=None,
+            align_zero=False, **kwargs):
+        if self.us is None:
+            self.to_time_domain()
+        if ax is None:
+            fig, ax = plt.subplots(1)
+        else:
+            fig = None
+        for i in range(len(self.stations)):
+            distance = self.event.get_epicentral_distance(
+                self.stations[i])
+
+            # select corresponding window
+            if windows is not None:
+                windows_tmp = list(filter(
+                    lambda w: ((w.station == self.stations[i])
+                                and (w.event == self.event)),
+                    windows))
+                window = windows_tmp[0].to_array()
+                i0 = int(window[0] * self.sampling_hz)
+                i1 = int(window[1] * self.sampling_hz)
+
+                data = self.us[icomp, i, i0:i1]
+                ts = np.linspace(window[0], window[1], len(data))
+            else:
+                data = self.us[icomp, i]
+                ts = np.linspace(
+                    0, len(data)/self.sampling_hz, self.sampling_hz)
+            if align_zero:
+                ts = np.linspace(
+                    0, len(data)/self.sampling_hz, len(data))
+            
+            norm = np.abs(data).max() * 2.
+            ax.plot(ts, data/norm+distance, **kwargs)
+            ax.set(xlabel='Time (s)', ylabel='Distance (deg)')
+        return fig, ax
     
     def __getitem__(self, key):
         """Override __getitem__. Allows following indexations:
