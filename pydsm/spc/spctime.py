@@ -18,7 +18,8 @@ class SpcTime:
         npts = int(self.tlen * self.sampling_hz)
         pow2 = self.setBitNumber(npts)
         pow2 = pow2 * 2 if pow2 < npts else pow2
-        return pow2
+        # return pow2
+        return npts
 
     def find_lsmooth(self):
         nspc = self.setBitNumber(self.nspc)
@@ -40,6 +41,7 @@ class SpcTime:
         return (n >> 1)
 
     def to_time_domain(self, spc):
+        assert self.npts % 2 == 0
         nnp = self.npts // 2
         uspc = np.pad(spc, pad_width=(0, nnp - len(spc)), mode='constant',
                       constant_values=0)

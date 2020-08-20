@@ -8,14 +8,33 @@ from pydsm.station import Station
 from pydsm._tish import _calthetaphi
 from pydsm import root_resources
 from pydsm.utils.cmtcatalog import read_catalog
+from pydsm.component import Component
 import matplotlib.pyplot as plt
 
 class Dataset:
-    """Represent a dataset of events and stations.
+    """Represent a dataset of events and stations used mainly for input
+    to pydsm computation.
+    Args:
+        lats (ndarray): stations latitudes for each record (len=nr)
+        lons (ndarray): stations longitudes for each record (len=nr)
+        phis (ndarray): stations phis for each record (len=nr)
+        thetas (ndarray): stations thetas for each record (len=nr)
+        eqlats (ndarray): centroids latitudes (len=nev)
+        eqlons (ndarray): centroids longitudes (len=nev)
+        r0s (ndarray): centroids radii (len=nev)
+        mts (ndarray(pydsm.event.MomentTensor)): array of moment tensors
+            (len=nev)
+        nrs (ndarray(int)): number of stations for each event (len=nev)
+        nr (int): total number of event-station pairs
+        stations (ndarray(pydsm.Station)): seismic stations (len=nr)
+        events (ndarray(pydsm.Event)): seismic events (len=nev)
+        data (ndarray((3,nr))): 3-components waveform data
+        sampling (int): sampling frequency for synthetics/data. Used
+            for computation with pydsm
     """
     def __init__(
             self, lats, lons, phis, thetas, eqlats, eqlons,
-            r0s, mts, nrs, stations, events, data=[], sampling=20):
+            r0s, mts, nrs, stations, events, data=None, sampling=20):
         self.lats = lats
         self.lons = lons
         self.phis = phis
@@ -84,56 +103,61 @@ class Dataset:
         events_ = np.array(events)
 
         return cls(lats, lons, phis, thetas, eqlats, eqlons,
-            r0s, mts, nrs, stations_, events_, data=[], sampling=sampling_hz)
+            r0s, mts, nrs, stations_, events_, data=None, sampling=sampling_hz)
 
     @classmethod
     def dataset_from_sac(cls, sac_files, verbose=0, headonly=True):
-        headers = [read(sac_file, headonly=headonly)[0]
+        traces = [read(sac_file, headonly=headonly)[0]
                    for sac_file in sac_files]
 
-        sampling = headers[0].stats.sampling_rate
+        sampling = traces[0].stats.sampling_rate
 
-        lats = []
-        lons = []
-        names = []
-        nets = []
-        eqlats = []
-        eqlons = []
-        eqdeps = []
-        evids = []
-        data = []
-        indices = list(range(len(headers)))
+        lats_ = []
+        lons_ = []
+        names_ = []
+        nets_ = []
+        eqlats_ = []
+        eqlons_ = []
+        eqdeps_ = []
+        evids_ = []
+        data_ = []
+        components_ = []
+        indices_ = list(range(len(traces)))
 
-        for h in headers:
-            lats.append(h.stats.sac.stla)
-            lons.append(h.stats.sac.stlo)
-            names.append(h.stats.sac.kstnm)
-            nets.append(h.stats.sac.knetwk)
-            eqlats.append(h.stats.sac.evla)
-            eqlons.append(h.stats.sac.evlo)
-            eqdeps.append(h.stats.sac.evdp)
-            evids.append(h.stats.sac.kevnm)
-            tr_filt = h.filter('lowpass', freq=1., zerophase=True)
-            data.append(tr_filt.data)
+        for tr in traces:
+            lats_.append(tr.stats.sac.stla)
+            lons_.append(tr.stats.sac.stlo)
+            names_.append(tr.stats.sac.kstnm)
+            nets_.append(tr.stats.sac.knetwk)
+            eqlats_.append(tr.stats.sac.evla)
+            eqlons_.append(tr.stats.sac.evlo)
+            eqdeps_.append(tr.stats.sac.evdp)
+            evids_.append(tr.stats.sac.kevnm)
+            data_.append(tr.data)
+            components_.append(tr.stats.sac.kcmpnm)
         
         dataset_info = pd.DataFrame(dict(
-            lats=lats, lons=lons, names=names,
-            nets=nets, eqlats=eqlats, eqlons=eqlons,
-            eqdeps=eqdeps, evids=evids, indices=indices
+            lats=lats_, lons=lons_, names=names_,
+            nets=nets_, eqlats=eqlats_, eqlons=eqlons_,
+            eqdeps=eqdeps_, evids=evids_, indices=indices_
         ))
         # drop dupplicate sac files with identical source/receiver
         # values, due to multiple seismic components
-        n_before = len(headers)
-        dataset_info.drop_duplicates(inplace=True)
+        n_before = len(traces)
+        dataset_info.drop_duplicates(
+            subset=['names', 'nets', 'evids'],
+            inplace=True)
         n_after = len(dataset_info)
         if verbose >= 1:
             print('Dropped {} sac files'.format(n_before - n_after))
             
         dataset_info.sort_values(by='evids', inplace=True)
+        
+        dataset_info.index = list(range(n_after))
 
         theta_phi = [_calthetaphi(stalat, stalon, eqlat, eqlon) 
                      for stalat, stalon, eqlat, eqlon 
-                     in zip(lats, lons, eqlats, eqlons)]
+                     in zip(lats_, lons_, eqlats_, eqlons_)]
         thetas = np.array([x[0] for x in theta_phi], dtype=np.float64)
         phis = np.array([x[1] for x in theta_phi], dtype=np.float64)
 
@@ -167,16 +191,31 @@ class Dataset:
             lambda x: Station(x.names, x.nets, x.lats, x.lons),
             axis=1).values
 
-        lons = np.array(lons, dtype=np.float64)
-        lats = np.array(lats, dtype=np.float64)
-
-        data_ = np.array(
-            [data[i] for i in dataset_info.indices.values],
-            dtype=np.float64)
+        lons = np.array(lons_, dtype=np.float64)
+        lats = np.array(lats_, dtype=np.float64)
+        
+        npts = len(data_[0])
+        data_arr = np.zeros((3, nr, npts), dtype=np.float64)
+        for i in range(len(dataset_info.indices.values)):
+            component = components_[dataset_info.indices.values[i]]
+            icomp = Component.parse_component(component).value
+            data_arr[icomp, i] = data_[dataset_info.indices.values[i]]
+        remaining_traces_indices = (set(indices_) 
+            - set(dataset_info.indices.values))
+        
+        for i in remaining_traces_indices:
+            dataset_filt = dataset_info[
+                (dataset_info.evids == evids_[i])
+                & (dataset_info.names == names_[i])
+                & (dataset_info.nets == nets_[i])]
+            j = dataset_filt.index.values[0]
+            component = components_[i]
+            icomp = Component.parse_component(component).value
+            data_arr[icomp, j] = data_[i]
 
         return cls(
             lats, lons, phis, thetas, eqlats, eqlons,
-            r0s, mts, nrs, stations, events, data_, sampling)
+            r0s, mts, nrs, stations, events, data_arr, sampling)
 
     def get_chunks_station(self, n_cores, verbose=0):
         chunk_size = self.nr // n_cores
@@ -229,7 +268,9 @@ class Dataset:
         end = start + self.nrs[ievent]
         return start, end
 
-    def plot_event(self, ievent, windows=None, align_zero=False, **kwargs):
+    def plot_event(
+            self, ievent, windows=None, align_zero=False,
+            component=Component.T, **kwargs):
         start, end = self.get_bounds_from_event_index(ievent)
         fig, ax = plt.subplots(1)
         for i in range(start, end):
@@ -240,16 +281,17 @@ class Dataset:
             if windows is not None:
                 windows_tmp = list(filter(
                     lambda w: ((w.station == self.stations[i])
-                                and (w.event == self.events[ievent])),
+                                and (w.event == self.events[ievent])
+                                and (w.component == component)),
                     windows))
                 window = windows_tmp[0].to_array()
                 i0 = int(window[0] * self.sampling)
                 i1 = int(window[1] * self.sampling)
 
-                data = self.data[i][i0:i1]
+                data = self.data[component.value, i, i0:i1]
                 ts = np.linspace(window[0], window[1], len(data))
             else:
-                data = self.data[i]
+                data = self.data[component.value, i]
                 ts = np.linspace(0, len(data)/self.sampling, len(data))
             if align_zero:
                 ts = np.linspace(

@@ -153,11 +153,19 @@ class PyDSMOutput:
             tr.write(os.path.join(root_path, filename), format=format)
 
     def save(self, path):
+        '''Save self using pickle.dump().
+        Args:
+            path (str): name of the output file
+        '''
         with open(path, 'wb') as f:
             pickle.dump(self, f)
 
     @staticmethod
     def load(path):
+        '''Read file into self using pickle.load().
+        Args:
+            path (str): name of the file that contains self
+        '''
         with open(path, 'rb') as f:
             output = pickle.load(f)
         return output
@@ -304,8 +312,14 @@ class PyDSMOutput:
             xlabel=xlabel, slowness=slowness)
 
     def plot_component(
-            self, icomp, windows=None, ax=None,
+            self, component, windows=None, ax=None,
             align_zero=False, **kwargs):
+        '''Plot one seismic component
+        Args:
+            component (pydsm.component): seismic component
+        Returns:
+            fig, ax
+        '''
         if self.us is None:
             self.to_time_domain()
         if ax is None:
@@ -320,16 +334,17 @@ class PyDSMOutput:
             if windows is not None:
                 windows_tmp = list(filter(
                     lambda w: ((w.station == self.stations[i])
-                                and (w.event == self.event)),
+                                and (w.event == self.event)
+                                and (w.component == component)),
                     windows))
                 window = windows_tmp[0].to_array()
                 i0 = int(window[0] * self.sampling_hz)
                 i1 = int(window[1] * self.sampling_hz)
 
-                data = self.us[icomp, i, i0:i1]
+                data = self.us[component.value, i, i0:i1]
                 ts = np.linspace(window[0], window[1], len(data))
             else:
-                data = self.us[icomp, i]
+                data = self.us[component.value, i]
                 ts = np.linspace(
                     0, len(data)/self.sampling_hz, self.sampling_hz)
             if align_zero:

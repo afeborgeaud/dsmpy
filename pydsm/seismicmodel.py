@@ -574,39 +574,63 @@ class SeismicModel:
                + poly[3]*x**3)
     
     def get_values(self, dr=1):
+        '''Return a dict with values for each ParameterType.
+        Args:
+            dr (float): radius increment in km (default: 1)
+        Returns:
+            rs (ndarray): radii
+            values (dict): values. Keys are of type ParameterType
+        '''
         rs = np.linspace(0, 6371, int(6371/dr))
-        values = {'rho':[self.evaluate(r, self._rho[:, self.get_zone(r)])
-                  for r in rs],
-                  'vpv':[self.evaluate(r, self._vpv[:, self.get_zone(r)])
-                  for r in rs],
-                  'vph':[self.evaluate(r, self._vph[:, self.get_zone(r)])
-                  for r in rs],
-                  'vsv':[self.evaluate(r, self._vsv[:, self.get_zone(r)])
-                  for r in rs],
-                  'vsh':[self.evaluate(r, self._vsh[:, self.get_zone(r)])
-                  for r in rs],
-                  'eta':[self.evaluate(r, self._eta[:, self.get_zone(r)])
-                  for r in rs],
-                  'qmu':[self._qmu[self.get_zone(r)]
-                  for r in rs],
-                  'qkappa':[self._qkappa[self.get_zone(r)]
-                  for r in rs]}
+        values = {ParameterType.RHO:
+                    [self.evaluate(r, self._rho[:, self.get_zone(r)])
+                    for r in rs],
+                  ParameterType.VPV:
+                    [self.evaluate(r, self._vpv[:, self.get_zone(r)])
+                    for r in rs],
+                  ParameterType.VPH:
+                    [self.evaluate(r, self._vph[:, self.get_zone(r)])
+                    for r in rs],
+                  ParameterType.VSV:
+                    [self.evaluate(r, self._vsv[:, self.get_zone(r)])
+                    for r in rs],
+                  ParameterType.VSH:
+                    [self.evaluate(r, self._vsh[:, self.get_zone(r)])
+                    for r in rs],
+                  ParameterType.ETA:
+                    [self.evaluate(r, self._eta[:, self.get_zone(r)])
+                    for r in rs],
+                  ParameterType.QMU:
+                    [self._qmu[self.get_zone(r)]
+                    for r in rs],
+                  ParameterType.QKAPPA:
+                    [self._qkappa[self.get_zone(r)]
+                    for r in rs]}
         return rs, values
     
-    def plot(self, ax=None, parameters=None, color=None):
+    def plot(self, ax=None, types=None, color=None, **kwargs):
+        '''Plot the seismicModel.
+        Args:
+            ax (matplotlib.ax): ax
+            parameters (modelparameters.ParameterTypes): e.g., RHO, VSH
+            color (str): color
+        Returns:
+            fig, ax
+        '''
         rs, values = self.get_values(dr=1.)
         if ax == None:
             fig, ax = plt.subplots(1,1)
             ax.set_prop_cycle(None)
         else:
             fig = None
-        if parameters is None:
-            parameters = values.keys() - {'qmu', 'qkappa', 'eta'}
-        for i,key in enumerate(parameters):
+        if types is None:
+            types = (values.keys()
+                - {ParameterType.QMU, ParameterType.QKAPPA, ParameterType.ETA})
+        for i,key in enumerate(types):
             if color is None:
-                ax.plot(values[key], rs, label=key)
+                ax.plot(values[key], rs, label=key, **kwargs)
             else:
-                ax.plot(values[key], rs, label=key, color=color)
+                ax.plot(values[key], rs, label=key, color=color, **kwargs)
         ax.set_ylim(0, 6371)
         ax.set(
             xlabel='Velocity (km/s)',
@@ -637,31 +661,39 @@ class SeismicModel:
         return model
 
 if __name__ == '__main__':
-    prem = SeismicModel.prem()
+    ak135 = SeismicModel.ak135()
     # model parameters
-    types = [ParameterType.VSV, ParameterType.VSH]
-    radii = np.array([3480+i*50 for i in range(8)], dtype=np.float64)
-    model_params = ModelParameters(types, radii, mesh_type='triangle')
+    types = [ParameterType.VSH]
+    depth_moho = 6371. - 6336.6
+    depth_410 = 410.
+    depth_660 = 660.
+    depth_max = 1000.
+    n_upper_mantle = 20
+    n_mtz = 10
+    n_lower_mantle = 12
+    rs_upper_mantle = np.linspace(depth_410, depth_moho, n_upper_mantle+1)
+    rs_mtz = np.linspace(depth_660, depth_410, n_mtz, endpoint=False)
+    rs_lower_mantle = np.linspace(
+        depth_max, depth_660, n_lower_mantle, endpoint=False)
+    radii = 6371. - np.round(
+        np.hstack((rs_lower_mantle, rs_mtz, rs_upper_mantle)), 4)
+    print('dr_um={}, dr_mtz={}, dr_lm={}'.format(
+        rs_upper_mantle[1] - rs_upper_mantle[0],
+        rs_mtz[1] - rs_mtz[0],
+        rs_lower_mantle[1] - rs_lower_mantle[0]))
+
+    model_params = ModelParameters(types, radii, mesh_type='boxcar')
     # mesh
-    model, mesh = prem.triangle_mesh(model_params)
+    model, mesh = ak135.boxcar_mesh(model_params)
     # multiply mesh with values
     print(model_params._n_nodes)
-    values = np.array([0.1 for i in range(model_params._n_nodes)])
-    values[1] *= .66
-    values[2] *= .33
-    values[3] *= -.33
-    values[4] *= -.66
-    values[5] *= -1
-    values[6] *= -.66
-    values[7] *= -.33
-    values[8] *= .33
-    values[9] *= .66
+    values = np.array([0.05 * (-1)**i for i in range(model_params._n_nodes)])
     values_dict = {
-        ParameterType.VSV: values,
         ParameterType.VSH: values}
     values_mat = model_params.get_values_matrix(values_dict)
     mesh_ = mesh.multiply(model_params.get_nodes(), values_mat)
     model_ = model + mesh_
     # figure
-    fig, ax = model_.plot()
+    fig, ax = model_.plot(types=[ParameterType.VSH])
+    ax.set_ylim([radii[0]-100, 6371.])
     plt.show()

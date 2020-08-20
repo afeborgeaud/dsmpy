@@ -3,6 +3,7 @@ import numpy as np
 from pydsm.event import Event
 from pydsm.station import Station
 from pydsm.window import Window
+from pydsm.component import Component
 
 class WindowMaker:
     """Utility class to compute list of pydsm.Windows.
@@ -23,20 +24,22 @@ class WindowMaker:
             trace.stats.network,
             trace.stats.sac.stla,
             trace.stats.sac.stlo)
+        component = Component.parse_component(trace.stats.sac.kcmpnm)
         windows = WindowMaker.compute(
-            event, [station], model_name, phase_names,
-            t_before, t_after)
+            event, [station], model_name, component,
+            phase_names, t_before, t_after)
         return windows
 
     @staticmethod
     def windows_from_dataset(
             dataset, model_name, phase_names,
-            t_before=10., t_after=40.):
+            components, t_before=10., t_after=40.):
         '''Compute windows from a pydsm.Dataset.
         Args:
             dataset (pydsm.Dataset): dataset
             model_name (str): name of the 1-D reference model
             phase_names (list(str)): name of seismic phases
+            components (list(pydsm.Component)): seismic components
             t_before (float): time before arrival (default: 10)
             t_after (float): time after arrival (default: 40)
         Returns:
@@ -48,20 +51,21 @@ class WindowMaker:
             stations = dataset.stations[start:end]
             tmp_windows = WindowMaker.compute(
                 event, stations, model_name, phase_names,
-                t_before, t_after)
+                components, t_before, t_after)
             windows += tmp_windows
         return windows
 
     @staticmethod
     def compute(
             event, stations, model_name, phase_names,
-            t_before=10., t_after=40.):
+            components, t_before=10., t_after=40.):
         '''Compute time windows using TauP.
         Args:
             event (pydsm.Event): seismic event
             stations (list(pydsm.Station)): seismic stations
             model_name (str): name of reference 1-D model
             phase_names (list(str)): list of TauP phase names
+            components (list(pydsm.Component)): seismic components
             t_before (float): time before arrival (default: 10)
             t_after (float): time after arrival (default: 40)
         Returns:
@@ -74,12 +78,16 @@ class WindowMaker:
             arrivals = taup_model.get_travel_times(
                 event.depth, distance, phase_list=phase_names)
             # at the moment consider only first arrival
+            processed_phases = set()
             if len(arrivals) > 0:
                 for arrival in arrivals:
-                    windows.append(
-                        Window(
-                            arrival.time, event, station, arrival.name,
-                            t_before, t_after))
+                    if arrival.name not in processed_phases:
+                        for component in components:
+                            windows.append(
+                                Window(
+                                    arrival.time, event, station, arrival.name,
+                                    component, t_before, t_after))
+                    processed_phases.add(arrival.name)
             else:
                 windows.append(Window(
                     np.NaN, event, station, None, np.NaN, np.NaN))
@@ -146,5 +154,6 @@ if __name__ == '__main__':
         latitude=58.7592, longitude=-94.0884), ]
     model = 'prem'
     phases = ['S', 'ScS']
-    windows = WindowMaker.compute(event, stations, model, phases)
+    components = [Component.T]
+    windows = WindowMaker.compute(event, stations, model, phases, components)
     print(windows)

@@ -3,6 +3,11 @@ from enum import IntEnum
 
 class ModelParameters:
     """Represent model parameters.
+
+    Args:
+        types (list(modelparameters.ParameterType)): e.g., RHO, VSH
+        radii (ndarray(float)): radii of boundaries of perturbed layers
+        mesh_type (str): 'boxcar' or 'triangle'
     """
     def __init__(self, types, radii, mesh_type='boxcar'):
         self._types = types
