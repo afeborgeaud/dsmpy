@@ -25,9 +25,10 @@ class WindowMaker:
             trace.stats.sac.stla,
             trace.stats.sac.stlo)
         component = Component.parse_component(trace.stats.sac.kcmpnm)
+        print(component)
         windows = WindowMaker.compute(
-            event, [station], model_name, component,
-            phase_names, t_before, t_after)
+            event, [station], model_name, phase_names,
+            [component], t_before, t_after)
         return windows
 
     @staticmethod

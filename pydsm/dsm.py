@@ -17,6 +17,7 @@ from obspy import read_events
 from obspy import Trace
 from obspy.core.trace import Stats
 from obspy.core.util.attribdict import AttribDict
+import obspy.signal.filter
 import obspy.io.sac as sac
 import os
 import glob
@@ -124,6 +125,14 @@ class PyDSMOutput:
             pydsm_input.tlen, pydsm_input.nspc, pydsm_input.omegai)
 
     def to_time_domain(self, source_time_function=None):
+        '''Compute time domain waveforms from spetra.
+        Args:
+            source_time_function (pydsm.sourcetimefunction):
+                (default: None)
+        '''
+        if self.us is not None:
+            return
+
         if source_time_function is None:
             spct = spctime.SpcTime(self.tlen, self.nspc,
                                self.sampling_hz, self.omegai,
@@ -169,6 +178,32 @@ class PyDSMOutput:
         with open(path, 'rb') as f:
             output = pickle.load(f)
         return output
+
+    def filter(self, freq, freq2=0., type='lowpass', zerophase=False):
+        '''Filter time-domain waveforms using obspy.signal.filter.
+        Args:
+            freq (float): filter frequency
+            freq2 (float): filter maximum frequency
+                (for bandpass filters only)
+            type (str): type of filter. 'lowpass' or 'bandpass'
+            zerophase (bool): use zero phase filter
+        '''
+        if self.us is None:
+            self.to_time_domain(self.event.source_time_function)
+
+        if type == 'bandpass':
+            assert freq2 > freq
+
+        for icomp in range(3):
+            for ir in range(self.us.shape[1]):
+                if type == 'lowpass':
+                    self.us[icomp, ir] = obspy.signal.filter.lowpass(
+                        self.us[icomp, ir], freq,
+                        df=self.sampling_hz, zerophase=zerophase)
+                elif type == 'bandpass':
+                    self.us[icomp, ir] = obspy.signal.filter.bandpass(
+                        self.us[icomp, ir], freq, freq2,
+                        df=self.sampling_hz, zerophase=zerophase)
 
     def get_traces(self):
         traces = []

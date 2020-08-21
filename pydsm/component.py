@@ -23,3 +23,5 @@ class Component(IntEnum):
             or str == 'trnsvers'
             or str.endswith('T')):
             return Component.T
+        else:
+            return None

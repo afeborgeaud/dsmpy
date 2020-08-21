@@ -255,11 +255,26 @@ class Dataset:
         counts, displacements = self.get_chunks_eq(n_cores)
         return 9*counts, displacements
 
-    def filter(self, freq, freq1=0., mode='lowpass', zerophase=False):
+    def filter(self, freq, freq2=0., type='lowpass', zerophase=False):
+        '''Filter waveforms using obspy.signal.filter.
+        Args:
+            freq (float): filter frequency
+            freq2 (float): filter maximum frequency
+                (for bandpass filters only)
+            type (str): type of filter. 'lowpass' or 'bandpass'
+            zerophase (bool): use zero phase filter
+        '''
+        if type == 'bandpass':
+            assert freq2 > freq
+            
         for i in range(len(self.data)):
-            if mode == 'lowpass':
+            if type == 'lowpass':
                 self.data[i] = obspy.signal.filter.lowpass(
                     self.data[i], freq, df=self.sampling, zerophase=zerophase)
+            elif type == 'bandpass':
+                self.data[i] = obspy.signal.filter.bandpass(
+                    self.data[i], freq, freq2,
+                    df=self.sampling, zerophase=zerophase)
 
     def get_bounds_from_event_index(self, ievent):
         '''Return start,end indicies to slice 
