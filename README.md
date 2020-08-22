@@ -12,7 +12,7 @@ Python libraries are compiled from Fortran sources using numpy.f2py and gfortran
 - ```export PYTHONPATH="$PYTHONPATH:<path_of_pydsm_folder>"```  
 *Warning: at the moment, the pydsm folder must be named `pydsm' for the imports to work (not, e.g., pydsm-master)*
 
-## Dependencies:
+## Dependencies
 - numpy
 - mpi4py
 - pandas
