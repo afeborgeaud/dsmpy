@@ -25,7 +25,7 @@ class WindowMaker:
             trace.stats.sac.stla,
             trace.stats.sac.stlo)
         component = Component.parse_component(trace.stats.sac.kcmpnm)
-        print(component)
+
         windows = WindowMaker.compute(
             event, [station], model_name, phase_names,
             [component], t_before, t_after)
@@ -90,8 +90,10 @@ class WindowMaker:
                                     component, t_before, t_after))
                     processed_phases.add(arrival.name)
             else:
-                windows.append(Window(
-                    np.NaN, event, station, None, np.NaN, np.NaN))
+                for component in components:
+                    windows.append(Window(
+                        np.NaN, event, station, None,
+                        component, np.NaN, np.NaN))
         return windows
 
     @staticmethod
