@@ -28,6 +28,7 @@ class Event:
         mt (ndarray(3, 3)): moment tensor
         source_time_function (SourceTimeFunction): SourceTimeFunction
             object
+        centroid_time (datetime): centroid time
     """
 
     def __init__(self, event_id, latitude, longitude, depth, mt,

@@ -107,6 +107,15 @@ class Dataset:
 
     @classmethod
     def dataset_from_sac(cls, sac_files, verbose=0, headonly=True):
+        '''Make dataset from list of sac file names.
+        Args:
+            sac_files(list(str)): list of sac file names
+            verbose (int): 0: quiet, 1: debug
+            headonly (bool): if True, read only header. If False,
+                include data
+        Return:
+            dataset (pydsm.Dataset): dataset
+        '''
         traces = [read(sac_file, headonly=headonly)[0]
                    for sac_file in sac_files]
 
@@ -266,7 +275,7 @@ class Dataset:
         '''
         if type == 'bandpass':
             assert freq2 > freq
-            
+
         for i in range(len(self.data)):
             if type == 'lowpass':
                 self.data[i] = obspy.signal.filter.lowpass(
