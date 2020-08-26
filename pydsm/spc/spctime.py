@@ -68,7 +68,9 @@ class SpcTime:
             stf_freq = (self.source_time_function.
                 get_source_time_function_frequency_domain(
                     self.tlen, self.nspc))
-            spc *= stf_freq
+            return spc * stf_freq
+        else:
+            return spc
 
     def spctime(self, spcs):
         ''' spcs is the output of pyDSM.
@@ -80,8 +82,8 @@ class SpcTime:
         u = np.zeros((3, nr, self.npts))
         for icomp in range(3):
             for ir in range(nr):
-                self.convolve(spcs[icomp, ir])
-                u[icomp, ir, :] = self.to_time_domain(spcs[icomp, ir])
+                spcs_conv = self.convolve(spcs[icomp, ir])
+                u[icomp, ir, :] = self.to_time_domain(spcs_conv)
                 self.apply_growing_exponential(u[icomp, ir])
                 self.apply_amplitude_correction(u[icomp, ir])
         return u

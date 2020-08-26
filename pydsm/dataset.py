@@ -66,7 +66,10 @@ class Dataset:
         eqlats = np.array([input.eqlat for input in pydsm_inputs])
         eqlons = np.array([input.eqlon for input in pydsm_inputs])
         r0s = np.array([input.r0 for input in pydsm_inputs])
-        mts = np.concatenate([input.mt for input in pydsm_inputs])
+        mts = np.array(
+            [MomentTensor.from_dsm_array(input.mt)
+            for input in pydsm_inputs])
+
         nrs = np.array([input.nr for input in pydsm_inputs])
 
         stations = np.concatenate([input.stations
@@ -119,7 +122,7 @@ class Dataset:
         traces = [read(sac_file, headonly=headonly)[0]
                    for sac_file in sac_files]
 
-        sampling = traces[0].stats.sampling_rate
+        sampling = int(traces[0].stats.sampling_rate)
 
         lats_ = []
         lons_ = []
@@ -145,9 +148,16 @@ class Dataset:
             data_.append(tr.data)
             components_.append(tr.stats.sac.kcmpnm)
         
+        theta_phi = [_calthetaphi(stalat, stalon, eqlat, eqlon) 
+                     for stalat, stalon, eqlat, eqlon 
+                     in zip(lats_, lons_, eqlats_, eqlons_)]
+        thetas_ = np.array([x[0] for x in theta_phi], dtype=np.float64)
+        phis_ = np.array([x[1] for x in theta_phi], dtype=np.float64)
+
         dataset_info = pd.DataFrame(dict(
             lats=lats_, lons=lons_, names=names_,
-            nets=nets_, eqlats=eqlats_, eqlons=eqlons_,
+            nets=nets_, thetas=thetas_, phis=phis_,
+            eqlats=eqlats_, eqlons=eqlons_,
             eqdeps=eqdeps_, evids=evids_, indices=indices_
         ))
         # drop dupplicate sac files with identical source/receiver
@@ -163,12 +173,6 @@ class Dataset:
         dataset_info.sort_values(by='evids', inplace=True)
         
         dataset_info.index = list(range(n_after))
-
-        theta_phi = [_calthetaphi(stalat, stalon, eqlat, eqlon) 
-                     for stalat, stalon, eqlat, eqlon 
-                     in zip(lats_, lons_, eqlats_, eqlons_)]
-        thetas = np.array([x[0] for x in theta_phi], dtype=np.float64)
-        phis = np.array([x[1] for x in theta_phi], dtype=np.float64)
 
         nr = len(dataset_info)
         nrs = dataset_info.groupby('evids').count().lats.values
@@ -200,15 +204,33 @@ class Dataset:
             lambda x: Station(x.names, x.nets, x.lats, x.lons),
             axis=1).values
 
-        lons = np.array(lons_, dtype=np.float64)
-        lats = np.array(lats_, dtype=np.float64)
+        phis = dataset_info.phis.values
+        thetas = dataset_info.thetas.values
+        lons = dataset_info.lons.values
+        lats = dataset_info.lats.values
+
+        # lons = np.array(lons_, dtype=np.float64)
+        # lats = np.array(lats_, dtype=np.float64)
         
         npts = len(data_[0])
         data_arr = np.zeros((3, nr, npts), dtype=np.float64)
         for i in range(len(dataset_info.indices.values)):
             component = components_[dataset_info.indices.values[i]]
             icomp = Component.parse_component(component).value
-            data_arr[icomp, i] = data_[dataset_info.indices.values[i]]
+            try:
+                data_arr[icomp, i] = data_[dataset_info.indices.values[i]]
+            except:
+                n_tmp = len(data_[dataset_info.indices.values[i]])
+                if n_tmp < npts:
+                    tmp_data = np.pad(
+                        data_[dataset_info.indices.values[i]],
+                        (0,npts-n_tmp), mode='constant',
+                        constant_values=(0,0))
+                    data_arr[icomp, i] = tmp_data
+                else:
+                    data_arr[icomp, i] = (
+                        data_[dataset_info.indices.values[i]][:npts])
+
         remaining_traces_indices = (set(indices_) 
             - set(dataset_info.indices.values))
         
@@ -262,7 +284,7 @@ class Dataset:
 
     def get_chunks_mt(self, n_cores):
         counts, displacements = self.get_chunks_eq(n_cores)
-        return 9*counts, displacements
+        return 9*counts, 9*displacements
 
     def filter(self, freq, freq2=0., type='lowpass', zerophase=False):
         '''Filter waveforms using obspy.signal.filter.
@@ -276,14 +298,19 @@ class Dataset:
         if type == 'bandpass':
             assert freq2 > freq
 
-        for i in range(len(self.data)):
-            if type == 'lowpass':
-                self.data[i] = obspy.signal.filter.lowpass(
-                    self.data[i], freq, df=self.sampling, zerophase=zerophase)
-            elif type == 'bandpass':
-                self.data[i] = obspy.signal.filter.bandpass(
-                    self.data[i], freq, freq2,
-                    df=self.sampling, zerophase=zerophase)
+        if self.data.shape[2] == 0:
+            return
+
+        for icomp in range(3):
+            for i in range(self.data.shape[1]):
+                if type == 'lowpass':
+                    self.data[icomp, i] = obspy.signal.filter.lowpass(
+                        self.data[icomp, i], freq,
+                        df=self.sampling, zerophase=zerophase)
+                elif type == 'bandpass':
+                    self.data[icomp, i] = obspy.signal.filter.bandpass(
+                        self.data[icomp, i], freq, freq2,
+                        df=self.sampling, zerophase=zerophase)
 
     def get_bounds_from_event_index(self, ievent):
         '''Return start,end indicies to slice 
@@ -294,9 +321,12 @@ class Dataset:
 
     def plot_event(
             self, ievent, windows=None, align_zero=False,
-            component=Component.T, **kwargs):
+            component=Component.T, ax=None, **kwargs):
         start, end = self.get_bounds_from_event_index(ievent)
-        fig, ax = plt.subplots(1)
+        if ax == None:
+            fig, ax = plt.subplots(1)
+        else:
+            fig = None
         for i in range(start, end):
             distance = self.events[ievent].get_epicentral_distance(
                 self.stations[i])

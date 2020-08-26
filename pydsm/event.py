@@ -92,6 +92,17 @@ class MomentTensor:
         if np.abs(np.array([Mrr, Mrt, Mrp, Mtt, Mtp, Mpp])).max() > 1e4:
             warnings.warn("Moment tensor should be in units of 10**25 dyne cm")
 
+    @classmethod
+    def from_dsm_array(cls, mt_arr):
+        '''Make a MomentTensor from the mt array from DSM pinput (i.e., 
+        assume the mt component oreder is DSM's).
+        Args:
+            mt_arr (ndarray((3,3))): moment tensor array
+        '''
+        return cls(
+            mt_arr[0,0], mt_arr[0,1], mt_arr[0,2],
+            mt_arr[1,1], mt_arr[1,2], mt_arr[2,2])
+
     def to_array(self):
         mt = np.zeros((3, 3), dtype=np.float64)
         mt[0, 0] = self.Mrr
@@ -101,7 +112,7 @@ class MomentTensor:
         mt[1, 2] = self.Mtp
         mt[2, 2] = self.Mpp
         
-        # TODO this apparently fixed the bug with zero amp >= 90 degree
+        # TODO this apparently fixed a bug with zero amp >= 90 degree
         # but should check with Fortran DSM
         mt[1, 0] = mt[0, 1]
         mt[2, 0] = mt[0, 2]

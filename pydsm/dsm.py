@@ -130,8 +130,8 @@ class PyDSMOutput:
             source_time_function (pydsm.sourcetimefunction):
                 (default: None)
         '''
-        if self.us is not None:
-            return
+        # if self.us is not None:
+        #     return
 
         if source_time_function is None:
             spct = spctime.SpcTime(self.tlen, self.nspc,
@@ -190,6 +190,9 @@ class PyDSMOutput:
         '''
         if self.us is None:
             self.to_time_domain(self.event.source_time_function)
+
+        if type not in {'bandpass', 'lowpass'}:
+            raise ValueError('Expect "bandpass" or "lowpass" for arg "type"')
 
         if type == 'bandpass':
             assert freq2 > freq
@@ -373,15 +376,19 @@ class PyDSMOutput:
                                 and (w.component == component)),
                     windows))
                 window = windows_tmp[0].to_array()
-                i0 = int(window[0] * self.sampling_hz)
-                i1 = int(window[1] * self.sampling_hz)
+                if np.isnan(window[0]):
+                    data = np.ones(1)
+                    ts = np.zeros(1)
+                else:
+                    i0 = int(window[0] * self.sampling_hz)
+                    i1 = int(window[1] * self.sampling_hz)
 
-                data = self.us[component.value, i, i0:i1]
-                ts = np.linspace(window[0], window[1], len(data))
+                    data = self.us[component.value, i, i0:i1]
+                    ts = np.linspace(window[0], window[1], len(data))
             else:
                 data = self.us[component.value, i]
                 ts = np.linspace(
-                    0, len(data)/self.sampling_hz, self.sampling_hz)
+                    0, len(data)/self.sampling_hz, len(data))
             if align_zero:
                 ts = np.linspace(
                     0, len(data)/self.sampling_hz, len(data))
@@ -453,6 +460,12 @@ class DSMInput:
         (self.nr, self.theta, self.phi, self.lat,
          self.lon, self.output) = (nr, theta, phi,
                                    lat, lon, output)
+
+        # TODO this apparently fixed a bug with zero amp >= 90 degree
+        # but should check with Fortran DSM
+        self.mt[1, 0] = self.mt[0, 1]
+        self.mt[2, 0] = self.mt[0, 2]
+        self.mt[2, 1] = self.mt[1, 2]
 
         self.mode = mode
 
@@ -1074,7 +1087,7 @@ def compute_dataset_parallel(
         eqlats = dataset.eqlats
         eqlons = dataset.eqlons
         r0s = dataset.r0s
-        mts = dataset.mts
+        mts = np.array([mt.to_array() for mt in dataset.mts])
     else:
         sendcounts_sta = None
         displacements_sta = None
@@ -1215,6 +1228,7 @@ def compute_dataset_parallel(
             outputs.append(output)
     else:
         outputs = None
+    comm.Barrier()
 
     return outputs
 
