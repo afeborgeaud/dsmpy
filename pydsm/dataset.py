@@ -212,7 +212,8 @@ class Dataset:
         # lons = np.array(lons_, dtype=np.float64)
         # lats = np.array(lats_, dtype=np.float64)
         
-        npts = len(data_[0])
+        npts = np.array([len(d) for d in data_], dtype=int).max()
+        print(npts)
         data_arr = np.zeros((3, nr, npts), dtype=np.float64)
         for i in range(len(dataset_info.indices.values)):
             component = components_[dataset_info.indices.values[i]]
@@ -242,7 +243,19 @@ class Dataset:
             j = dataset_filt.index.values[0]
             component = components_[i]
             icomp = Component.parse_component(component).value
-            data_arr[icomp, j] = data_[i]
+            try:
+                data_arr[icomp, j] = data_[i]
+            except:
+                n_tmp = len(data_[i])
+                if n_tmp < npts:
+                    tmp_data = np.pad(
+                        data_[i],
+                        (0,npts-n_tmp), mode='constant',
+                        constant_values=(0,0))
+                    data_arr[icomp, j] = tmp_data
+                else:
+                    data_arr[icomp, j] = (
+                        data_[i][:npts])
 
         return cls(
             lats, lons, phis, thetas, eqlats, eqlons,
