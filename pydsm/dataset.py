@@ -108,8 +108,10 @@ class Dataset:
         return cls(lats, lons, phis, thetas, eqlats, eqlons,
             r0s, mts, nrs, stations_, events_, data=None, sampling=sampling_hz)
 
+
     @classmethod
-    def dataset_from_sac(cls, sac_files, verbose=0, headonly=True):
+    def dataset_from_sac(
+        cls, sac_files, verbose=0, headonly=True):
         '''Make dataset from list of sac file names.
         Args:
             sac_files(list(str)): list of sac file names
@@ -213,7 +215,6 @@ class Dataset:
         # lats = np.array(lats_, dtype=np.float64)
         
         npts = np.array([len(d) for d in data_], dtype=int).max()
-        print(npts)
         data_arr = np.zeros((3, nr, npts), dtype=np.float64)
         for i in range(len(dataset_info.indices.values)):
             component = components_[dataset_info.indices.values[i]]
@@ -383,6 +384,13 @@ class Dataset:
             index_current_max = np.argwhere(dividers == dividers_sorted[i])
             dividers_rounded[index_current_max] += 1
             i -= 1
+        if (dividers_rounded.sum() == n_cores
+            and (dividers_rounded==0).sum() > 0):
+            indices_zero = np.argwhere(dividers_rounded == 0)
+            for i0 in indices_zero:
+                imax = np.argmax(dividers_rounded)
+                dividers_rounded[imax] -= 1
+                dividers_rounded[i0] += 1
         return dividers_rounded
 
     @staticmethod

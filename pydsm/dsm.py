@@ -996,7 +996,7 @@ def compute_dataset_parallel(
         dataset, seismic_model,
         tlen, nspc, sampling_hz,
         comm, mode=0, write_to_file=False,
-        verbose=0):
+        verbose=0, log=None):
     """Compute spectra using DSM with data parallelization.
 
     Args:
@@ -1077,7 +1077,7 @@ def compute_dataset_parallel(
 
     if rank == 0:
         sendcounts_sta, displacements_sta = dataset.get_chunks_station(
-            n_cores)
+            n_cores, verbose=verbose)
         sendcounts_eq, displacements_eq = dataset.get_chunks_eq(n_cores)
         sendcounts_mt, displacements_mt = dataset.get_chunks_mt(n_cores)
         lons = dataset.lons
@@ -1108,7 +1108,7 @@ def compute_dataset_parallel(
     comm.Scatter(sendcounts_sta, nr, root=0)
 
     if scalar_dict['verbose'] >= 1:
-        print('rank {}: nr={}'.format(rank, nr))
+        log.write('rank {}: nr={}\n'.format(rank, nr))
 
     lon_local = np.empty(nr, dtype=np.float64)
     lat_local = np.empty(nr, dtype=np.float64)
@@ -1182,7 +1182,7 @@ def compute_dataset_parallel(
             *input_local.get_inputs_for_tish(),
             write_to_file=False)
     end_time = time.time()
-    print('rank {}: {} paths finished in {} s'
+    log.write('rank {}: {} paths finished in {} s\n'
           .format(rank, input_local.nr, end_time - start_time))
 
     # TODO change the order of outputu in DSM 
