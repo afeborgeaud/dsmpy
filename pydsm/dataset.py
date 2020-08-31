@@ -9,6 +9,8 @@ from pydsm._tish import _calthetaphi
 from pydsm import root_resources
 from pydsm.utils.cmtcatalog import read_catalog
 from pydsm.component import Component
+from pydsm.spc.spctime import SourceTimeFunction
+from pydsm.utils import scardec
 import matplotlib.pyplot as plt
 
 class Dataset:
@@ -28,7 +30,7 @@ class Dataset:
         nr (int): total number of event-station pairs
         stations (ndarray(pydsm.Station)): seismic stations (len=nr)
         events (ndarray(pydsm.Event)): seismic events (len=nev)
-        data (ndarray((3,nr))): 3-components waveform data
+        data (ndarray((3,nr,npts))): 3-components waveform data
         sampling (int): sampling frequency for synthetics/data. Used
             for computation with pydsm
     """
@@ -262,6 +264,34 @@ class Dataset:
             lats, lons, phis, thetas, eqlats, eqlons,
             r0s, mts, nrs, stations, events, data_arr, sampling)
 
+    def apply_windows(self, windows, n_phase, npts_max, buffer=0):
+        '''Cut the data using provided windows.
+        Args:
+            windows (list(pydsm.windows)): time windows
+            n_phase (int): number of distinct seismic phases in windows
+            npts_max (int): number of time points in the longest window
+        '''
+        npts_buffer = int(buffer * self.sampling)
+        data_cut = np.zeros(
+            (n_phase, 3, self.nr, npts_max+2*npts_buffer),
+            dtype=np.float32)
+        self.ts_start_end = np.zeros((n_phase, self.nr, 2), dtype=np.float32)
+        for iev, event in enumerate(self.events):
+            start, end = self.get_bounds_from_event_index(iev)
+            for i in range(start, end):
+                windows_filt = [
+                    w for w in windows
+                    if w.station == self.stations[i]
+                    and w.event == event]
+                for j, window in enumerate(windows_filt):
+                    window_arr = window.to_array()
+                    i_start = int((window_arr[0] - buffer) * self.sampling)
+                    i_end = int((window_arr[1] + buffer) * self.sampling)
+                    data_cut[j, :, i, :] = self.data[:, i, i_start:i_end]
+                    self.ts_start_end[j, i] = window_arr
+        self.data = data_cut
+                    
+
     def get_chunks_station(self, n_cores, verbose=0):
         chunk_size = self.nr // n_cores
         dividers = self.nrs / chunk_size
@@ -332,6 +362,28 @@ class Dataset:
         start = self.nrs[:ievent].sum()
         end = start + self.nrs[ievent]
         return start, end
+
+    def set_source_time_functions(self, type, catalog_name):
+        if type == 'scardec':
+            for i, event in enumerate(self.events):
+                duration = scardec.get_duration(event)
+                if duration is not None:
+                    stf = SourceTimeFunction(
+                        'triangle', duration/2.)
+                    self.events[i].source_time_function = stf
+        elif type == 'user':
+            with open(catalog_name, 'r') as f:
+                catalog = {
+                    ss[0].strip(): [float(ss[1]), float(ss[2])]
+                    for line in f.readlines()
+                    for ss in line.strip().split()}
+            for i, event in enumerate(self.events):
+                if event.event_id in catalog:
+                    stf = SourceTimeFunction(
+                        'triangle', catalog[event.event_id][1]/2.)
+                    self.events[i].source_time_function = stf
+        else:
+            raise ValueError('Expect "scardec" or "user" for arg "type"')
 
     def plot_event(
             self, ievent, windows=None, align_zero=False,
