@@ -436,7 +436,9 @@ class Dataset:
         print(dividers_sorted)
         i = -1
         while np.sum(dividers_rounded) != n_cores:
-            index_current_max = np.argwhere(dividers == dividers_sorted[i])
+            index_current_max = np.argwhere(dividers == dividers_sorted[i])[0]
+            # to avoid problems with identical values
+            dividers[index_current_max] = 0.
             dividers_rounded[index_current_max] += 1
             print(dividers_rounded)
             i -= 1
