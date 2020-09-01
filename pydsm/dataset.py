@@ -425,16 +425,20 @@ class Dataset:
     @staticmethod
     def _round_dividers(dividers, n_cores):
         dividers_rounded = np.round(dividers).astype(np.int64)
+        print(dividers)
+        print(dividers_rounded)
         if np.sum(dividers_rounded) < n_cores:
             dividers_fixed = np.where(
                 dividers_rounded == 0, 1, dividers_rounded)
             if np.sum(dividers_fixed) <= n_cores:
                 dividers_rounded = dividers_fixed
         dividers_sorted = np.sort(dividers)
+        print(dividers_sorted)
         i = -1
         while np.sum(dividers_rounded) != n_cores:
             index_current_max = np.argwhere(dividers == dividers_sorted[i])
             dividers_rounded[index_current_max] += 1
+            print(dividers_rounded)
             i -= 1
         if (dividers_rounded.sum() == n_cores
             and (dividers_rounded==0).sum() > 0):
