@@ -90,11 +90,11 @@ class WindowMaker:
                                     arrival.time, event, station, arrival.name,
                                     component, t_before, t_after))
                     processed_phases.add(arrival.name)
-            else:
-                for component in components:
-                    windows.append(Window(
-                        np.NaN, event, station, None,
-                        component, np.NaN, np.NaN))
+            # else:
+            #     for component in components:
+            #         windows.append(Window(
+            #             np.NaN, event, station, None,
+            #             component, np.NaN, np.NaN))
         return windows
 
     @staticmethod

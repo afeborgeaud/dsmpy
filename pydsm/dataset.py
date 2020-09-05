@@ -283,6 +283,7 @@ class Dataset:
                     w for w in windows
                     if w.station == self.stations[i]
                     and w.event == event]
+                # TODO deal with multiple components
                 for j, window in enumerate(windows_filt):
                     window_arr = window.to_array()
                     i_start = int((window_arr[0] - buffer) * self.sampling)
