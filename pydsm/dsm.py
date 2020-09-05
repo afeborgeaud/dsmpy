@@ -174,6 +174,8 @@ class PyDSMOutput:
         '''Read file into self using pickle.load().
         Args:
             path (str): name of the file that contains self
+        Return:
+            output (PyDSMOutput)
         '''
         with open(path, 'rb') as f:
             output = pickle.load(f)

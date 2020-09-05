@@ -4,6 +4,7 @@ from pydsm.event import Event
 from pydsm.station import Station
 from pydsm.window import Window
 from pydsm.component import Component
+import pickle
 
 class WindowMaker:
     """Utility class to compute list of pydsm.Windows.
@@ -102,50 +103,29 @@ class WindowMaker:
         for i in range(len(windows)):
             windows[i].t_before = t_before
             windows[i].t_after = t_after
-    
-    # def get_window_array(windows, t_before, t_after):
-    #     '''Return a ndarray of [t_start, t_end].
-    #     Args:
-    #         windows (list(pydsm.Window)): time windows
-    #         t_before (float):
-    #         t_after (float):
-    #     Returns:
-    #         window_array (ndarra):
-    #     '''
-    #     windows = np.apply_along_axis(
-    #         lambda x: np.array([x-t_before, x+t_after], dtype=np.float64),
-    #         axis=0, arr=self.travel_times)
-    #     return windows.T
-    
-    # def get_gaussian_windows_in_frequency_domain(
-    #         self, nspc, tlen, window_width):
-    #     """Compute fourier-transformed gaussian windows.
-    #     Args:
-    #         nspc (int): number of points in frequency domain
-    #         tlen (float): duration of synthetics (in seconds)
-    #         window_width (float): gaussian width (in seconds) = 2*sigma
-    #         omega_shift (float): omega shift
-    #     Returns:
-    #         windows (list(ndarray)): list of gaussian windows
-    #     """
-    #     omega_start = -2 * np.pi * nspc / tlen
-    #     omega_end = -omega_start
-    #     omegas = np.linspace(omega_start, omega_end, 2*nspc+1, endpoint=True)
-    #     coeff = np.sqrt(0.5 * np.pi) * window_width
-    #     gauss_windows = np.ones((len(self.stations), 2*nspc+1),
-    #                              dtype=np.complex128)
-    #     tau = tlen / nspc
-    #     for i, t in enumerate(self.travel_times):
-    #         if t == np.NaN:
-    #             continue
-    #         else:
-    #             # add max period / 2 to center the gaussian
-    #             t += tau / 2.
-    #             gauss_windows[i] = (coeff
-    #                 * np.exp(-omegas**2 * window_width**2 / 8 + 1j*omegas*t))
-    #     return gauss_windows
-        
 
+    @staticmethod
+    def save(path, windows):
+        '''Save windows using pickle.dump().
+        Args:
+            path (str): name of the output file
+            windows (list(pydsm.window)): time windows
+        '''
+        with open(path, 'wb') as f:
+            pickle.dump(windows, f)
+
+    @staticmethod
+    def load(path):
+        '''Read file into list of window using pickle.load()
+        Args:
+            path (str): name of the file that contains time windows
+        Return:
+            windows (list(pydsm.window)): time windows
+        '''
+        with open(path, 'rb') as f:
+            output = pickle.load(f)
+        return output
+        
 if __name__ == '__main__':
     from pydsm.utils.cmtcatalog import read_catalog
     catalog = read_catalog()
