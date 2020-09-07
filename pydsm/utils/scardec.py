@@ -3,7 +3,10 @@ import numpy as np
 import glob
 from pydsm.utils.cmtcatalog import read_catalog
 from pydsm.event import Event
+from pydsm.spc.stf import SourceTimeFunction
+from pydsm.spc.stfcatalog import STFCatalog
 import matplotlib.pyplot as plt
+import os
 
 def get_stf(event):
     '''Return source time function in time domain.
@@ -32,11 +35,27 @@ def get_duration(event):
         return None
     return stf[-1, 0]
 
+def create_catalog():
+    cmt_catalog = read_catalog()
+    stf_catalog = dict()
+    for event in cmt_catalog:
+        print(event)
+        dir_name = _parse_dir_name(event)
+        if dir_name:
+            duration = get_duration(event)
+            stf = SourceTimeFunction(
+                'triangle', duration/2.)
+            stf_catalog[event.event_id] = stf
+
+    path = os.path.joint(root_resources, 'scardec.pkl')
+    STFCatalog.save(path, scardec_catalog)
+
 def _parse_dir_name(event):
-    dir_scardec = root_resources + '/scardec'
+    dir_scardec = os.path.join(root_resources, 'scardec')
     # event_id_post2005 = _convert_name_to_post2005(event)
     partial_scardec_dir_name = _convert_name_to_partial_scardec(event)
     dirs = glob.glob(dir_scardec + '/*' + partial_scardec_dir_name + '*')
+    print(dirs)
     parsed_dir = None
     for dir_ in dirs:
         ss = int(dir_.split(partial_scardec_dir_name)[1][:2])
@@ -75,12 +94,5 @@ def _compute_integral(stf):
     return integral
 
 if __name__ == '__main__':
-    catalog = read_catalog()
-    event = Event.event_from_catalog(
-        catalog, '200707211534A')
-
-    scardec_stf = get_stf(event)
-    duration = get_duration(event)
-
-    plt.plot(scardec_stf[:,0], scardec_stf[:,1])
-    plt.show()
+    # create_catalog()
+    
