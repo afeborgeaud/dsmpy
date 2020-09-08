@@ -19,7 +19,6 @@ Python libraries are compiled from Fortran sources using numpy.f2py and gfortran
 - matplotlib
 - obspy
 - geographiclib
-- fftw3 (soon)
 
 Dependencies can be installed using the Conda package manager:
 ```shell
@@ -33,7 +32,8 @@ conda activate pydsm
 ```
 
 ## Test
-- test scripts are in ```pydsm/tests```
+- test scripts are in *pydsm/tests*
+- Before getting started, you should at least run *test_tipsv.py* and *test_tish.psv*. These scripts test pydsm against pre-computed synthetics using the DSM (Fortran).
 
 ## Usage
 ### General use: pydsm input file. Run in parallel.
