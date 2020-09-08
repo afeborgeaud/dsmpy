@@ -36,7 +36,7 @@ conda activate pydsm
 - Before getting started, you should at least run *test_tipsv.py* and *test_tish.psv*. These scripts test pydsm against pre-computed synthetics using the DSM (Fortran).
 
 ## Usage
-### General use: pydsm input file. Run in parallel.
+### 1) General use: pydsm input file. Run in parallel.
 A template input file is in ```pydsm/tests/input_files/template.txt```. Its content is as below:
 
 ```shell
@@ -65,7 +65,7 @@ n_proc=2 # n_proc should be greater than the number of earthquakes in the list o
 mpiexec -n $n_proc python pydsm/main.py tests/input_files/template.txt
 ```
 
-### All Python: pydsm Python classes
+### 2) All Python: pydsm Python classes
 ```python
 from pydsm import dsm, seismicmodel
 from pydsm.event import Event
@@ -101,7 +101,7 @@ u_Z_FCC = output['Z', 'FCC_CN']
 output.write(root_path='.', format='sac')
 ```
 
-### Closest to original: Fortran DSM input file
+### 3) Closest to original: Fortran DSM input file
 ```python
 from pydsm import dsm, rootdsm_sh
 parameter_file = rootdsm_sh + 'AK135_SH.inf'
