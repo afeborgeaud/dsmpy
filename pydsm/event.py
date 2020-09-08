@@ -14,7 +14,7 @@ class Event:
         longitude (float): centroid longitude 
             [-180, 180] in degree
         depth (float) centroid depth in km
-        mt (ndarray(3, 3)): moment tensor
+        mt (MomentTensor): moment tensor
         source_time_function (SourceTimeFunction): SourceTimeFunction
             object
     
@@ -25,7 +25,7 @@ class Event:
         longitude (float): centroid longitude 
             [-180, 180] in degree
         depth (float) centroid depth in km
-        mt (ndarray(3, 3)): moment tensor
+        mt (MomentTensor): moment tensor
         source_time_function (SourceTimeFunction): SourceTimeFunction
             object
         centroid_time (datetime): centroid time

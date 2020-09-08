@@ -43,10 +43,6 @@ def _mt_from_tensor(tensor, Mw):
     # unit conversion. DSM in units of 10**25 [dyne cm]
     mt = MomentTensor(m_rr, m_rt, m_rp, m_tt, m_tp, m_pp, Mw)
     return mt
-    # return np.array(
-    #     [tensor.m_rr, tensor.m_rt, tensor.m_rp,
-    #     tensor.m_tt, tensor.m_tp, tensor.m_pp],
-    #     dtype=np.float64)
 
 def read_catalog():
     """Get the GCMT catalog.

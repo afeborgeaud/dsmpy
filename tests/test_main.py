@@ -10,7 +10,7 @@ import sys
 import pickle
 import matplotlib.pyplot as plt
 from obspy import read
-from pydsm.spc.spctime import SourceTimeFunction
+from pydsm.spc.stf import SourceTimeFunction
 
 def get_sac_files(root_event_folder):
     sac_files = list(glob.iglob(os.path.join(root_event_folder, '**/*Ts')))

@@ -1,10 +1,4 @@
 import numpy as np
-from numpy import f2py
-import sys
-import subprocess
-import os
-import glob
-import shutil
 from pydsm._tish import _tish, _pinput
 from pydsm import rootdsm_sh
 import time

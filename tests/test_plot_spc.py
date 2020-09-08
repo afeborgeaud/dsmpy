@@ -2,7 +2,8 @@ from pydsm import rootdsm_psv, rootdsm_sh
 from pydsm import dsm
 import os
 import matplotlib.pyplot as plt
-from pydsm.windows import Windows
+from pydsm.windowmaker import WindowMaker
+from pydsm.component import Component
 
 if __name__ == '__main__':
     # compute P-SV + SH using P-SV input file
@@ -12,8 +13,9 @@ if __name__ == '__main__':
         source_time_function=None, mode=1)
     output = dsm.compute(input, mode=0)
     
-    windows = Windows(
-        output.event, output.stations, 'prem', ['ScS', 'Sdiff'])
+    windows = WindowMaker.compute(
+        output.event, output.stations, 'prem', ['ScS', 'Sdiff'],
+        Component.T)
     window_width = 80.
     output_windowed = output.window_spcs(windows, window_width)
 
@@ -23,7 +25,7 @@ if __name__ == '__main__':
     fig, axes = output.plot()
     _, axes = output_windowed.plot(axes=axes)
 
-    fig_spc, axes_spc = output.plot_spcs()
-    _, axes_spc = output_windowed.plot_spcs(axes=axes_spc)
+    fig_spc, axes_spc = output.plot_spc()
+    _, axes_spc = output_windowed.plot_spc(axes=axes_spc)
 
     plt.show()

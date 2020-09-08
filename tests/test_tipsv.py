@@ -1,10 +1,4 @@
 import numpy as np
-from numpy import f2py
-import sys
-import subprocess
-import os
-import glob
-import shutil
 from pydsm._tipsv import _tipsv, _pinput
 from pydsm import rootdsm_psv
 import time

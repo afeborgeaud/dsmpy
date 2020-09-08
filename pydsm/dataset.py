@@ -9,8 +9,8 @@ from pydsm._tish import _calthetaphi
 from pydsm import root_resources
 from pydsm.utils.cmtcatalog import read_catalog
 from pydsm.component import Component
-from pydsm.spc.spctime import SourceTimeFunction
-from pydsm.utils import scardec
+from pydsm.spc.stf import SourceTimeFunction
+from pydsm.spc.stfcatalog import STFCatalog
 import matplotlib.pyplot as plt
 
 class Dataset:
@@ -30,13 +30,15 @@ class Dataset:
         nr (int): total number of event-station pairs
         stations (ndarray(pydsm.Station)): seismic stations (len=nr)
         events (ndarray(pydsm.Event)): seismic events (len=nev)
-        data (ndarray((3,nr,npts))): 3-components waveform data
-        sampling (int): sampling frequency for synthetics/data. Used
+        data (ndarray((nw,3,nr,npts))): 3-components waveform data.
+            nw: number of windows used to cut the data. If self.cut_data()
+            hasn't been called, then nw=1
+        sampling_hz (int): sampling frequency for synthetics/data. Used
             for computation with pydsm
     """
     def __init__(
             self, lats, lons, phis, thetas, eqlats, eqlons,
-            r0s, mts, nrs, stations, events, data=None, sampling=20):
+            r0s, mts, nrs, stations, events, data=None, sampling_hz=20):
         self.lats = lats
         self.lons = lons
         self.phis = phis
@@ -50,7 +52,7 @@ class Dataset:
         self.stations = stations
         self.events = events
         self.data = data
-        self.sampling = sampling
+        self.sampling_hz = sampling_hz
 
     @classmethod
     def dataset_from_files(cls, parameter_files, mode=1):
@@ -108,7 +110,8 @@ class Dataset:
         events_ = np.array(events)
 
         return cls(lats, lons, phis, thetas, eqlats, eqlons,
-            r0s, mts, nrs, stations_, events_, data=None, sampling=sampling_hz)
+            r0s, mts, nrs, stations_, events_, data=None,
+            sampling_hz=sampling_hz)
 
 
     @classmethod
@@ -126,7 +129,7 @@ class Dataset:
         traces = [read(sac_file, headonly=headonly)[0]
                    for sac_file in sac_files]
 
-        sampling = int(traces[0].stats.sampling_rate)
+        sampling_hz = int(traces[0].stats.sampling_rate)
 
         lats_ = []
         lons_ = []
@@ -217,23 +220,24 @@ class Dataset:
         # lats = np.array(lats_, dtype=np.float64)
         
         npts = np.array([len(d) for d in data_], dtype=int).max()
-        data_arr = np.zeros((3, nr, npts), dtype=np.float64)
-        for i in range(len(dataset_info.indices.values)):
-            component = components_[dataset_info.indices.values[i]]
+        data_arr = np.zeros((1, 3, nr, npts), dtype=np.float64)
+        for ista in range(len(dataset_info.indices.values)):
+            component = components_[dataset_info.indices.values[ista]]
             icomp = Component.parse_component(component).value
             try:
-                data_arr[icomp, i] = data_[dataset_info.indices.values[i]]
+                data_arr[0, icomp, ista] = data_[
+                    dataset_info.indices.values[ista]]
             except:
-                n_tmp = len(data_[dataset_info.indices.values[i]])
+                n_tmp = len(data_[dataset_info.indices.values[ista]])
                 if n_tmp < npts:
                     tmp_data = np.pad(
-                        data_[dataset_info.indices.values[i]],
+                        data_[dataset_info.indices.values[ista]],
                         (0,npts-n_tmp), mode='constant',
                         constant_values=(0,0))
-                    data_arr[icomp, i] = tmp_data
+                    data_arr[0, icomp, ista] = tmp_data
                 else:
-                    data_arr[icomp, i] = (
-                        data_[dataset_info.indices.values[i]][:npts])
+                    data_arr[0, icomp, ista] = (
+                        data_[dataset_info.indices.values[ista]][:npts])
 
         remaining_traces_indices = (set(indices_) 
             - set(dataset_info.indices.values))
@@ -247,7 +251,7 @@ class Dataset:
             component = components_[i]
             icomp = Component.parse_component(component).value
             try:
-                data_arr[icomp, j] = data_[i]
+                data_arr[0, icomp, j] = data_[i]
             except:
                 n_tmp = len(data_[i])
                 if n_tmp < npts:
@@ -255,43 +259,60 @@ class Dataset:
                         data_[i],
                         (0,npts-n_tmp), mode='constant',
                         constant_values=(0,0))
-                    data_arr[icomp, j] = tmp_data
+                    data_arr[0, icomp, j] = tmp_data
                 else:
-                    data_arr[icomp, j] = (
+                    data_arr[0, icomp, j] = (
                         data_[i][:npts])
 
         return cls(
             lats, lons, phis, thetas, eqlats, eqlons,
-            r0s, mts, nrs, stations, events, data_arr, sampling)
+            r0s, mts, nrs, stations, events, data_arr, sampling_hz)
 
     def apply_windows(self, windows, n_phase, npts_max, buffer=0):
         '''Cut the data using provided windows.
         Args:
-            windows (list(pydsm.windows)): time windows
+            windows (list(pydsm.window)): time windows
             n_phase (int): number of distinct seismic phases in windows
             npts_max (int): number of time points in the longest window
         '''
-        npts_buffer = int(buffer * self.sampling)
+        npts_buffer = int(buffer * self.sampling_hz)
         data_cut = np.zeros(
             (n_phase, 3, self.nr, npts_max+2*npts_buffer),
             dtype=np.float32)
         self.ts_start_end = np.zeros((n_phase, self.nr, 2), dtype=np.float32)
         for iev, event in enumerate(self.events):
             start, end = self.get_bounds_from_event_index(iev)
-            for i in range(start, end):
+            for ista in range(start, end):
                 windows_filt = [
                     w for w in windows
-                    if w.station == self.stations[i]
+                    if w.station == self.stations[ista]
                     and w.event == event]
-                # TODO deal with multiple components
-                for j, window in enumerate(windows_filt):
+
+                # TODO do it. Current state leads to data dupplication
+                # but be careful to add procedure to match the windows
+
+                # Remove windows where only the component differ
+                # windows_filt_onecomponent = []
+                # for w in windows_filt:
+                #     found = False
+                #     for w1 in windows_filt_onecomponent:
+                #         if (w.event==w1.event
+                #             and w.station==w1.station
+                #             and w.phase_name == w1.phase_name):
+                #             found = True
+                #             break
+                #     if not found:
+                #         windows_filt_onecomponent.append(w)
+                # windows_filt = windows_filt_onecomponent
+
+                for iwin, window in enumerate(windows_filt):
                     window_arr = window.to_array()
-                    i_start = int((window_arr[0] - buffer) * self.sampling)
-                    i_end = int((window_arr[1] + buffer) * self.sampling)
-                    data_cut[j, :, i, :] = self.data[:, i, i_start:i_end]
-                    self.ts_start_end[j, i] = window_arr
+                    i_start = int((window_arr[0] - buffer) * self.sampling_hz)
+                    i_end = int((window_arr[1] + buffer) * self.sampling_hz)
+                    data_cut[iwin, :, ista, :] = self.data[0, :,
+                        ista, i_start:i_end]
+                    self.ts_start_end[iwin, ista] = window_arr
         self.data = data_cut
-                    
 
     def get_chunks_station(self, n_cores, verbose=0):
         chunk_size = self.nr // n_cores
@@ -343,19 +364,22 @@ class Dataset:
         if type == 'bandpass':
             assert freq2 > freq
 
-        if self.data.shape[2] == 0:
+        if self.data.shape[3] == 0:
             return
 
-        for icomp in range(3):
-            for i in range(self.data.shape[1]):
-                if type == 'lowpass':
-                    self.data[icomp, i] = obspy.signal.filter.lowpass(
-                        self.data[icomp, i], freq,
-                        df=self.sampling, zerophase=zerophase)
-                elif type == 'bandpass':
-                    self.data[icomp, i] = obspy.signal.filter.bandpass(
-                        self.data[icomp, i], freq, freq2,
-                        df=self.sampling, zerophase=zerophase)
+        for iwin in range(self.data.shape[0]):
+            for icomp in range(3):
+                for ista in range(self.data.shape[2]):
+                    if type == 'lowpass':
+                        self.data[iwin, icomp, ista] = (
+                            obspy.signal.filter.lowpass(
+                                self.data[iwin, icomp, ista], freq,
+                                df=self.sampling_hz, zerophase=zerophase))
+                    elif type == 'bandpass':
+                        self.data[iwin, icomp, ista] = (
+                            obspy.signal.filter.bandpass(
+                                self.data[iwin, icomp, ista], freq, freq2,
+                                df=self.sampling_hz, zerophase=zerophase))
 
     def get_bounds_from_event_index(self, ievent):
         '''Return start,end indicies to slice 
@@ -366,25 +390,15 @@ class Dataset:
 
     def set_source_time_functions(self, type, catalog_name):
         if type == 'scardec':
-            for i, event in enumerate(self.events):
-                duration = scardec.get_duration(event)
-                if duration is not None:
-                    stf = SourceTimeFunction(
-                        'triangle', duration/2.)
-                    self.events[i].source_time_function = stf
+            stf_catalog = STFCatalog.read_scardec()
         elif type == 'user':
-            with open(catalog_name, 'r') as f:
-                catalog = {
-                    ss[0].strip(): [float(ss[1]), float(ss[2])]
-                    for line in f.readlines()
-                    for ss in line.strip().split()}
-            for i, event in enumerate(self.events):
-                if event.event_id in catalog:
-                    stf = SourceTimeFunction(
-                        'triangle', catalog[event.event_id][1]/2.)
-                    self.events[i].source_time_function = stf
+            stf_catalog = STFCatalog.read_from_file(catalog_name)
         else:
             raise ValueError('Expect "scardec" or "user" for arg "type"')
+        for i, event in enumerate(self.events):
+            if event.event_id in stf_catalog:
+                stf = stf_catalog[event.event_id]
+                self.events[i].source_time_function = stf
 
     def plot_event(
             self, ievent, windows=None, align_zero=False,
@@ -406,17 +420,17 @@ class Dataset:
                                 and (w.component == component)),
                     windows))
                 window = windows_tmp[0].to_array()
-                i0 = int(window[0] * self.sampling)
-                i1 = int(window[1] * self.sampling)
+                i0 = int(window[0] * self.sampling_hz)
+                i1 = int(window[1] * self.sampling_hz)
 
-                data = self.data[component.value, i, i0:i1]
+                data = self.data[0, component.value, i, i0:i1]
                 ts = np.linspace(window[0], window[1], len(data))
             else:
-                data = self.data[component.value, i]
-                ts = np.linspace(0, len(data)/self.sampling, len(data))
+                data = self.data[0, component.value, i]
+                ts = np.linspace(0, len(data)/self.sampling_hz, len(data))
             if align_zero:
                 ts = np.linspace(
-                    0, len(data)/self.sampling, len(data))
+                    0, len(data)/self.sampling_hz, len(data))
 
             norm = np.abs(data).max() * 2.
             ax.plot(ts, data/norm+distance, **kwargs)

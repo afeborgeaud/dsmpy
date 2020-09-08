@@ -16,7 +16,7 @@ if __name__ == '__main__':
         dataset, 'prem', ['s', 'S', 'Sdiff'],
         [Component.T], t_before=10., t_after=30.)
 
-    npts = 40 * dataset.sampling
+    npts = 40 * dataset.sampling_hz
     dataset.apply_windows(windows, 2, npts, buffer=0)
     print(dataset.data.shape)
 

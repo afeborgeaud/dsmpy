@@ -16,10 +16,12 @@ class SpcTime:
 
     def find_npts(self):
         npts = int(self.tlen * self.sampling_hz)
-        pow2 = self.setBitNumber(npts)
-        pow2 = pow2 * 2 if pow2 < npts else pow2
-        # return pow2
-        return npts
+        if npts % 2 != 0:
+            pow2 = self.setBitNumber(npts)
+            pow2 = pow2 * 2 if pow2 < npts else pow2
+        else:
+            pow2 = npts
+        return pow2
 
     def find_lsmooth(self):
         nspc = self.setBitNumber(self.nspc)

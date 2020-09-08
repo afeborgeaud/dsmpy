@@ -1,6 +1,6 @@
 import numpy as np
 from pydsm import dsm
-from pydsm.spc.spctime import SourceTimeFunction
+from pydsm.spc.stf import SourceTimeFunction
 from pydsm import rootdsm_sh
 import matplotlib.pyplot as plt
 from scipy.integrate import trapz
@@ -14,8 +14,8 @@ if __name__ == '__main__':
     Es = []
     for sampling_hz in sampling_hzs:
         inputs = dsm.PyDSMInput.input_from_file(parameter_file, 
-            sampling_hz=sampling_hz, mode=1)
-        outputs = dsm.compute(inputs)
+            sampling_hz=sampling_hz, mode=2)
+        outputs = dsm.compute(inputs, mode=2)
         outputs.to_time_domain()
         u = outputs.us[2,0]
         E = trapz(u**2, dx=1/sampling_hz**2)

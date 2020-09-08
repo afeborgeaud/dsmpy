@@ -1,7 +1,7 @@
 import numpy as np
 from pydsm import dsm
 from pydsm import rootdsm
-from pydsm.spc.spctime import SourceTimeFunction
+from pydsm.spc.stf import SourceTimeFunction
 
 import matplotlib.pyplot as plt
 

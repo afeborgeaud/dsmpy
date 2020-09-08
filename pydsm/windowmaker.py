@@ -7,7 +7,7 @@ from pydsm.component import Component
 import pickle
 
 class WindowMaker:
-    """Utility class to compute list of pydsm.Windows.
+    """Utility class to compute list of pydsm.window.Window.
     """
 
     @staticmethod
@@ -45,7 +45,7 @@ class WindowMaker:
             t_before (float): time before arrival (default: 10)
             t_after (float): time after arrival (default: 40)
         Returns:
-            windows (list(pydsm.Windows)): time windows
+            windows (list(pydsm.window.Window)): time windows
         '''
         windows = []
         for i, event in enumerate(dataset.events):

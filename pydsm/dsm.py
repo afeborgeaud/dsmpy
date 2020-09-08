@@ -408,6 +408,8 @@ class PyDSMOutput:
         """
         if self.us is None:
             self.to_time_domain()
+        if sum([type(k) == int for k in key]) == len(key):
+            return self.us[key]
         if len(key) == 1:
             if key == 'Z':
                 return self.us[0, ...]
@@ -416,16 +418,20 @@ class PyDSMOutput:
             elif key == 'T':
                 return self.us[2, ...]
         elif len(key) == 2:
-            try:
-                if (type(key[1]) != str) and _is_iterable(key[1]):
-                    indexes = [self.stations.index(k)
-                               for k in key[1]]
-                    return self.__getitem__(key[0])[indexes, :]
-                else:
-                    index = self.stations.index(key[1])
-                    return self.__getitem__(key[0])[index, :]
-            except:
-                raise KeyError('Station {} not in list'.format(key[1]))
+            if type(key[1]) is int:
+                    print(self.__getitem__(key[0])[key[1]])
+                    return self.__getitem__(key[0])[key[1]]
+            else:
+                try:
+                    if (type(key[1]) != str) and _is_iterable(key[1]):
+                        indexes = [self.stations.index(k)
+                                for k in key[1]]
+                        return self.__getitem__(key[0])[indexes, :]
+                    else:
+                        index = self.stations.index(key[1])
+                        return self.__getitem__(key[0])[index, :]
+                except:
+                    raise KeyError('Station {} not in list'.format(key[1]))
         else:
             raise KeyError('key {} undefined'.format(key))
 
@@ -696,7 +702,7 @@ class PyDSMInput(DSMInput):
         self.event = self._parse_event()
         self.mode = mode
         if mode not in {1, 2}:
-            raise RuntimeError('mode should be 1 or 2')
+            raise RuntimeError('mode should be 1 (PSV) or 2 (SH)')
 
     @classmethod
     def input_from_file(cls, parameter_file,
@@ -791,7 +797,7 @@ def compute(pydsm_input, write_to_file=False,
 
     Returns:
         dsm_output (PyDSMOutput): object containing spectra and
-            statations/source information
+            stations/source information
     
     Note:
         SH and P-SV spectra are summed by default. Using only P-SV

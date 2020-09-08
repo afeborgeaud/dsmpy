@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
+from datetime import datetime
 from pydsm import dsm, rootdsm_sh
 from pydsm.spc import spctime
 from pydsm.seismicmodel import SeismicModel
@@ -16,9 +17,10 @@ def get_input():
     mt = MomentTensor(Mrr=-0.193, Mrt=0.0998, Mrp=-0.148,
                                  Mtt=0.0571, Mtp=-0.141, Mpp=0.136)
     source_time_function = None
+    centroid_time = datetime.now()
 
     event = Event('', -1.600000023841858, -78.05000305175781,
-                      6371-6195.2, mt.to_array(),
+                      6371-6195.2, mt, centroid_time,
                       source_time_function=source_time_function)
     stations = [
         Station('109C', 'TA', 32.88890075683594, -117.1051025390625)]
@@ -35,7 +37,7 @@ def get_input():
 def get_u_pydsm():
     pydsm_input = get_input()
 
-    outputs = dsm.compute(pydsm_input)
+    outputs = dsm.compute(pydsm_input,mode=2)
     outputs.to_time_domain()
     return outputs.us, outputs.ts
 

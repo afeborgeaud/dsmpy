@@ -4,7 +4,6 @@ import os
 import sys
 from pydsm import dsm, rootdsm_sh
 from pydsm.spc import spctime
-
 from pydsm._tish import _pinput, _tish
 
 
