@@ -14,12 +14,14 @@ class ModelParameters:
         self._radii = radii
         self._mesh_type = mesh_type
         if mesh_type == 'boxcar':
-            self._n_nodes = len(radii) - 1
+            self._n_nodes = len(radii)
+            self._n_grd_params = len(radii) - 1
             self._nodes = np.array(radii)
         elif mesh_type == 'triangle':
             # self._n_nodes = int(
             #     len(radii) - 1 + np.ceil((len(radii)-1) / 2))
-            self._n_nodes = 2 * len(radii) - 1
+            self._n_nodes = len(radii)
+            self._n_grd_params = 2 * len(radii) - 1
             n = 2 * len(radii) - 1
             self._nodes = np.zeros(n, dtype=np.float64)
             for i in range(n-1):
@@ -31,7 +33,7 @@ class ModelParameters:
         return self._nodes
 
     def get_values_matrix(self, values_dict):
-        values_mat = np.zeros((self._n_nodes, 8), np.float64)
+        values_mat = np.zeros((self._n_grd_params, 8), np.float64)
         for key, values in values_dict.items():
             values_mat[:, key] = values
         return values_mat

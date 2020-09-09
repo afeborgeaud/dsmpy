@@ -53,6 +53,8 @@ class Dataset:
         self.events = events
         self.data = data
         self.sampling_hz = sampling_hz
+        
+        self.is_cut = False
 
     @classmethod
     def dataset_from_files(cls, parameter_files, mode=1):
@@ -268,7 +270,7 @@ class Dataset:
             lats, lons, phis, thetas, eqlats, eqlons,
             r0s, mts, nrs, stations, events, data_arr, sampling_hz)
 
-    def apply_windows(self, windows, n_phase, npts_max, buffer=0):
+    def apply_windows(self, windows, n_phase, npts_max, buffer=0.):
         '''Cut the data using provided windows.
         Args:
             windows (list(pydsm.window)): time windows
@@ -313,6 +315,7 @@ class Dataset:
                         ista, i_start:i_end]
                     self.ts_start_end[iwin, ista] = window_arr
         self.data = data_cut
+        self.is_cut = True
 
     def get_chunks_station(self, n_cores, verbose=0):
         chunk_size = self.nr // n_cores
@@ -364,8 +367,15 @@ class Dataset:
         if type == 'bandpass':
             assert freq2 > freq
 
+        if type not in {'bandpass', 'lowpass'}:
+            raise ValueError('Expect "bandpass" or "lowpass" for arg "type"')
+
         if self.data.shape[3] == 0:
+            print('Do nothing')
             return
+
+        if type == 'bandpass':
+            assert freq2 > freq
 
         for iwin in range(self.data.shape[0]):
             for icomp in range(3):
@@ -411,14 +421,16 @@ class Dataset:
         for i in range(start, end):
             distance = self.events[ievent].get_epicentral_distance(
                 self.stations[i])
-
+            
             # select corresponding window
-            if windows is not None:
+            if (windows is not None) and (not self.is_cut):
                 windows_tmp = list(filter(
                     lambda w: ((w.station == self.stations[i])
                                 and (w.event == self.events[ievent])
                                 and (w.component == component)),
                     windows))
+                if not windows_tmp:
+                    continue
                 window = windows_tmp[0].to_array()
                 i0 = int(window[0] * self.sampling_hz)
                 i1 = int(window[1] * self.sampling_hz)

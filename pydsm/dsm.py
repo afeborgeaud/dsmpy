@@ -377,6 +377,8 @@ class PyDSMOutput:
                                 and (w.event == self.event)
                                 and (w.component == component)),
                     windows))
+                if not windows_tmp:
+                    continue
                 window = windows_tmp[0].to_array()
                 if np.isnan(window[0]):
                     data = np.ones(1)
@@ -1249,6 +1251,7 @@ def _get_models_array(models, maxnzone):
     n = len(models)
     model_arr = np.empty((4, maxnzone, 6, n), dtype=np.float64, order='F')
     model_scal_arr = np.empty((maxnzone, 4, n), dtype=np.float64, order='F')
+
     for i in range(n):
         model_arr[:,:,0,i] = models[i].get_rho()
         model_arr[:,:,1,i] = models[i].get_vpv()
@@ -1338,7 +1341,6 @@ def compute_models_parallel(
         model_scal_arr_local, root=0)
 
     # TODO broadcast dataset
-
 
     model_event_spc_local = np.empty(
         (len(dataset.events), 3, nspc+1, dataset.nr, nmod),

@@ -29,7 +29,8 @@ class SeismicModel:
 
     def __init__(
             self, vrmin, vrmax, rho, vpv, vph,
-            vsv, vsh, eta, qmu, qkappa, model_id):
+            vsv, vsh, eta, qmu, qkappa, model_id,
+            mesh_type=None):
         self._vrmin = vrmin
         self._vrmax = vrmax
         self._rho = rho
@@ -42,6 +43,7 @@ class SeismicModel:
         self._qkappa = qkappa
         self._nzone = rho.shape[1]
         self._model_id = model_id
+        self._mesh_type = mesh_type
 
     def __copy__(self):
         cls = self.__class__
@@ -56,9 +58,10 @@ class SeismicModel:
         qmu = np.array(self._qmu)
         qkappa = np.array(self._qkappa)
         model_id = str(self._model_id)
+        mesh_type = str(self._mesh_type)
         return self.__new__(
             vrmin, vrmax, rho, vpv, vph,
-            vsv, vsh, eta, qmu, qkappa, model_id)
+            vsv, vsh, eta, qmu, qkappa, model_id, mesh_type)
 
     def get_rho(self):
         return np.pad(
@@ -428,12 +431,12 @@ class SeismicModel:
                 & set(np.where(self._vrmin >= nodes[i])[0]))
             if self._mesh_type == 'boxcar':
                 for index in indexes:
-                    mesh._rho[:, index] *= values[i, 0]
-                    mesh._vpv[:, index] *= values[i, 1]
-                    mesh._vph[:, index] *= values[i, 2]
-                    mesh._vsv[:, index] *= values[i, 3]
-                    mesh._vsh[:, index] *= values[i, 4]
-                    mesh._eta[:, index] *= values[i, 5]
+                    mesh._rho[0, index] *= values[i, 0]
+                    mesh._vpv[0, index] *= values[i, 1]
+                    mesh._vph[0, index] *= values[i, 2]
+                    mesh._vsv[0, index] *= values[i, 3]
+                    mesh._vsh[0, index] *= values[i, 4]
+                    mesh._eta[0, index] *= values[i, 5]
                     mesh._qmu[index] *= values[i, 6]
                     mesh._qkappa[index] *= values[i, 7]
             elif self._mesh_type == 'triangle':
@@ -686,7 +689,6 @@ if __name__ == '__main__':
     # mesh
     model, mesh = ak135.boxcar_mesh(model_params)
     # multiply mesh with values
-    print(model_params._n_nodes)
     values = np.array([0.05 * (-1)**i for i in range(model_params._n_nodes)])
     values_dict = {
         ParameterType.VSH: values}
