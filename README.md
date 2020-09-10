@@ -9,7 +9,7 @@ git clone git@github.com:afeborgeaud/pydsm.git
 
 2) Set the PYTHONPATH
 ```export PYTHONPATH="$PYTHONPATH:<path_of_pydsm_folder>"```  
-- Warning: at the moment, the pydsm folder must be named `pydsm' for the python imports to work (not, e.g., pydsm-master)*
+- Warning: at the moment, the pydsm folder must be named `pydsm' for the python imports to work (not, e.g., pydsm-master)
 
 3) Install [Anaconda (python 3)](https://www.anaconda.com/products/individual)
 
