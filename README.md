@@ -16,7 +16,7 @@ git clone git@github.com:afeborgeaud/pydsm.git
 4) Using ```conda```, install the following python packages required to run *pydsm*:
 ```shell
 # create environment pydsm (or any other name)
-conda create -n pydsm
+conda create -n pydsm python=3.7
 # install dependencies
 conda install -n pydsm numpy mpi4py pandas matplotlib -y
 conda install -n pydsm -c conda-forge obspy geographiclib -y
