@@ -1118,7 +1118,10 @@ def compute_dataset_parallel(
     comm.Scatter(sendcounts_sta, nr, root=0)
 
     if scalar_dict['verbose'] >= 1:
-        log.write('rank {}: nr={}\n'.format(rank, nr))
+        if log:
+            log.write('rank {}: nr={}\n'.format(rank, nr))
+        else:
+            print('rank {}: nr={}'.format(rank, nr))
 
     lon_local = np.empty(nr, dtype=np.float64)
     lat_local = np.empty(nr, dtype=np.float64)
@@ -1192,7 +1195,11 @@ def compute_dataset_parallel(
             *input_local.get_inputs_for_tish(),
             write_to_file=False)
     end_time = time.time()
-    log.write('rank {}: {} paths finished in {} s\n'
+    if log:
+        log.write('rank {}: {} paths finished in {} s\n'
+          .format(rank, input_local.nr, end_time - start_time))
+    else:
+        print('rank {}: {} paths finished in {} s'
           .format(rank, input_local.nr, end_time - start_time))
 
     # TODO change the order of outputu in DSM 

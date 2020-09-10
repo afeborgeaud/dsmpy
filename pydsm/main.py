@@ -74,6 +74,9 @@ if __name__ == '__main__':
         mode = None
         verbose = None
     
+    # log file
+    log = open('log', 'w')
+
     # run pydsm
     start_time = time.time()
     outputs = dsm.compute_dataset_parallel(dataset, seismic_model,
@@ -81,7 +84,8 @@ if __name__ == '__main__':
                                            nspc,
                                            sampling_hz,
                                            comm, mode=mode,
-                                           verbose=verbose)
+                                           verbose=verbose,
+                                           log=log)
     end_time = time.time()
     print('rank {}: DSM finished in {} s'
           .format(rank, end_time-start_time))
@@ -98,3 +102,4 @@ if __name__ == '__main__':
 
         #plot(outputs[0], params['sac_files'][0])
     
+    log.close()
