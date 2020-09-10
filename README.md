@@ -22,7 +22,7 @@ conda install -n pydsm numpy mpi4py pandas matplotlib -y
 conda install -n pydsm -c conda-forge obspy geographiclib -y
 ```
 
-5) Activate the pydsm conda pydsm environment. *pydsm* should be run within this enviroment (otherwise, you might miss some dependencies)
+5) Activate the pydsm conda environment. *pydsm* should be run within this enviroment (otherwise, you might miss some dependencies)
 ```
 conda activate pydsm
 ```
