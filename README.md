@@ -39,7 +39,7 @@ Note: Fortran sources for the DSM will be compiled the first time *pydsm* is imp
 Before getting started, you should at least run ```python test_tipsv.py``` and ```python test_tish.psv``` located in in ```<path_of_pydsm_folder>/pydsm/tests```. These scripts check pydsm against pre-computed synthetics using the DSM (Fortran).
 
 ## EXAMPLES OF USAGE
-### 1) Running pydsm using pydsm input file (run on multiple CPUs)
+1) Running pydsm using pydsm input file (run on multiple CPUs)
 A template input file is in ```pydsm/tests/input_files/template.txt```:
 ```shell
 sac_files ~/git/pydsm/tests/sac_files/*T
@@ -67,7 +67,7 @@ To run this input file on 2 CPUs:
 mpiexec -n 2 python pydsm/main.py tests/input_files/template.txt
 ```
 
-### 2) Running pydsm from your python script
+2) Running pydsm from your python script
 Below is an example of python script using pydsm to compute synthetics:
 ```python
 from pydsm import dsm, seismicmodel
@@ -104,7 +104,7 @@ u_Z_FCC = output['Z', 'FCC_CN']
 output.write(root_path='.', format='sac')
 ```
 
-### 3) Running pydsm using a (Fortran) DSM input file
+3) Running pydsm using a (Fortran) DSM input file
 Methods are provided to run pydsm using an input file for the (Fortran) DSM:
 ```python
 from pydsm import dsm, rootdsm_sh
