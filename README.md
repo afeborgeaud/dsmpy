@@ -40,7 +40,7 @@ Before getting started, you should at least run ```python test_tipsv.py``` and `
 
 ## EXAMPLES OF USAGE
 1) Running pydsm using pydsm input file (run on multiple CPUs).
-A template input file is in ```pydsm/tests/input_files/template.txt```:
+A template input file is in ```<path_of_pydsm_folder>/pydsm/tests/input_files/template.txt```:
 ```shell
 sac_files ~/git/pydsm/tests/sac_files/*T
 output_folder ~/git/pydsm/tests/sac_files
@@ -61,7 +61,7 @@ verbose 0
 
 To run this input file on 2 CPUs:
 1) open a Terminal 
-2) change the current directory to the pydsm git directory
+2) change the current directory to the pydsm directory
 3) paste:
 ```shell
 mpiexec -n 2 python pydsm/main.py tests/input_files/template.txt
