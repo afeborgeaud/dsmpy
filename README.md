@@ -38,7 +38,7 @@ Note: Fortran sources for the DSM will be compiled the first time *pydsm* is imp
 ## GETTING STARTED
 Before getting started, you should at least run ```python test_tipsv.py``` and ```python test_tish.psv``` located in in ```<path_of_pydsm_folder>/pydsm/tests```. These scripts check pydsm against pre-computed synthetics using the DSM (Fortran).
 
-# EXAMPLES OF USAGE
+## EXAMPLES OF USAGE
 ### 1) Running pydsm using pydsm input file (run on multiple CPUs)
 A template input file is in ```pydsm/tests/input_files/template.txt```:
 ```shell
