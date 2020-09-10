@@ -31,7 +31,7 @@ conda activate pydsm
 ```
 python -c "import pydsm"
 ```
-Fortran sources for the DSM will be compiled the first time *pydsm* is imported. Python libraries are created from the DSM Fortran sources using numpy.f2py and the gfortran compiler. If you get compilation errors, check the following:
+Note: Fortran sources for the DSM will be compiled the first time *pydsm* is imported. Python libraries are created from the DSM Fortran sources using numpy.f2py and the gfortran compiler. If you get compilation errors, check the following:
 a) gfortran >= 4.8 is required for succesful compilation, since we use the optimization flag '-Ofast'.
 b) If you have gfortran <4.8, you should change the compiler flag from '-Ofast' to '-O3' in ```<path_of_pydsm_folder>/pydsm/__init__.py```
 
