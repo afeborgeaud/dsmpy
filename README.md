@@ -16,7 +16,7 @@ git clone git@github.com:afeborgeaud/pydsm.git
 4) Using ```conda```, install the following python packages required to run *pydsm*:
 ```shell
 # create environment pydsm (or any other name)
-conda create -n pydsm
+conda create -n pydsm python=3.7
 # install dependencies
 conda install -n pydsm numpy mpi4py pandas matplotlib -y
 conda install -n pydsm -c conda-forge obspy geographiclib -y
@@ -100,7 +100,10 @@ us = output.us # synthetics. us.shape = (3,nr,tlen)
 ts = output.ts # time points [0, tlen]
 # brackets can be used to access component and station
 u_Z_FCC = output['Z', 'FCC_CN']
-# can write synthetics to SAC files
+# to plot a three-component record section, use
+output.plot()
+plt.show()
+# to write synthetics to SAC files, use
 output.write(root_path='.', format='sac')
 ```
 
