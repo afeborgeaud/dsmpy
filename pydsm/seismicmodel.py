@@ -629,11 +629,17 @@ class SeismicModel:
         if types is None:
             types = (values.keys()
                 - {ParameterType.QMU, ParameterType.QKAPPA, ParameterType.ETA})
+        if 'label' in kwargs:
+            label_kw = kwargs['label'] + ' '
+            kwargs.pop('label', None)
+        else:
+            label_kw = ''
         for i,key in enumerate(types):
+            label = label_kw + key.name
             if color is None:
-                ax.plot(values[key], rs, label=key, **kwargs)
+                ax.plot(values[key], rs, label=label, **kwargs)
             else:
-                ax.plot(values[key], rs, label=key, color=color, **kwargs)
+                ax.plot(values[key], rs, label=label, color=color, **kwargs)
         ax.set_ylim(0, 6371)
         ax.set(
             xlabel='Velocity (km/s)',

@@ -49,6 +49,7 @@ class ParameterType(IntEnum):
     QMU = 6
     QKAPPA = 7
 
+
 if __name__ == '__main__':
     types = [ParameterType.VSV, ParameterType.VSH]
     radii = np.array([3480., 3700.], dtype=np.float64)
