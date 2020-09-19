@@ -30,7 +30,7 @@ class SeismicModel:
     def __init__(
             self, vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa, model_id,
-            mesh_type=None):
+            mesh_type=None, model_params=None):
         self._vrmin = vrmin
         self._vrmax = vrmax
         self._rho = rho
@@ -44,6 +44,7 @@ class SeismicModel:
         self._nzone = rho.shape[1]
         self._model_id = model_id
         self._mesh_type = mesh_type
+        self._model_params = model_params
 
     def __copy__(self):
         cls = self.__class__
@@ -59,9 +60,11 @@ class SeismicModel:
         qkappa = np.array(self._qkappa)
         model_id = str(self._model_id)
         mesh_type = str(self._mesh_type)
+        model_params = self._model_params
         return self.__new__(
             vrmin, vrmax, rho, vpv, vph,
-            vsv, vsh, eta, qmu, qkappa, model_id, mesh_type)
+            vsv, vsh, eta, qmu, qkappa, model_id,
+            mesh_type, model_params)
 
     def get_rho(self):
         return np.pad(
@@ -380,6 +383,8 @@ class SeismicModel:
         model._nzone = model._rho.shape[1]
         mesh._nzone = mesh._rho.shape[1]
         mesh._mesh_type = 'boxcar'
+        mesh._model_params = model_parameters
+        model._model_params = model_parameters
         return model, mesh
 
     def triangle_mesh(self, model_parameters):
@@ -420,6 +425,8 @@ class SeismicModel:
         model._nzone = model._rho.shape[1]
         mesh._nzone = mesh._rho.shape[1]
         mesh._mesh_type = 'triangle'
+        mehs._model_params = model_parameters
+        model._model_params = model_parameters
         return model, mesh
 
     def multiply(self, nodes, values):
@@ -564,7 +571,9 @@ class SeismicModel:
             np.array(self._eta, dtype=np.float64),
             np.array(self._qmu, dtype=np.float64),
             np.array(self._qkappa, dtype=np.float64),
-            self._model_id)
+            self._model_id,
+            self._mesh_type,
+            self._model_params)
     
     def get_zone(self, r):
         return bisect.bisect_right(self._vrmin, r) - 1
@@ -610,6 +619,41 @@ class SeismicModel:
                     [self._qkappa[self.get_zone(r)]
                     for r in rs]}
         return rs, values
+
+    def get_value_at(self, r, type):
+        if type == ParameterType.RHO:
+            v = self.evaluate(r, self._rho[:, self.get_zone(r)])
+        elif type == ParameterType.VPV:
+            v = self.evaluate(r, self._vpv[:, self.get_zone(r)])
+        elif type == ParameterType.VPH:
+            v = self.evaluate(r, self._vph[:, self.get_zone(r)])
+        elif type == ParameterType.VSV:
+            v = self.evaluate(r, self._vsv[:, self.get_zone(r)])
+        elif type == ParameterType.VSH:
+            v = self.evaluate(r, self._vsh[:, self.get_zone(r)])
+        elif type == ParameterType.ETA:
+            v = self.evaluate(r, self._eta[:, self.get_zone(r)])
+        elif type == ParameterType.QMU:
+            v = self._qmu[self.get_zone(r)]
+        elif type == ParameterType.QKAPPA:
+            v = self._qkappa[self.get_zone(r)]
+        return v
+
+    def get_perturbations_to(self, model_ref, types, in_percent=False):
+        perturbations = np.zeros(
+            (self._model_params._n_grd_params*len(types)), dtype='float')
+        for igrd in range(self._model_params._n_grd_params):
+            ri = self._model_params._nodes[igrd]
+            for ipar, param_type in enumerate(types):
+                dv = (self.get_value_at(ri, param_type)
+                      - model_ref.get_value_at(ri, param_type))
+                if in_percent:
+                    dv /= model_ref.get_value_at(ri, param_type)
+
+                index = igrd * len(types) + ipar
+                perturbations[index] = dv
+        return perturbations
+
     
     def plot(self, ax=None, types=None, color=None, **kwargs):
         '''Plot the seismicModel.
@@ -680,10 +724,12 @@ if __name__ == '__main__':
     n_upper_mantle = 20
     n_mtz = 10
     n_lower_mantle = 12
-    rs_upper_mantle = np.linspace(depth_410, depth_moho, n_upper_mantle+1)
-    rs_mtz = np.linspace(depth_660, depth_410, n_mtz, endpoint=False)
+    rs_upper_mantle = np.linspace(depth_410, depth_moho, n_upper_mantle)
+    rs_mtz = np.linspace(depth_660, depth_410, n_mtz,
+        endpoint=(n_upper_mantle==0))
     rs_lower_mantle = np.linspace(
-        depth_max, depth_660, n_lower_mantle, endpoint=False)
+        depth_max, depth_660, n_lower_mantle,
+        endpoint=(n_mtz==0))
     radii = 6371. - np.round(
         np.hstack((rs_lower_mantle, rs_mtz, rs_upper_mantle)), 4)
     print('dr_um={}, dr_mtz={}, dr_lm={}'.format(
@@ -695,12 +741,16 @@ if __name__ == '__main__':
     # mesh
     model, mesh = ak135.boxcar_mesh(model_params)
     # multiply mesh with values
-    values = np.array([0.05 * (-1)**i for i in range(model_params._n_nodes)])
+    values = np.array(
+        [0.1 * (-1)**i for i in range(model_params._n_grd_params)])
     values_dict = {
         ParameterType.VSH: values}
     values_mat = model_params.get_values_matrix(values_dict)
     mesh_ = mesh.multiply(model_params.get_nodes(), values_mat)
     model_ = model + mesh_
+    # retrieve model perturbations
+    perturbations = model_.get_perturbations_to(model, types)
+    print('Perturbations:', perturbations)
     # figure
     fig, ax = model_.plot(types=[ParameterType.VSH])
     ax.set_ylim([radii[0]-100, 6371.])

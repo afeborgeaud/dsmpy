@@ -104,7 +104,7 @@ class PyDSMOutput:
     def __init__(
             self, spcs, stations, event,
             sampling_hz, tlen, nspc,
-            omegai=default_params['omegai']):
+            omegai=default_params['omegai'], model_id=None):
         self.spcs = spcs
         self.stations = stations
         self.event = event
@@ -116,6 +116,7 @@ class PyDSMOutput:
         self.dt = 1 / self.sampling_hz
         self.us = None
         self.ts = None
+        self.model_id = model_id
 
     @classmethod
     def output_from_pydsm_input(cls, spcs, pydsm_input):
@@ -1258,6 +1259,7 @@ def _get_models_array(models, maxnzone):
     n = len(models)
     model_arr = np.empty((4, maxnzone, 6, n), dtype=np.float64, order='F')
     model_scal_arr = np.empty((maxnzone, 4, n), dtype=np.float64, order='F')
+    model_ids = np.empty((20, n), dtype='U', order='F')
 
     for i in range(n):
         model_arr[:,:,0,i] = models[i].get_rho()
@@ -1270,7 +1272,9 @@ def _get_models_array(models, maxnzone):
         model_scal_arr[:,1,i] = models[i].get_qkappa()
         model_scal_arr[:,2,i] = models[i].get_vrmin()
         model_scal_arr[:,3,i] = models[i].get_vrmax()
-    return model_arr, model_scal_arr
+        mid = models[i]._model_id
+        model_ids[:len(mid),i] = [c for c in mid]
+    return model_arr, model_scal_arr, model_ids
 
 def compute_models_parallel(
         dataset, models,
@@ -1322,22 +1326,29 @@ def compute_models_parallel(
 
     # broadcast models
     if rank == 0:
-        model_arr, model_scal_arr = _get_models_array(models, maxnzone)
+        model_arr, model_scal_arr, model_ids = (
+            _get_models_array(models, maxnzone))
         sendcounts_mod = tuple([size*4*maxnzone*6 for size in sendcounts])
         displacements_mod = tuple([i*4*maxnzone*6 for i in displacements])
         sendcounts_scal_mod = tuple([size*maxnzone*4 for size in sendcounts])
         displacements_scal_mod = tuple([i*maxnzone*4 for i in displacements])
+        sendcounts_id = tuple([size*20 for size in sendcounts])
+        displacements_id = tuple([i*20 for i in displacements])
     else:
         model_arr, model_scal_arr = None, None
         sendcounts_mod = None
         displacements_mod = None
         sendcounts_scal_mod = None
         displacements_scal_mod = None
+        sendcounts_id = None
+        displacements_id = None
+        model_ids = None
 
     model_arr_local = np.empty(
             (4, maxnzone, 6, nmod), dtype=np.float64, order='F')
     model_scal_arr_local = np.empty(
         (maxnzone, 4, nmod), dtype=np.float64, order='F')
+    model_ids_local = np.empty((20, nmod), dtype='U', order='F')
     
     comm.Scatterv(
         [model_arr, sendcounts_mod, displacements_mod, MPI.DOUBLE],
@@ -1346,6 +1357,10 @@ def compute_models_parallel(
         [model_scal_arr, sendcounts_scal_mod,
         displacements_scal_mod, MPI.DOUBLE],
         model_scal_arr_local, root=0)
+    # comm.Scatterv(
+    #     [model_ids, sendcounts_id,
+    #     displacements_id, MPI.CHAR],
+    #     model_ids_local, root=0)
 
     # TODO broadcast dataset
 
@@ -1366,7 +1381,7 @@ def compute_models_parallel(
             model_arr_local[:,:nzone,5,imod],
             model_scal_arr_local[:nzone,0,imod],
             model_scal_arr_local[:nzone,1,imod],
-            None)
+            None, None, None)
         for iev in range(len(dataset.events)):
             start, end = dataset.get_bounds_from_event_index(iev)
             input_local = PyDSMInput.input_from_arrays(

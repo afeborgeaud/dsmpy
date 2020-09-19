@@ -355,7 +355,7 @@ class Dataset:
         counts, displacements = self.get_chunks_eq(n_cores)
         return 9*counts, 9*displacements
 
-    def filter(self, freq, freq2=0., type='lowpass', zerophase=False):
+    def filter(self, freq, freq2=0., type='bandpass', zerophase=False):
         '''Filter waveforms using obspy.signal.filter.
         Args:
             freq (float): filter frequency
