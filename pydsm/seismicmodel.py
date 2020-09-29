@@ -359,6 +359,49 @@ class SeismicModel:
             vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa, model_id)
 
+    def lininterp_mesh(self, model_parameters, discontinuous=False):
+        """
+        Args:
+            nodes (ndarray): nodes of the boxcar mesh
+        Returns:
+            model (SeismicModel): copy of self with added nodes
+            mesh (SeismicModel): mesh with boxcar polynomials
+        """
+        model = self.__copy__()
+
+        model = model._add_boundary(model_parameters.get_nodes()[0])
+        model = model._add_boundary(model_parameters.get_nodes()[-1])
+
+        for r in (set(model._vrmin) - set(model_parameters.get_nodes())):
+            if (r > model_parameters.get_nodes()[0]
+               and r < model_parameters.get_nodes()[-1]):
+               model = model._del_boundary(r)
+
+        for node in model_parameters.get_nodes():
+            model = model._add_boundary(node)
+
+        for node in model_parameters.get_nodes()[:-1]:
+            izone = model.get_zone(node)
+            r0 = model._vrmin[izone]
+            r1 = model._vrmax[izone]
+            for param_type in model_parameters._types:
+                if param_type == ParameterType.RADIUS:
+                    continue
+                y0 = self.get_value_at(r0, param_type)
+                if discontinuous:
+                    y1 = self.get_value_at(r1-1e-5, param_type)
+                else:
+                    y1 = self.get_value_at(r1, param_type)
+                x0 = r0 / 6371.
+                x1 = r1 / 6371.
+                lin_elem = self._lin_element(x0, x1, y0, y1)
+                model.set_value(izone, param_type, lin_elem)
+
+        model._nzone = model._rho.shape[1]
+        model._mesh_type = 'lininterp'
+        model._model_params = model_parameters
+        return model
+
     def boxcar_mesh(self, model_parameters):
         """
         Args:
@@ -429,73 +472,109 @@ class SeismicModel:
         model._model_params = model_parameters
         return model, mesh
 
-    def multiply(self, nodes, values):
+    def multiply(self, nodes, values_p, values_m=None):
         # assert values.shape == (len(nodes)-1, 8)
-        assert values.dtype == np.float64
+        assert values_p.dtype == np.float64
         mesh = self.__copy__()
         for i in range(len(nodes)-1):
             indexes = (set(np.where(self._vrmin < nodes[i+1])[0])
                 & set(np.where(self._vrmin >= nodes[i])[0]))
+            print(i, indexes)
             if self._mesh_type == 'boxcar':
                 for index in indexes:
-                    mesh._rho[0, index] *= values[i, 0]
-                    mesh._vpv[0, index] *= values[i, 1]
-                    mesh._vph[0, index] *= values[i, 2]
-                    mesh._vsv[0, index] *= values[i, 3]
-                    mesh._vsh[0, index] *= values[i, 4]
-                    mesh._eta[0, index] *= values[i, 5]
-                    mesh._qmu[index] *= values[i, 6]
-                    mesh._qkappa[index] *= values[i, 7]
+                    mesh._rho[0, index] *= values_p[i, 0]
+                    mesh._vpv[0, index] *= values_p[i, 1]
+                    mesh._vph[0, index] *= values_p[i, 2]
+                    mesh._vsv[0, index] *= values_p[i, 3]
+                    mesh._vsh[0, index] *= values_p[i, 4]
+                    mesh._eta[0, index] *= values_p[i, 5]
+                    mesh._qmu[index] *= values_p[i, 6]
+                    mesh._qkappa[index] *= values_p[i, 7]
             elif self._mesh_type == 'triangle':
                 if i == 0:
                     for index in indexes:
-                        mesh._rho[:, index] *= values[i, 0]
-                        mesh._vpv[:, index] *= values[i, 1]
-                        mesh._vph[:, index] *= values[i, 2]
-                        mesh._vsv[:, index] *= values[i, 3]
-                        mesh._vsh[:, index] *= values[i, 4]
-                        mesh._eta[:, index] *= values[i, 5]
-                        mesh._qmu[index] *= values[i, 6]
-                        mesh._qkappa[index] *= values[i, 7]
+                        mesh._rho[:, index] *= values_p[i, 0]
+                        mesh._vpv[:, index] *= values_p[i, 1]
+                        mesh._vph[:, index] *= values_p[i, 2]
+                        mesh._vsv[:, index] *= values_p[i, 3]
+                        mesh._vsh[:, index] *= values_p[i, 4]
+                        mesh._eta[:, index] *= values_p[i, 5]
+                        mesh._qmu[index] *= values_p[i, 6]
+                        mesh._qkappa[index] *= values_p[i, 7]
                 elif i == len(nodes) - 2:
                     a_add = np.array([1., 0., 0., 0.])
                     a_mul = np.array([-1., -1., 0., 0.])
                     for index in indexes:
-                        mesh._rho[:, index] *= values[i-1, 0]
-                        mesh._vpv[:, index] *= values[i-1, 1]
-                        mesh._vph[:, index] *= values[i-1, 2]
-                        mesh._vsv[:, index] *= values[i-1, 3]
-                        mesh._vsh[:, index] *= values[i-1, 4]
-                        mesh._eta[:, index] *= values[i-1, 5]
-                        mesh._qmu[index] *= values[i-1, 6]
-                        mesh._qkappa[index] *= values[i-1, 7]
+                        mesh._rho[:, index] *= values_p[i-1, 0]
+                        mesh._vpv[:, index] *= values_p[i-1, 1]
+                        mesh._vph[:, index] *= values_p[i-1, 2]
+                        mesh._vsv[:, index] *= values_p[i-1, 3]
+                        mesh._vsh[:, index] *= values_p[i-1, 4]
+                        mesh._eta[:, index] *= values_p[i-1, 5]
+                        mesh._qmu[index] *= values_p[i-1, 6]
+                        mesh._qkappa[index] *= values_p[i-1, 7]
                 else:
                     for index in indexes:
                         a_add = np.array([1., 0., 0., 0.])
                         a_mul = np.array([-1., -1., 0., 0.])
                         mesh._rho[:, index] = (
-                            mesh._rho[:,index] * values[i, 0]
-                            + (a_mul*mesh._rho[:,index] + a_add) * values[i-1, 0])
+                            mesh._rho[:,index] * values_p[i, 0]
+                            + (a_mul*mesh._rho[:,index] + a_add)
+                            * values_p[i-1, 0])
                         mesh._vpv[:, index] = (
-                            mesh._vpv[:,index] * values[i, 1]
-                            + (a_mul*mesh._vpv[:,index] + a_add) * values[i-1, 1])
+                            mesh._vpv[:,index] * values_p[i, 1]
+                            + (a_mul*mesh._vpv[:,index] + a_add)
+                            * values_p[i-1, 1])
                         mesh._vph[:, index] = (
-                            mesh._vph[:,index] * values[i, 2]
-                            + (a_mul*mesh._vph[:,index] + a_add) * values[i-1, 2])
+                            mesh._vph[:,index] * values_p[i, 2]
+                            + (a_mul*mesh._vph[:,index] + a_add)
+                            * values_p[i-1, 2])
                         mesh._vsv[:, index] = (
-                            mesh._vsv[:,index] * values[i, 3]
-                            + (a_mul*mesh._vsv[:,index] + a_add) * values[i-1, 3])
+                            mesh._vsv[:,index] * values_p[i, 3]
+                            + (a_mul*mesh._vsv[:,index] + a_add)
+                            * values_p[i-1, 3])
                         mesh._vsh[:, index] = (
-                            mesh._vsh[:,index] * values[i, 4]
-                            + (a_mul*mesh._vsh[:,index] + a_add) * values[i-1, 4])
+                            mesh._vsh[:,index] * values_p[i, 4]
+                            + (a_mul*mesh._vsh[:,index] + a_add)
+                            * values_p[i-1, 4])
                         mesh._eta[:, index] = (
-                            mesh._eta[:,index] * values[i, 5]
-                            + (a_mul*mesh._eta[:,index] + a_add) * values[i-1, 5])
-                        mesh._qmu[index] *= values[i, 6]
-                        mesh._qkappa[index] *= values[i, 7]
+                            mesh._eta[:,index] * values_p[i, 5]
+                            + (a_mul*mesh._eta[:,index] + a_add)
+                            * values_p[i-1, 5])
+                        mesh._qmu[index] *= values_p[i, 6]
+                        mesh._qkappa[index] *= values_p[i, 7]
+            elif self._mesh_type == 'lininterp':
+                for index in indexes:
+                    r0 = self._vrmin[index]
+                    r1 = self._vrmax[index]
+                    r0_p = r0 + values_p[i, 8]
+                    r1_p = r1 + values_p[i+1, 8]
+                    y0 = self.get_value_at(
+                        r0, ParameterType.VSH) + values_p[i, 4]
+                    # y0 = self.evaluate(r0, self._vsh[:, index]) + values_p[i, 4]
+                    if values_m is not None:
+                        y1 = self.get_value_at(
+                            r1-1e-5, ParameterType.VSH) + values_m[i+1, 4]
+                    else:
+                        y1 = self.get_value_at(
+                            r1, ParameterType.VSH) + values_p[i+1, 4]
+                    # y1 = self.evaluate(r1, self._vsh[:, index]) + values_p[i+1, 4]
+                    if values_p[i, 8] != 0:
+                        print(y0, y1)
+                    x0 = r0_p / 6371.
+                    x1 = r1_p / 6371.
+                    mesh._vsh[:, index] = self._lin_element(x0, x1, y0, y1)
+                    mesh._vrmin[index] = r0_p
+                    mesh._vrmin[index+1] = r1_p
+                    mesh._vrmax[index-1] = r0_p
+                    mesh._vrmax[index] = r1_p
             else:
-                raise ValueError('Expect "boxcar" or "triangle"')
+                raise ValueError(
+                    'Expect "boxcar", "triangle", or "lininterp"')
         return mesh
+
+    def lin_mod_layer(ilay, dr0, dr1, dy0, dy1):
+        pass
 
     def __add__(self, other):
         assert np.allclose(self._vrmin, other._vrmin)
@@ -510,6 +589,11 @@ class SeismicModel:
         model._qmu += other._qmu
         model._qkappa += other._qkappa
         return model
+
+    def _lin_element(self, r0, r1, y0, y1):
+        a = (r1*y0 - r0*y1) / (r1 - r0)
+        b = (y1 - y0) / (r1 - r0)
+        return np.array([a, b, 0, 0])
 
     def _set_all_layers(self, index, values, scalar_value=0.):
         """
@@ -556,6 +640,36 @@ class SeismicModel:
             model._qmu, index-1, model._qmu[index-1])
         model._qkappa = np.insert(
             model._qkappa, index-1, model._qkappa[index-1])
+        return model
+    
+    def _del_boundary(self, r: float):
+        """Add a boundary at radius=r (km).
+
+        Returns:
+            SeismicModel with added boundary
+        """
+        model = self.__copy__()
+        if (r not in self._vrmin) and (r not in self._vrmax):
+            return model
+        index = bisect.bisect_left(self._vrmin, r)
+        model._vrmin = np.delete(model._vrmin, index)
+        model._vrmax = np.delete(model._vrmax, index-1)
+        model._rho = np.delete(
+            model._rho, index, axis=1)
+        model._vpv = np.delete(
+            model._vpv, index, axis=1)
+        model._vph = np.delete(
+            model._vph, index, axis=1)
+        model._vsv = np.delete(
+            model._vsv, index, axis=1)
+        model._vsh = np.delete(
+            model._vsh, index, axis=1)
+        model._eta = np.delete(
+            model._eta, index, axis=1)
+        model._qmu = np.delete(
+            model._qmu, index)
+        model._qkappa = np.delete(
+            model._qkappa, index)
         return model
 
     def __copy__(self):
@@ -639,19 +753,52 @@ class SeismicModel:
             v = self._qkappa[self.get_zone(r)]
         return v
 
-    def get_perturbations_to(self, model_ref, types, in_percent=False):
+    def set_value(self, izone, type, values):
+        if type == ParameterType.RHO:
+            self._rho[:, izone] = values
+        elif type == ParameterType.VPV:
+            self._vpv[:, izone] = values
+        elif type == ParameterType.VPH:
+            self._vph[:, izone] = values
+        elif type == ParameterType.VSV:
+            self._vsv[:, izone] = values
+        elif type == ParameterType.VSH:
+            self._vsh[:, izone] = values
+        elif type == ParameterType.ETA:
+            self._eta[:, izone] = values
+        elif type == ParameterType.QMU:
+            self._qmu[izone] = values
+        elif type == ParameterType.QKAPPA:
+            self._qkappa[izone] = values
+
+    def get_perturbations_to(
+            self, model_ref, types, in_percent=False,
+            range_dict=None):
         perturbations = np.zeros(
             (self._model_params._n_grd_params*len(types)), dtype='float')
         for igrd in range(self._model_params._n_grd_params):
             ri = self._model_params._nodes[igrd]
             for ipar, param_type in enumerate(types):
-                dv = (self.get_value_at(ri, param_type)
-                      - model_ref.get_value_at(ri, param_type))
+                if param_type == ParameterType.RADIUS:
+                    izone = self.get_zone(ri)
+                    v = model_ref._vrmin[izone]
+                    dv = self._vrmin[izone] - v
+                else:
+                    v = model_ref.get_value_at(ri, param_type)
+                    dv = (self.get_value_at(ri, param_type)
+                        - v)
                 if in_percent:
-                    dv /= model_ref.get_value_at(ri, param_type)
-
+                    dv /= v
+                if range_dict is not None:
+                    dv_min = range_dict[param_type][igrd, 0]
+                    dv_max = range_dict[param_type][igrd, 1]
+                    dv /= (dv_max - dv_min)
                 index = igrd * len(types) + ipar
                 perturbations[index] = dv
+        # fig, ax = self.plot(types=[ParameterType.VSH])
+        # model_ref.plot(types=[ParameterType.VSH], ax=ax)
+        # plt.text(0, 4000, perturbations)
+        # plt.show()
         return perturbations
 
     
@@ -696,15 +843,24 @@ class SeismicModel:
             pickle.dump(self, f)
 
     
-    def build_model(self, mesh, model_params, value_dict):
+    def build_model(
+            self, mesh, model_params, value_dict_p, value_dict_m=None):
         """Build a SeismicModel
         Args:
             model_params (pydsm.ModelParameters)
-            value_dict (dict): dict of ParameterType:ndarray
+            value_dict_p (dict): dict of ParameterType:ndarray
         """
-        values_mat = model_params.get_values_matrix(value_dict)
-        mesh_ = mesh.multiply(model_params.get_nodes(), values_mat)
-        model = self + mesh_
+        values_mat_p = model_params.get_values_matrix(value_dict_p)
+        if value_dict_m is not None:
+            values_mat_m = model_params.get_values_matrix(value_dict_m)
+        else:
+            values_mat_m = None
+        mesh_ = mesh.multiply(
+            model_params.get_nodes(), values_mat_p, values_mat_m)
+        if mesh_._mesh_type == 'lininterp':
+            model = mesh_
+        else:
+            model = self + mesh_
         return model
 
     @staticmethod
@@ -715,15 +871,18 @@ class SeismicModel:
 
 if __name__ == '__main__':
     ak135 = SeismicModel.ak135()
+
     # model parameters
     types = [ParameterType.VSH]
     depth_moho = 6371. - 6336.6
     depth_410 = 410.
     depth_660 = 660.
-    depth_max = 1000.
-    n_upper_mantle = 20
-    n_mtz = 10
-    n_lower_mantle = 12
+    depth_max = 900. #1000
+    
+    n_upper_mantle = 0 #20
+    n_mtz = 5 #10
+    n_lower_mantle = 2 #12
+
     rs_upper_mantle = np.linspace(depth_410, depth_moho, n_upper_mantle)
     rs_mtz = np.linspace(depth_660, depth_410, n_mtz,
         endpoint=(n_upper_mantle==0))
@@ -732,26 +891,53 @@ if __name__ == '__main__':
         endpoint=(n_mtz==0))
     radii = 6371. - np.round(
         np.hstack((rs_lower_mantle, rs_mtz, rs_upper_mantle)), 4)
-    print('dr_um={}, dr_mtz={}, dr_lm={}'.format(
-        rs_upper_mantle[1] - rs_upper_mantle[0],
-        rs_mtz[1] - rs_mtz[0],
-        rs_lower_mantle[1] - rs_lower_mantle[0]))
+    # print('dr_um={}, dr_mtz={}, dr_lm={}'.format(
+    #     rs_upper_mantle[1] - rs_upper_mantle[0],
+    #     rs_mtz[1] - rs_mtz[0],
+    #     rs_lower_mantle[1] - rs_lower_mantle[0]))
 
-    model_params = ModelParameters(types, radii, mesh_type='boxcar')
-    # mesh
-    model, mesh = ak135.boxcar_mesh(model_params)
-    # multiply mesh with values
+    # radii = np.insert(radii, 2, 5700.)
+    model_params = ModelParameters(types, radii, mesh_type='lininterp')
+
+    model_ = ak135.lininterp_mesh(model_params, discontinuous=True)
+    
+    values_m = np.array(
+        [0. if i%2==1 else 0. for i in range(model_params._n_grd_params)])
     values = np.array(
-        [0.1 * (-1)**i for i in range(model_params._n_grd_params)])
+        [0. if i%2==1 else 0. for i in range(model_params._n_grd_params)])
+    values[2] = -0.1
+    values[3] = 0
+    values_r = np.zeros(model_params._n_grd_params, dtype='float')
+    values_r[2] = -20
+    values_r[3] = -0
     values_dict = {
-        ParameterType.VSH: values}
+        ParameterType.VSH: values,
+        ParameterType.RADIUS: values_r}
+    values_dict_m = {
+        ParameterType.VSH: values_m,
+        ParameterType.RADIUS: values_r}
     values_mat = model_params.get_values_matrix(values_dict)
-    mesh_ = mesh.multiply(model_params.get_nodes(), values_mat)
-    model_ = model + mesh_
-    # retrieve model perturbations
-    perturbations = model_.get_perturbations_to(model, types)
-    print('Perturbations:', perturbations)
+    values_mat_m = model_params.get_values_matrix(values_dict_m)
+    model_ = model_.multiply(model_params.get_nodes(), values_mat, values_mat_m)
+
+    # # mesh
+    # model, mesh = ak135.boxcar_mesh(model_params)
+
+    # # multiply mesh with values
+    # values = np.array(
+    #     [0.1 * (-1)**i for i in range(model_params._n_grd_params)])
+    # values_dict = {
+    #     ParameterType.VSH: values}
+    # values_mat = model_params.get_values_matrix(values_dict)
+    # mesh_ = mesh.multiply(model_params.get_nodes(), values_mat)
+    # model_ = model + mesh_
+
+    # # retrieve model perturbations
+    # perturbations = model_.get_perturbations_to(model, types)
+    # print('Perturbations:', perturbations)
+
     # figure
     fig, ax = model_.plot(types=[ParameterType.VSH])
-    ax.set_ylim([radii[0]-100, 6371.])
+    ak135.plot(types=[ParameterType.VSH], ax=ax)
+    ax.set_ylim([radii[0]-200, 6371.])
     plt.show()
