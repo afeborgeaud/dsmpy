@@ -820,6 +820,7 @@ class SeismicModel:
         if types is None:
             types = (values.keys()
                 - {ParameterType.QMU, ParameterType.QKAPPA, ParameterType.ETA})
+        types = set(types) - {ParameterType.RADIUS}
         if 'label' in kwargs:
             label_kw = kwargs['label'] + ' '
             kwargs.pop('label', None)
