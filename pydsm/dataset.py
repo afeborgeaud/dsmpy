@@ -270,7 +270,9 @@ class Dataset:
             lats, lons, phis, thetas, eqlats, eqlons,
             r0s, mts, nrs, stations, events, data_arr, sampling_hz)
 
-    def apply_windows(self, windows, n_phase, npts_max, buffer=0.):
+    def apply_windows(
+            self, windows, n_phase, npts_max, buffer=0.,
+            t_before_noise=50.):
         '''Cut the data using provided windows.
         Args:
             windows (list(pydsm.window)): time windows
@@ -280,8 +282,9 @@ class Dataset:
         npts_buffer = int(buffer * self.sampling_hz)
         data_cut = np.zeros(
             (n_phase, 3, self.nr, npts_max+2*npts_buffer),
-            dtype=np.float32)
-        self.ts_start_end = np.zeros((n_phase, self.nr, 2), dtype=np.float32)
+            dtype='float')
+        self.ts_start_end = np.zeros((n_phase, self.nr, 2), dtype='float')
+        self.noise = np.zeros((n_phase, 3, self.nr), dtype='float')
         for iev, event in enumerate(self.events):
             start, end = self.get_bounds_from_event_index(iev)
             for ista in range(start, end):
@@ -314,6 +317,12 @@ class Dataset:
                     data_cut[iwin, :, ista, :] = self.data[0, :,
                         ista, i_start:i_end]
                     self.ts_start_end[iwin, ista] = window_arr
+                    # compute noise
+                    i_start_noise = int((window_arr[0] - t_before_noise)
+                        * self.sampling_hz)
+                    noise_tr = self.data[0, :, ista, i_start_noise:i_start]
+                    noise = np.sum(noise_tr**2, axis=1) / noise_tr.shape[1]
+                    self.noise[iwin, :, ista] = noise
         self.data = data_cut
         self.is_cut = True
 
@@ -412,7 +421,8 @@ class Dataset:
 
     def plot_event(
             self, ievent, windows=None, align_zero=False,
-            component=Component.T, ax=None, **kwargs):
+            component=Component.T, ax=None,
+            dist_min=0, dist_max=360, **kwargs):
         start, end = self.get_bounds_from_event_index(ievent)
         if ax == None:
             fig, ax = plt.subplots(1)
@@ -421,7 +431,9 @@ class Dataset:
         for i in range(start, end):
             distance = self.events[ievent].get_epicentral_distance(
                 self.stations[i])
-            
+            if distance < dist_min or distance > dist_max:
+                continue
+
             # select corresponding window
             if (windows is not None) and (not self.is_cut):
                 windows_tmp = list(filter(
@@ -445,6 +457,7 @@ class Dataset:
                     0, len(data)/self.sampling_hz, len(data))
 
             norm = np.abs(data).max() * 2.
+            norm = norm if norm > 0 else 1.
             ax.plot(ts, data/norm+distance, **kwargs)
             ax.set(xlabel='Time (s)', ylabel='Distance (deg)')
         return fig, ax

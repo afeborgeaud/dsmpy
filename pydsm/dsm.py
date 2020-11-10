@@ -1297,12 +1297,25 @@ def compute_models_parallel(
     rank = comm.Get_rank()
     n_cores = comm.Get_size()
 
+    # TODO bad bug fix for when len(models) % n_cores != 0
+    if rank == 0:
+        if len(models) % n_cores != 0:
+            n_comp = (int(len(models)/n_cores) + 1) * n_cores - len(models)
+            models_ = models + models[:n_comp]
+            warnings.warn(
+                "n_models % n_cores != 0. "
+                "Computing padded models with len={}".format(len(models_)))
+        else:
+            models_ = models
+    else:
+        models_ = None
+
     maxnzone = tish_parameters['maxnzone']
 
     if rank == 0:
-        model_indexes = np.array(list(range(len(models))), dtype='i')
-        n_models = len(models) // n_cores
-        n0_models = len(models) - n_models * (n_cores - 1)
+        model_indexes = np.array(list(range(len(models_))), dtype='i')
+        n_models = len(models_) // n_cores
+        n0_models = len(models_) - n_models * (n_cores - 1)
         sendcounts = np.array([n_models for i in range(n_cores)], dtype='i')
         sendcounts[0] = n0_models
         displacements = sendcounts.cumsum() - sendcounts[0]
@@ -1327,7 +1340,7 @@ def compute_models_parallel(
     # broadcast models
     if rank == 0:
         model_arr, model_scal_arr, model_ids = (
-            _get_models_array(models, maxnzone))
+            _get_models_array(models_, maxnzone))
         sendcounts_mod = tuple([size*4*maxnzone*6 for size in sendcounts])
         displacements_mod = tuple([i*4*maxnzone*6 for i in displacements])
         sendcounts_scal_mod = tuple([size*maxnzone*4 for size in sendcounts])
@@ -1431,7 +1444,7 @@ def compute_models_parallel(
             for j in displacements])
 
         model_event_spc_gather = np.empty(
-            (len(dataset.events), 3, nspc+1, dataset.nr, len(models)),
+            (len(dataset.events), 3, nspc+1, dataset.nr, len(models_)),
             dtype=np.complex128, order='F')
     else:
         model_event_spc_gather = None
