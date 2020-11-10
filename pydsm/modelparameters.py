@@ -89,13 +89,15 @@ class ModelParameters:
         values_mat = np.zeros((self._n_grd_params, 9), np.float64)
         for key, values in values_dict.items():
             values_mat[:, key] = values
-        if self.mask_dict is not None:
-            for key, mask in self.mask_dict.items():
-                values_mat[~mask, key] = 0.
-        if self.equal_dict is not None:
-            for key, indexes in self.equal_dict.items():
-                for i, j in enumerate(indexes):
-                    values_mat[i, key] = values_mat[j, key]
+            
+        # TODO check that it's done elsewhere, or modify code structure
+        # if self.mask_dict is not None:
+        #     for key, mask in self.mask_dict.items():
+        #         values_mat[~mask, key] = 0.
+        # if self.equal_dict is not None:
+        #     for key, indexes in self.equal_dict.items():
+        #         for i, j in enumerate(indexes):
+        #             values_mat[i, key] = values_mat[j, key]
         return values_mat
 
 

@@ -377,7 +377,7 @@ class SeismicModel:
                and r < model_parameters.get_nodes()[-1]):
                model = model._del_boundary(r)
 
-        for node in model_parameters.get_nodes():
+        for node in (set(model_parameters.get_nodes()) - set(model._vrmin)):
             model = model._add_boundary(node)
 
         for node in model_parameters.get_nodes()[:-1]:
@@ -479,7 +479,6 @@ class SeismicModel:
         for i in range(len(nodes)-1):
             indexes = (set(np.where(self._vrmin < nodes[i+1])[0])
                 & set(np.where(self._vrmin >= nodes[i])[0]))
-            print(i, indexes)
             if self._mesh_type == 'boxcar':
                 for index in indexes:
                     mesh._rho[0, index] *= values_p[i, 0]
@@ -568,6 +567,12 @@ class SeismicModel:
                     mesh._vrmin[index+1] = r1_p
                     mesh._vrmax[index-1] = r0_p
                     mesh._vrmax[index] = r1_p
+
+                    # TODO make further tests
+                    if r1_p < r1:
+                        mesh = mesh._add_boundary(r1)
+                        izone = mesh.get_zone(r1_p)
+                        mesh._vsh[:, izone] = self._vsh[:, izone-1]
             else:
                 raise ValueError(
                     'Expect "boxcar", "triangle", or "lininterp"')
@@ -640,6 +645,10 @@ class SeismicModel:
             model._qmu, index-1, model._qmu[index-1])
         model._qkappa = np.insert(
             model._qkappa, index-1, model._qkappa[index-1])
+
+        # TODO make sure no problem
+        model._nzone += 1
+
         return model
     
     def _del_boundary(self, r: float):

@@ -2,7 +2,7 @@ module parameters
     integer, parameter :: dp = kind(1.d0) !selected_real_kind=12
     real(dp), parameter :: pi=4.d0*atan(1d0)
 
-    integer, parameter :: maxnzone = 60
+    integer, parameter :: maxnzone = 100
     integer, parameter :: maxnr = 1000
     integer, parameter :: maxlmax = 80000
     integer, parameter :: maxnlay = 88300
