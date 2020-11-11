@@ -6,11 +6,20 @@
   </head>
   <body>
     <h1>pydsm</h1>
-    <p><i>pydsm</i> is a python tool for exact computation of seismic waveforms in spherically symmetric (1-D)
-       transversely isotropic (TI) media using the direct solution methods (DSM). It uses the Fortran codes of the DSM
+    <p><i>pydsm</i> is a Python tool for exact computation of seismic waveforms in spherically symmetric (1-D)
+      transversely isotropic (TI) media using the direct solution methods (DSM). <i>pydsm</i> is based on the Fortran codes of the DSM
        (kawai et al., 2006) compiled into a python library (using numpy.f2py).
     </p>
 
+    <h2>pytomo</h2>
+    <p><a href="https://github.com/afeborgeaud/pytomo">pytomo</a> is a Python tool for seismic tomography based on <i>pydsm</i>.
+      <i>pydsm</i> can compute several seismic models in parallel, which is used in <i>pytomo</i> to run probabilistic waveform inversion
+      with a neighbourhood algorithm (Sambridge, 1999).
+    </p>
+    <p>The video below show an example of synthetic inversion with a neighbourhood algorithm for the
+      depth and shear-velocity jump in the D'' layer at the bottom of the Earth's mantle
+      (left: voronoi cells colored by waveform variance; middle: target, and best inverted model for the current iteration; right: waveforms for the target, and current best inverted model)
+    </p>
     <video width="960" controls>
       <source src="result.mp4" type="video/mp4">
     Your browser does not support the video tag
