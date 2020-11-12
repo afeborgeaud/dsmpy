@@ -14,7 +14,7 @@
 }
 
 /* Dropdown Content (Hidden by Default) */
-.button-content {
+.dropdown-content {
   display: none;
   position: absolute;
   background-color: #f1f1f1;
@@ -35,7 +35,7 @@
 .dropdown-content a:hover {background-color: #ddd;}
 
 /* Show the dropdown menu on hover */
-.button-container:hover .button-content {display: block;}
+.button-container:hover .dropdown-content {display: block;}
 
 /* Change the background color of the dropdown button when the dropdown content is shown */
 .button-container:hover .button {background-color: #3e8e41;}
