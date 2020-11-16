@@ -548,21 +548,23 @@ class SeismicModel:
                     r1 = self._vrmax[index]
                     r0_p = r0 + values_p[i, 8]
                     r1_p = r1 + values_p[i+1, 8]
-                    y0 = self.get_value_at(
-                        r0, ParameterType.VSH) + values_p[i, 4]
-                    # y0 = self.evaluate(r0, self._vsh[:, index]) + values_p[i, 4]
-                    if values_m is not None:
-                        y1 = self.get_value_at(
-                            r1-1e-5, ParameterType.VSH) + values_m[i+1, 4]
-                    else:
-                        y1 = self.get_value_at(
-                            r1, ParameterType.VSH) + values_p[i+1, 4]
-                    # y1 = self.evaluate(r1, self._vsh[:, index]) + values_p[i+1, 4]
-                    if values_p[i, 8] != 0:
-                        print(y0, y1)
-                    x0 = r0_p / 6371.
-                    x1 = r1_p / 6371.
-                    mesh._vsh[:, index] = self._lin_element(x0, x1, y0, y1)
+                    for p_type in ParameterType.structure_types():
+                        itype = p_type.value
+                        y0 = self.get_value_at(
+                            r0, p_type) + values_p[i, itype]
+                        if values_m is not None:
+                            y1 = self.get_value_at(
+                                r1-1e-5, p_type) + values_m[i+1, itype]
+                        else:
+                            y1 = self.get_value_at(
+                                r1, p_type) + values_p[i+1, itype]
+                        if values_p[i, 8] != 0:
+                            print(y0, y1)
+                        x0 = r0_p / 6371.
+                        x1 = r1_p / 6371.
+                        mesh.set_value(
+                            index, p_type, self._lin_element(x0, x1, y0, y1))
+
                     mesh._vrmin[index] = r0_p
                     mesh._vrmin[index+1] = r1_p
                     mesh._vrmax[index-1] = r0_p
@@ -572,7 +574,10 @@ class SeismicModel:
                     if r1_p < r1:
                         mesh = mesh._add_boundary(r1)
                         izone = mesh.get_zone(r1_p)
-                        mesh._vsh[:, izone] = self._vsh[:, izone-1]
+                        for p_type in ParameterType.structure_types():
+                            mesh.set_value(
+                                izone, p_type,
+                                self.get_value(izone-1, p_type))
             else:
                 raise ValueError(
                     'Expect "boxcar", "triangle", or "lininterp"')
@@ -779,6 +784,24 @@ class SeismicModel:
             self._qmu[izone] = values
         elif type == ParameterType.QKAPPA:
             self._qkappa[izone] = values
+
+    def get_value(self, izone, type):
+        if type == ParameterType.RHO:
+            return self._rho[:, izone]
+        elif type == ParameterType.VPV:
+            return self._vpv[:, izone]
+        elif type == ParameterType.VPH:
+            return self._vph[:, izone]
+        elif type == ParameterType.VSV:
+            return self._vsv[:, izone]
+        elif type == ParameterType.VSH:
+            return self._vsh[:, izone]
+        elif type == ParameterType.ETA:
+            return self._eta[:, izone]
+        elif type == ParameterType.QMU:
+            return self._qmu[izone]
+        elif type == ParameterType.QKAPPA:
+            return self._qkappa[izone]
 
     def get_perturbations_to(
             self, model_ref, types, in_percent=False,

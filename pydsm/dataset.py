@@ -272,12 +272,14 @@ class Dataset:
 
     def apply_windows(
             self, windows, n_phase, npts_max, buffer=0.,
-            t_before_noise=50.):
+            t_before_noise=100.):
         '''Cut the data using provided windows.
         Args:
             windows (list(pydsm.window)): time windows
             n_phase (int): number of distinct seismic phases in windows
             npts_max (int): number of time points in the longest window
+            buffer (float): default: 0.
+            t_before_noise (float): default: 50.
         '''
         npts_buffer = int(buffer * self.sampling_hz)
         data_cut = np.zeros(
@@ -318,10 +320,12 @@ class Dataset:
                         ista, i_start:i_end]
                     self.ts_start_end[iwin, ista] = window_arr
                     # compute noise
-                    i_start_noise = int((window_arr[0] - t_before_noise)
-                        * self.sampling_hz)
-                    noise_tr = self.data[0, :, ista, i_start_noise:i_start]
-                    noise = np.sum(noise_tr**2, axis=1) / noise_tr.shape[1]
+                    i_end_noise = (i_start
+                        - int(t_before_noise*self.sampling_hz))
+                    i_start_noise = (i_end_noise - (i_end-i_start))
+                    noise_tr = self.data[0, :, ista, i_start_noise:i_end_noise]
+                    noise = np.sqrt(
+                        np.sum(noise_tr**2, axis=1) / noise_tr.shape[1])
                     self.noise[iwin, :, ista] = noise
         self.data = data_cut
         self.is_cut = True

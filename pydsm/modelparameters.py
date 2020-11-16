@@ -43,13 +43,26 @@ class ModelParameters:
         return self._n_grd_params * len(self._types)
 
     def set_constraints(self, mask_dict=None, equal_dict=None):
-        self.mask_dict = mask_dict
-        self.equal_dict = equal_dict
+        if mask_dict is not None:
+            self.mask_dict = mask_dict
+        else:
+            self.mask_dict = dict()
+            for param_type in self._types:
+                self.mask_dict[param_type] = np.ones(
+                    self._n_grd_params, dtype='bool')
+        if equal_dict is not None:
+            self.equal_dict = equal_dict
+        else:
+            self.equal_dict = dict()
+            for param_type in types:
+                self.equal_dict[param_type] = np.arange(
+                    model_params._n_grd_params, dtype='int')
+
         for param_type in self._types:
-            if param_type not in equal_dict:
+            if param_type not in self.equal_dict:
                 self.equal_dict[param_type] = np.arange(
                     self._n_grd_params, dtype='int')
-            if param_type not in mask_dict:
+            if param_type not in self.mask_dict:
                 self.mask_dict[param_type] = np.ones(
                     self._n_grd_params, dtype='bool')
 
@@ -111,6 +124,10 @@ class ParameterType(IntEnum):
     QMU = 6
     QKAPPA = 7
     RADIUS = 8
+
+    @staticmethod
+    def structure_types():
+        return [ParameterType(i) for i in range(6)]
 
 if __name__ == '__main__':
     types = [ParameterType.VSV, ParameterType.VSH]
