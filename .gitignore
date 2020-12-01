@@ -10,3 +10,4 @@ a.out
 tests/*npy
 log
 **/*npy
+pydsm/resources/scardec.tar.gz
