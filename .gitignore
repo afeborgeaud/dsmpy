@@ -9,3 +9,4 @@ lib
 a.out
 tests/*npy
 log
+**/*npy
