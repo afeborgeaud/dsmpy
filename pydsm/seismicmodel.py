@@ -30,7 +30,7 @@ class SeismicModel:
     def __init__(
             self, vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa, model_id,
-            mesh_type=None, model_params=None):
+            mesh_type=None, model_params=None, discontinuous=False):
         self._vrmin = vrmin
         self._vrmax = vrmax
         self._rho = rho
@@ -45,9 +45,9 @@ class SeismicModel:
         self._model_id = model_id
         self._mesh_type = mesh_type
         self._model_params = model_params
+        self._discontinuous = discontinuous
 
     def __copy__(self):
-        cls = self.__class__
         vrmin = np.array(self._vrmin)
         vrmax = np.array(self._vrmax)
         rho = np.array(self._rho)
@@ -61,10 +61,11 @@ class SeismicModel:
         model_id = str(self._model_id)
         mesh_type = str(self._mesh_type)
         model_params = self._model_params
+        discontinuous = self._discontinuous
         return self.__new__(
             vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa, model_id,
-            mesh_type, model_params)
+            mesh_type, model_params, discontinuous)
 
     def get_rho(self):
         return np.pad(
@@ -182,7 +183,7 @@ class SeismicModel:
             [12.213901, -18.573085, 24.557329, -12.728015],
             [20.208945, -15.895645, 0, 0],
             [17.71732, -13.50652, 0, 0],
-            [15.212335, -11.053685, 0, 0],
+            [15.207335, -11.053685, 0, 0], # TODO check 15.212335
             [5.7502, -1.2742, 0, 0],
             [5.970824, -1.499059, 0, 0],
             [3.85, 0, 0, 0],
@@ -195,7 +196,7 @@ class SeismicModel:
             [12.213901, -18.573085, 24.557329, -12.728015],
             [20.208945, -15.895645, 0, 0],
             [17.71732, -13.50652, 0, 0],
-            [15.212335, -11.053685, 0, 0],
+            [15.207335, -11.053685, 0, 0],
             [5.7502, -1.2742, 0, 0],
             [5.970824, -1.499059, 0, 0],
             [3.85, 0, 0, 0],
@@ -359,6 +360,19 @@ class SeismicModel:
             vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa, model_id)
 
+    @classmethod
+    def ak135_prime(cls):
+        """Return model AK135.
+
+        References:
+            Kennett et al. (1995)
+        """
+        model = cls.ak135()
+        model = model._del_boundary(6251)
+
+        model._rho[:, -3] = np.array([5.36, -1, 0, 0])
+        return model
+
     def lininterp_mesh(self, model_parameters, discontinuous=False):
         """
         Args:
@@ -400,6 +414,7 @@ class SeismicModel:
         model._nzone = model._rho.shape[1]
         model._mesh_type = 'lininterp'
         model._model_params = model_parameters
+        model._discontinuous = discontinuous
         return model
 
     def boxcar_mesh(self, model_parameters):
@@ -472,13 +487,15 @@ class SeismicModel:
         model._model_params = model_parameters
         return model, mesh
 
-    def multiply(self, nodes, values_p, values_m=None):
+    def multiply(self, nodes, values):
         # assert values.shape == (len(nodes)-1, 8)
-        assert values_p.dtype == np.float64
+        assert values.dtype == np.float64
         mesh = self.__copy__()
         for i in range(len(nodes)-1):
             indexes = (set(np.where(self._vrmin < nodes[i+1])[0])
                 & set(np.where(self._vrmin >= nodes[i])[0]))
+            # indexes = (set(np.where(mesh._vrmin < nodes[i+1])[0])
+            #     & set(np.where(mesh._vrmin >= nodes[i])[0]))
             if self._mesh_type == 'boxcar':
                 for index in indexes:
                     mesh._rho[0, index] *= values_p[i, 0]
@@ -544,26 +561,24 @@ class SeismicModel:
                         mesh._qkappa[index] *= values_p[i, 7]
             elif self._mesh_type == 'lininterp':
                 for index in indexes:
+                    # TODO check if no bug
                     r0 = self._vrmin[index]
                     r1 = self._vrmax[index]
-                    r0_p = r0 + values_p[i, 8]
-                    r1_p = r1 + values_p[i+1, 8]
+                    # r0 = mesh._vrmin[index]
+                    # r1 = mesh._vrmax[index]
+                    r0_p = r0 + values[2*i+1, 8]
+                    r1_p = r1 + values[2*i+3, 8]
                     for p_type in ParameterType.structure_types():
                         itype = p_type.value
                         y0 = self.get_value_at(
-                            r0, p_type) + values_p[i, itype]
-                        if values_m is not None:
-                            y1 = self.get_value_at(
-                                r1-1e-5, p_type) + values_m[i+1, itype]
-                        else:
-                            y1 = self.get_value_at(
-                                r1, p_type) + values_p[i+1, itype]
-                        if values_p[i, 8] != 0:
-                            print(y0, y1)
+                            r0, p_type) + values[2*i+1, itype]
+                        y1 = self.get_value_at(
+                            r1-1e-5, p_type) + values[2*i+2, itype]
                         x0 = r0_p / 6371.
                         x1 = r1_p / 6371.
                         mesh.set_value(
-                            index, p_type, self._lin_element(x0, x1, y0, y1))
+                            index, p_type,
+                            self._lin_element(x0, x1, y0, y1))
 
                     mesh._vrmin[index] = r0_p
                     mesh._vrmin[index+1] = r1_p
@@ -571,13 +586,13 @@ class SeismicModel:
                     mesh._vrmax[index] = r1_p
 
                     # TODO make further tests
-                    if r1_p < r1:
-                        mesh = mesh._add_boundary(r1)
-                        izone = mesh.get_zone(r1_p)
-                        for p_type in ParameterType.structure_types():
-                            mesh.set_value(
-                                izone, p_type,
-                                self.get_value(izone-1, p_type))
+                    # if r1_p < r1:
+                    #     mesh = mesh._add_boundary(r1)
+                    #     izone = mesh.get_zone(r1_p)
+                    #     for p_type in ParameterType.structure_types():
+                    #         mesh.set_value(
+                    #             izone, p_type,
+                    #             self.get_value(izone-1, p_type))
             else:
                 raise ValueError(
                     'Expect "boxcar", "triangle", or "lininterp"')
@@ -657,10 +672,10 @@ class SeismicModel:
         return model
     
     def _del_boundary(self, r: float):
-        """Add a boundary at radius=r (km).
+        """Delete the boundary at radius=r (km).
 
         Returns:
-            SeismicModel with added boundary
+            SeismicModel with removed boundary
         """
         model = self.__copy__()
         if (r not in self._vrmin) and (r not in self._vrmax):
@@ -701,7 +716,8 @@ class SeismicModel:
             np.array(self._qkappa, dtype=np.float64),
             self._model_id,
             self._mesh_type,
-            self._model_params)
+            self._model_params,
+            self._discontinuous)
     
     def get_zone(self, r):
         return bisect.bisect_right(self._vrmin, r) - 1
@@ -834,7 +850,7 @@ class SeismicModel:
         return perturbations
 
     
-    def plot(self, ax=None, types=None, color=None, **kwargs):
+    def plot(self, dr=1., ax=None, types=None, color=None, **kwargs):
         '''Plot the seismicModel.
         Args:
             ax (matplotlib.ax): ax
@@ -843,7 +859,7 @@ class SeismicModel:
         Returns:
             fig, ax
         '''
-        rs, values = self.get_values(dr=1.)
+        rs, values = self.get_values(dr=dr)
         if ax == None:
             fig, ax = plt.subplots(1,1)
             ax.set_prop_cycle(None)
@@ -877,19 +893,25 @@ class SeismicModel:
 
     
     def build_model(
-            self, mesh, model_params, value_dict_p, value_dict_m=None):
+            self, mesh, model_params, value_dict):
         """Build a SeismicModel
         Args:
             model_params (pydsm.ModelParameters)
             value_dict_p (dict): dict of ParameterType:ndarray
         """
-        values_mat_p = model_params.get_values_matrix(value_dict_p)
-        if value_dict_m is not None:
-            values_mat_m = model_params.get_values_matrix(value_dict_m)
-        else:
-            values_mat_m = None
+        values_mat = model_params.get_values_matrix(value_dict)
+
+        # if (value_dict_m is not None) and (mesh._discontinuous):
+        #     values_mat_m = model_params.get_values_matrix(value_dict_m)
+        #     if model_params.discon_dict is not None:
+        #         for param_type in model_params.discon_dict.keys():
+        #             mask = ~model_params.discon_dict[param_type]
+        #             values_mat_m[mask, param_type.value] = (
+        #                 values_mat_p[mask, param_type.value])
+        # else:
+        #     values_mat_m = None
         mesh_ = mesh.multiply(
-            model_params.get_nodes(), values_mat_p, values_mat_m)
+            model_params.get_nodes(), values_mat)
         if mesh_._mesh_type == 'lininterp':
             model = mesh_
         else:

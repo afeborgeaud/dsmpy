@@ -15,6 +15,7 @@ class ModelParameters:
         self._mesh_type = mesh_type
         self.mask_dict = None
         self.equal_dict = None
+        self.discon_arr = None
         if mesh_type == 'boxcar':
             self._n_nodes = len(radii)
             self._n_grd_params = len(radii) - 1
@@ -32,9 +33,10 @@ class ModelParameters:
             self._nodes[-1] = radii[-1]
         elif mesh_type == 'lininterp':
             self._n_nodes = len(radii)
-            self._n_grd_params = len(radii)
+            self._n_grd_params = len(radii) * 2 # TODO check consequences
             self._nodes = np.array(radii)
         self.it = 0
+        self.set_constraints()
                 
     def get_nodes(self):
         return self._nodes
@@ -42,21 +44,28 @@ class ModelParameters:
     def get_n_params(self):
         return self._n_grd_params * len(self._types)
 
-    def set_constraints(self, mask_dict=None, equal_dict=None):
+    def set_constraints(
+            self, mask_dict=None, equal_dict=None,
+            discon_arr=None):
         if mask_dict is not None:
             self.mask_dict = mask_dict
         else:
             self.mask_dict = dict()
             for param_type in self._types:
                 self.mask_dict[param_type] = np.ones(
-                    self._n_grd_params, dtype='bool')
+                    self._n_grd_params//2, dtype='bool')
         if equal_dict is not None:
             self.equal_dict = equal_dict
         else:
             self.equal_dict = dict()
-            for param_type in types:
+            for param_type in self._types:
                 self.equal_dict[param_type] = np.arange(
-                    model_params._n_grd_params, dtype='int')
+                    self._n_grd_params//2, dtype='int')
+        if discon_arr is not None:
+            self.discon_arr = discon_arr
+        else:
+            self.discon_arr = np.ones(
+                    self._n_grd_params//2, dtype='bool')
 
         for param_type in self._types:
             if param_type not in self.equal_dict:
@@ -66,36 +75,47 @@ class ModelParameters:
                 self.mask_dict[param_type] = np.ones(
                     self._n_grd_params, dtype='bool')
 
-    def get_it_indices(self):
+    def next(self):
         found = False
         istop = 0
-        while not found or istop == 1000:
-            self.it = self.it % (self._n_grd_params*len(self._types))
+        seen_igrd = set()
+        while not found or istop < 1000:
+            self.it = self.it % self.get_n_params()
             itype = int(self.it // self._n_grd_params)
-            igrd = self.it % self._n_grd_params
-            if (self.mask_dict[self._types[itype]][igrd]
-                and self.equal_dict[self._types[itype]][igrd] == igrd):
+            igrd = (self.it % self._n_grd_params)
+            igrd_2 = igrd // 2
+            p_type = self._types[itype]
+            if (self.mask_dict[p_type][igrd_2]
+                and self.equal_dict[p_type][igrd_2] == igrd_2):
                 found = True
             else:
                 self.it += 1
+            if (igrd_2 not in seen_igrd
+                and
+                (not self.discon_arr[igrd_2]
+                or p_type == ParameterType.RADIUS)):
+                self.it += 1
+                seen_igrd.add(igrd_2)
+                igrd += 1
             istop += 1
         return self.it, itype, igrd
 
     def get_free_indices(self):
-        mask_arr = np.ones(self.get_n_params(), dtype='bool')
-        equal_arr = np.array(mask_arr)
-        if self.mask_dict is not None:
-            mask_arr = np.hstack(
-                [self.mask_dict[p] for p in self._types])
-            print(mask_arr)
-        if self.equal_dict is not None:
-            equal_arr = np.hstack(
-                [(self.equal_dict[p]
-                ==np.arange(len(self.equal_dict[p]), dtype='int')) 
-                for p in self._types])
-            print(equal_arr)
-        indices = np.where(mask_arr & equal_arr)[0]
-        return indices
+        indices_lst = []
+        it_0 = self.it
+        self.it = 0
+        i = 0
+        stop = False
+        while not stop:
+            i, _, _ = self.next()
+            if i in indices_lst:
+                stop = True
+            else:
+                indices_lst.append(i)
+            self.it += 1
+            i += 1
+        self.it = it_0
+        return np.array(indices_lst)
 
     def get_values_matrix(
             self, values_dict):
@@ -103,16 +123,24 @@ class ModelParameters:
         for key, values in values_dict.items():
             values_mat[:, key] = values
             
-        # TODO check that it's done elsewhere, or modify code structure
-        # if self.mask_dict is not None:
-        #     for key, mask in self.mask_dict.items():
-        #         values_mat[~mask, key] = 0.
-        # if self.equal_dict is not None:
-        #     for key, indexes in self.equal_dict.items():
-        #         for i, j in enumerate(indexes):
-        #             values_mat[i, key] = values_mat[j, key]
+        # TODO check that it's done elsewhere, or modify code
+        # TODO check that it doesn't change behavior
+        if self.mask_dict is not None:
+            for key, mask in self.mask_dict.items():
+                mask_expand = np.array(
+                    [mask[i//2] for i in range(self._n_grd_params)])
+                values_mat[~mask_expand, key] = 0.
+        if self.equal_dict is not None:
+            for key, indexes in self.equal_dict.items():
+                for i, j in enumerate(indexes):
+                    if i < j:
+                        values_mat[2*i+1, key] = values_mat[2*j+1, key]
+        if self.discon_arr is not None:
+            for i in np.where(self.discon_arr == False)[0]:
+                indices_struct = ParameterType.structure_types()
+                values_mat[2*i, indices_struct] = values_mat[
+                    2*i+1, indices_struct]
         return values_mat
-
 
 class ParameterType(IntEnum):
     RHO = 0
