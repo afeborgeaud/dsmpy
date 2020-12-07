@@ -11,3 +11,4 @@ tests/*npy
 log
 **/*npy
 pydsm/resources/scardec.tar.gz
+**/_build

@@ -40,6 +40,7 @@ class PyDSMInputFile:
 
     Args:
         input_file (str): path of pydsm input file
+
     """
     def __init__(self, input_file):
         self.input_file = input_file
@@ -184,12 +185,14 @@ class PyDSMOutput:
 
     def filter(self, freq, freq2=0., type='lowpass', zerophase=False):
         '''Filter time-domain waveforms using obspy.signal.filter.
+
         Args:
             freq (float): filter frequency
             freq2 (float): filter maximum frequency
-                (for bandpass filters only)
+            (for bandpass filters only)
             type (str): type of filter. 'lowpass' or 'bandpass'
             zerophase (bool): use zero phase filter
+
         '''
         if self.us is None:
             self.to_time_domain(self.event.source_time_function)
@@ -310,13 +313,15 @@ class PyDSMOutput:
             self, color='black', axes=None, distance_min=0.,
             distance_max=np.inf, label=None, normalize='self'):
         """Plot a frequency-domain (spectra) record section.
+
         Args:
             axes (matplotlib.axes): ax on which to plot
             distance_min (float): minimum epicentral distance (deg)
             distance_max (float): maximum epicentral distance (deg)
             label (str): label for model name
             normalize (str): 'self' for self-normalization
-                or 'none' to see amplitude decay with distance
+            or 'none' to see amplitude decay with distance
+
         """
         freqs = np.linspace(
             0, self.nspc/self.tlen, self.nspc+1, endpoint=True)
@@ -446,7 +451,40 @@ class PyDSMOutput:
 
 
 class DSMInput:
-    """Input parameters for Fortran DSM.
+    """Input parameters used by the Fortran DSM.
+
+    Args:
+        re (float):
+        ratc (float):
+        ratl (float):
+        tlen (float):
+        nspc (float):
+        omegai (float):
+        imin (int): 
+        imax (int): 
+        nzone (int): 
+        vrmin (:obj:`ndarray`): 
+        vrmax (:obj:`ndarray`): 
+        rho (:obj:`ndarray`): 
+        vpv (:obj:`ndarray`): 
+        vph (:obj:`ndarray`): 
+        vsv (:obj:`ndarray`): 
+        vsh (:obj:`ndarray`): 
+        eta (:obj:`ndarray`): 
+        qmu (:obj:`ndarray`): 
+        qkappa (:obj:`ndarray`): 
+        r0 (float): 
+        eqlat (float): 
+        eqlon (float): 
+        mt (:obj:`ndarray`): 
+        nr (int): 
+        theta (:obj:`ndarray`): 
+        phi (:obj:`ndarray`): 
+        lat (float):
+        lon (float): 
+        output (:obj:`ndarray`): 
+        mode (int): 
+
     """
 
     def __init__(
@@ -491,11 +529,13 @@ class DSMInput:
     @classmethod
     def input_from_file(cls, parameter_file, mode=1):
         """Build a DSMInput object from a DSM input file.
+
         Args:
             parameter_file (str): path of a DSM input file
             mode (int): 1: P-SV, 2: SH
-        Return:
+        Returns:
             DSMInput
+
         """
         if mode not in {1, 2}:
             raise RuntimeError('mode should be 1 or 2')
@@ -537,19 +577,21 @@ class DSMInput:
     @classmethod
     def input_from_arrays(cls, event, stations,
                           seismic_model, tlen, nspc):
-        """Build a DSMInput from user-friendly arguments
+        """Build a DSMInput from user-friendly arguments.
         
         Args:
-            event (Event): earthquake information
-            stations (list(Station)): seismic stations
+            event (Event): earthquake information.
+            stations (list(Station)): seismic stations.
             seismic_model (SeismicModel): Earth structure model 
-                (e.g. PREM)
+            (e.g. PREM).
             tlen (float): time length of synthetics 
-                (must be 2**n/10)
+            (must be 2**n/10).
             nspc (int): number of frequency points for synthetics
-                (must be 2**n)
-            Returns:
+            (must be 2**n).
+
+        Returns:
             dsm_input (DSMInput): DSMInput object
+
         """
         # structure parameters
         # TODO change maxnzone requirements in DSM
@@ -688,11 +730,12 @@ class PyDSMInput(DSMInput):
     """Input parameters for pydsm compute methods.
 
     Args:
-        dsm_input (DSMInput): input parameters for Fortran DSM
-        sampling_hz (int): sampling frequency for time-domain waveforms
+        dsm_input (DSMInput): input parameters for Fortran DSM.
+        sampling_hz (int): sampling frequency for time-domain waveforms.
         source_time_function (SourceTimeFunction): SourceTimeFunction
-            object
-        mode (int): 1: P-SV, 2: SH
+        object.
+        mode (int): 1: P-SV, 2: SH.
+
     """
 
     def __init__(
@@ -714,14 +757,16 @@ class PyDSMInput(DSMInput):
         """Build a PyDSMInput object from a DSM input file.
         
         Args:
-            parameter_file (str): path of a DSM input file
-            sampling_hz (float): sampling frequency 
-                for time-domain waveforms
+            parameter_file (str): path of a DSM input file.
+            sampling_hz (float): sampling frequency
+            for time-domain waveforms.
             source_time_function (SourceTimeFunction): 
-                SourceTimeFunction object
-            mode (int): 1: P-SV, 2: SH
+            SourceTimeFunction object.
+            mode (int): 1: P-SV, 2: SH.
+
         Returns:
             PyDSMInput object
+
         """
         dsm_input = DSMInput.input_from_file(parameter_file, mode)
         pydsm_input = cls(dsm_input, sampling_hz, mode)
@@ -733,20 +778,23 @@ class PyDSMInput(DSMInput):
             cls, event, stations,
             seismic_model, tlen, nspc,
             sampling_hz):
-        """Build a PyDSMInput from user-friendly arguments
+        """Build a PyDSMInput from user-friendly arguments.
         
         Args:
-            event (Event): earthquake information
-            stations (list(Station)): seismic stations
+            event (Event): earthquake information.
+            stations (list(Station)): seismic stations.
             seismic_model (SeismicModel): Earth structure model 
-                (e.g. PREM)
+            (e.g. PREM).
             tlen (float): time length of synthetics 
-                (must be 2**n/10)
+            (must be 2**n/10).
             nspc (int): number of frequency points for synthetics
-                (must be 2**n)
-            sampling_hz: sampling frequency for time-domain synthetics
+            (must be 2**n).
+            sampling_hz (float): sampling frequency
+            for time-domain synthetics.
+
         Returns:
-            pydsm_input (PyDSMInput): PyDSMInput object
+            pydsm_input (:obj:`PyDSMInput`): PyDSMInput object.
+
         """
         dsm_input = DSMInput.input_from_arrays(event, stations,
                                                seismic_model, tlen, nspc)
@@ -793,19 +841,20 @@ def compute(pydsm_input, write_to_file=False,
     """Compute spectra using DSM.
 
     Args:
-        dsm_input (PyDSMInput): inputs for DSM
-        mode (int): computation mode. 0: both, 1: P-SV, 2: SH
+        dsm_input (PyDSMInput): inputs for DSM.
+        mode (int): computation mode. 0: both, 1: P-SV, 2: SH.
         write_to_file (bool): write spetrum files to disk
-            as specified in dsm_input.output
+        as specified in dsm_input.output.
 
     Returns:
         dsm_output (PyDSMOutput): object containing spectra and
-            stations/source information
+        stations/source information.
     
     Note:
         SH and P-SV spectra are summed by default. Using only P-SV
         or SH results in non-physical waves and should be avoided.
         See Kawai et al. (2006) for details.
+
     """
     if mode not in {0, 1, 2}:
         raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
@@ -837,6 +886,7 @@ def compute_parallel(
         pydsm_input, comm, mode=0, write_to_file=False,
         verbose=0):
     """Compute spectra using DSM with data parallelization.
+
     """
     rank = comm.Get_rank()
     n_cores = comm.Get_size()
@@ -1011,14 +1061,16 @@ def compute_dataset_parallel(
     """Compute spectra using DSM with data parallelization.
 
     Args:
-        dataset (Dataset): dataset of events & stations
-        comm (MPI.COMM_WORLD): MPI communicator
-        mode (int): computation mode. 0: both, 1: P-SV, 2: SH
-        write_to_file (bool): write output in Kibrary format (default: False)
+        dataset (Dataset): dataset of events & stations.
+        comm (MPI.COMM_WORLD): MPI communicator.
+        mode (int): computation mode. 0: both, 1: P-SV, 2: SH.
+        write_to_file (bool): write output in Kibrary format
+        (default: False).
     
     Returns:
         outputs ([PyDSMOutput]): list of PyDSMOutput with one
-            entry for each event in dataset
+        entry for each event in dataset.
+
     """
     rank = comm.Get_rank()
     n_cores = comm.Get_size()
@@ -1253,8 +1305,10 @@ def compute_dataset_parallel(
 def _get_models_array(models, maxnzone):
     """
     Args:
-        models (list(SeismicModels)):
+        models (:obj:`list` of :obj:`SeismicModel`):
+
     Returns:
+
     """
     n = len(models)
     model_arr = np.empty((4, maxnzone, 6, n), dtype=np.float64, order='F')
@@ -1282,17 +1336,24 @@ def compute_models_parallel(
         comm, mode=0, write_to_file=False,
         verbose=0):
     """Perform a model grid search with model parallelization.
+
     Args:
-        dataset (pydsm.Dataset): dataset
-        models ([pydsm.SeismicModel]): list of seismic models
+        dataset (:obj: `Dataset`): dataset.
+        models (:obj:`list` of :obj:`SeismicModel`):
+        list of seismic models.
         tlen (float):
         nspc (int):
         sampling_hz (int): 
-        mode (int): computation mode. 0: both, 1: P-SV, 2: SH (default: 0)
-        write_to_file (bool): write output in Kibrary format (default: False)
-        verbose (int): debugging parameter (default: 0)
+        mode (int): computation mode.
+        0: both, 1: P-SV, 2: SH (default: 0).
+        write_to_file (bool): write output in Kibrary format
+        (default: False).
+        verbose (int): debugging parameter (default: 0).
+
     Returns:
-        outputs (list(list(PyDSMOutput))): "shape" = (n_models, n_events)
+        outputs (:obj:`list` of :obj:`list` of :obj:`PyDSMOutput`):
+        "shape" = (n_models, n_events).
+
     """
     rank = comm.Get_rank()
     n_cores = comm.Get_size()

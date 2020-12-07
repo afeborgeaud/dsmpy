@@ -16,19 +16,20 @@ class Event:
         depth (float) centroid depth in km
         mt (MomentTensor): moment tensor
         source_time_function (SourceTimeFunction): SourceTimeFunction
-            object
+        object
     
     Attributes:
         event_id (str): GCMT event name
         latitude (float) centroid geographic latitude 
-            [-90, 90] in degree
+        [-90, 90] in degree
         longitude (float): centroid longitude 
-            [-180, 180] in degree
+        [-180, 180] in degree
         depth (float) centroid depth in km
         mt (MomentTensor): moment tensor
         source_time_function (SourceTimeFunction): SourceTimeFunction
-            object
-        centroid_time (datetime): centroid time
+        object
+        centroid_time (datetime): centroid time.
+
     """
 
     def __init__(self, event_id, latitude, longitude, depth, mt,
@@ -43,14 +44,17 @@ class Event:
 
     @classmethod
     def event_from_catalog(cls, cat, event_id):
-        """Build Event from GCMT catalog
+        """Build Event from GCMT catalog.
+
         Args:
-            cat (ndarray): event catalog.
-                see pydsm.utils.cmtcatalog.read_catalog()
+            cat (:obj:`ndarray`): event catalog.
+            see pydsm.utils.cmtcatalog.read_catalog().
             event_id (str): GCMT event identifier
-                (e.g., '201906291959A')
+            (e.g., '201906291959A').
+
         Returns:
-            event (Event): Event object
+            event (:obj:`Event`): Event object.
+
         """
         event = None
         try:
@@ -79,7 +83,9 @@ class Event:
 
 
 class MomentTensor:
-    """Represent a point-source moment tensor."""
+    """Represent a point-source moment tensor.
+    
+    """
 
     def __init__(self, Mrr, Mrt, Mrp, Mtt, Mtp, Mpp, Mw=None):
         self.Mrr = Mrr
@@ -94,10 +100,15 @@ class MomentTensor:
 
     @classmethod
     def from_dsm_array(cls, mt_arr):
-        '''Make a MomentTensor from the mt array from DSM pinput (i.e., 
-        assume the mt component oreder is DSM's).
+        '''Create a MomentTensor from the mt array from DSM pinput
+        (assume the DSM order for mt component).
+
         Args:
-            mt_arr (ndarray((3,3))): moment tensor array
+            mt_arr (:obj:`ndarray`): moment tensor array
+
+        Returns:
+            mt (:obj:`MomentTensor`): moment tensor
+            
         '''
         return cls(
             mt_arr[0,0], mt_arr[0,1], mt_arr[0,2],
