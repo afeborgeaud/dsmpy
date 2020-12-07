@@ -6,7 +6,6 @@ Welcome to pydsm's documentation!
    :caption: Contents:
 
    reference/index
-   showcase/index
 
 
 
