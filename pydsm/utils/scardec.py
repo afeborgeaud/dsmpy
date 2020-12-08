@@ -93,6 +93,6 @@ def _compute_integral(stf):
     integral = np.trapz(stf[:,1], stf[:,0])
     return integral
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # create_catalog()
     
