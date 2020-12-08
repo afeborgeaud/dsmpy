@@ -12,3 +12,6 @@ log
 **/*npy
 pydsm/resources/scardec.tar.gz
 **/_build
+pydsm.egg-info/*
+dist/*
+build/*
