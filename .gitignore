@@ -14,3 +14,4 @@ pydsm/resources/scardec.tar.gz
 pydsm.egg-info/*
 dist/*
 build/*
+pydsm/flib
