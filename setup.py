@@ -19,12 +19,12 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
+        'obspy',
         'numpy',
         'mpi4py',
         'pandas',
         'matplotlib',
         'geographiclib',
-        'obspy',
     ],
     python_requires='>=3.7'
 )
