@@ -1,4 +1,35 @@
 import setuptools
+
+with open('README.md', 'r') as fh:
+    long_description = fh.read()
+
+setuptools.setup(
+    name="dsmpy",
+    version='2020.12',
+    author='Anselme Borgeaud, Kensuke Konishi',
+    author_email='aborgeaud@gmail.com',
+    description='Python wrapper for DSM',
+    long_description = long_description,
+    long_description_content_type='text/markdown',
+    url='',
+    packages=setuptools.find_packages(),
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
+    install_requires=[
+        'numpy',
+        'mpi4py',
+        'pandas',
+        'matplotlib',
+        'geographiclib',
+        'obspy',
+    ],
+    python_requires='>=3.7'
+)
+
+
 from numpy.distutils.core import setup, Extension
 
 lib_tish = Extension(
@@ -31,32 +62,6 @@ lib_tipsv = Extension(
     extra_f77_compile_args=['-Ofast'],
 )
 
-with open('README.md', 'r') as fh:
-    long_description = fh.read()
-
 setup(
-    name="dsmpy",
-    version='2020.12',
-    author='Anselme Borgeaud, Kensuke Konishi',
-    author_email='aborgeaud@gmail.com',
-    description='Python wrapper for DSM',
-    long_description = long_description,
-    long_description_content_type='text/markdown',
-    url='',
-    packages=setuptools.find_packages(),
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-    ],
     ext_modules=[lib_tish, lib_tipsv],
-    install_requires=[
-        'numpy',
-        'mpi4py',
-        'pandas',
-        'matplotlib',
-        'geographiclib',
-        'obspy',
-    ],
-    python_requires='>=3.7'
 )
