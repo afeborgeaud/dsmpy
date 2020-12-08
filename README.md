@@ -1,6 +1,6 @@
 # pydsm
 Python package for computation of synthetic waveforms in spherically homogeneous transversely isotropic (VTI) media using the Direct Solution Method (DSM; [Kawai et al. 2006](https://doi.org/10.1111/j.1365-246X.2005.02829.x)).<br/><br/>
-For documentation and tutorials for *pydsm*, visit the [pydsm doc page](https://afeborgeaud.github.io/pydsm/).
+Documentation and tutorials can be found [here](https://afeborgeaud.github.io/dsmpy/).
 
 ## INSTALLATION
 1) From the Terminal, clone the pydsm git repository:
