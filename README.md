@@ -23,9 +23,9 @@ python -c "import dsmpy"
 - If you have gfortran <4.8, you should change the compiler flag from '-Ofast' to '-O3' in ```<path_of_dsmpy_folder>/pydsm/__init__.py```
 
 ## GETTING STARTED
-Before getting started, you should at least run ```python test_tipsv.py``` and ```python test_tish.psv``` located in in ```<path_of_pydsm_folder>/pydsm/tests```. These scripts check pydsm against pre-computed synthetics using the DSM (Fortran).
+To get started, you should at least run ```python test_tipsv.py``` and ```python test_tish.psv``` located in in ```<path_of_pydsm_folder>/pydsm/tests```. These scripts check ```dsmpy``` against pre-computed synthetics using the DSM (Fortran).
 
-## EXAMPLES OF USAGE
+## EXAMPLES
 1) Running dsmpy using an input file (run on multiple CPUs).
 A template input file is in ```<path_of_pydsm_folder>/dsmpy/tests/input_files/template.txt```:
 ```shell
