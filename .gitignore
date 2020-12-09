@@ -10,8 +10,8 @@ a.out
 tests/*npy
 log
 **/*npy
-pydsm/resources/scardec.tar.gz
-pydsm.egg-info/*
+dsmpy/resources/scardec.tar.gz
+dsmpy.egg-info/*
 dist/*
 build/*
-pydsm/flib
+dsmpy/flib
