@@ -419,12 +419,15 @@ class SeismicModel:
         return model
 
     def boxcar_mesh(self, model_parameters):
-        """
+        """Create a boxcar mesh.
+
         Args:
             nodes (ndarray): nodes of the boxcar mesh
+
         Returns:
             model (SeismicModel): copy of self with added nodes
             mesh (SeismicModel): mesh with boxcar polynomials
+
         """
         model = self.__copy__()
         for node in model_parameters.get_nodes():
@@ -448,12 +451,15 @@ class SeismicModel:
 
     def triangle_mesh(self, model_parameters):
         """Create a triangular mesh.
+
         Args:
             nodes (ndarray): nodes of the triangle mesh (defines the
-                radii of the triangles' peaks)
+            radii of the triangles' peaks).
+
         Returns:
             model (SeismicModel): copy of self with added nodes
             mesh (SeismicModel): mesh with boxcar polynomials
+            
         """
         model = self.__copy__()
         nodes = []

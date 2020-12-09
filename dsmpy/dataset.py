@@ -17,23 +17,23 @@ class Dataset:
     """Represents a dataset of events and stations.
     
     Args:
-        lats (ndarray): stations latitudes for each record (nr,)
-        lons (ndarray): stations longitudes for each record (nr,)
-        phis (ndarray): stations phis for each record (nr,)
-        thetas (ndarray): stations thetas for each record (nr,)
-        eqlats (ndarray): centroids latitudes (nev,)
-        eqlons (ndarray): centroids longitudes (nev,)
-        r0s (ndarray): centroids radii (nev,)
-        mts (ndarray of MomentTensor): array of moment tensors (nev,)
-        nrs (ndarray of int): number of stations for each event (nev,)
-        nr (int): total number of event-station pairs
-        stations (ndarray of Station): seismic stations (nr,)
-        events (ndarray of Event)): seismic events (nev,)
+        lats (ndarray): stations latitudes for each record (nr,).
+        lons (ndarray): stations longitudes for each record (nr,).
+        phis (ndarray): stations phis for each record (nr,).
+        thetas (ndarray): stations thetas for each record (nr,).
+        eqlats (ndarray): centroids latitudes (nev,).
+        eqlons (ndarray): centroids longitudes (nev,).
+        r0s (ndarray): centroids radii (nev,).
+        mts (ndarray of MomentTensor): array of moment tensors (nev,).
+        nrs (ndarray of int): number of stations for each event (nev,).
+        nr (int): total number of event-station pairs.
+        stations (ndarray of Station): seismic stations (nr,).
+        events (ndarray of Event)): seismic events (nev,).
         data (ndarray): 3-components waveform data.
         nw: number of windows used to cut the data (nw,3,nr,npts).
-        If self.cut_data() hasn't been called, then nw=1
+            If self.cut_data() hasn't been called, then nw=1.
         sampling_hz (int): sampling frequency for data.
-        Used for computation with pydsm
+            Used for computation with pydsm.
         
     """
     def __init__(
@@ -119,14 +119,17 @@ class Dataset:
     @classmethod
     def dataset_from_sac(
         cls, sac_files, verbose=0, headonly=True):
-        '''Make dataset from list of sac file names.
+        '''Creates a dataset from a list of sac file names.
+
         Args:
-            sac_files(list(str)): list of sac file names
-            verbose (int): 0: quiet, 1: debug
-            headonly (bool): if True, read only header. If False,
-                include data
+            sac_files(list of str): list of sac file names.
+            verbose (int): 0: quiet, 1: debug.
+            headonly (bool): if True, read only header.
+                If False, include data.
+
         Return:
-            dataset (pydsm.Dataset): dataset
+            dataset (Dataset): dataset
+
         '''
         traces = [read(sac_file, headonly=headonly)[0]
                    for sac_file in sac_files]
@@ -274,12 +277,14 @@ class Dataset:
             self, windows, n_phase, npts_max, buffer=0.,
             t_before_noise=100.):
         '''Cut the data using provided windows.
+
         Args:
-            windows (list(pydsm.window)): time windows
-            n_phase (int): number of distinct seismic phases in windows
-            npts_max (int): number of time points in the longest window
-            buffer (float): default: 0.
-            t_before_noise (float): default: 50.
+            windows (list of Window): time windows.
+            n_phase (int): number of distinct seismic phases in windows.
+            npts_max (int): number of time points in the longest window.
+            buffer (float): default is 0.
+            t_before_noise (float): default is 50.
+            
         '''
         npts_buffer = int(buffer * self.sampling_hz)
         data_cut = np.zeros(
@@ -370,12 +375,14 @@ class Dataset:
 
     def filter(self, freq, freq2=0., type='bandpass', zerophase=False):
         '''Filter waveforms using obspy.signal.filter.
+
         Args:
-            freq (float): filter frequency
-            freq2 (float): filter maximum frequency
-                (for bandpass filters only)
-            type (str): type of filter. 'lowpass' or 'bandpass'
-            zerophase (bool): use zero phase filter
+            freq (float): filter frequency.
+            freq2 (float): filter maximum frequency.
+                For bandpass filters only.
+            type (str): type of filter. 'lowpass' or 'bandpass'.
+            zerophase (bool): use zero phase filter.
+
         '''
         if type == 'bandpass':
             assert freq2 > freq
