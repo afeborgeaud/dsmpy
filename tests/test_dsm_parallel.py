@@ -1,4 +1,4 @@
-from pydsm import dsm, rootdsm_psv
+from dsmpy import dsm, rootdsm_psv
 import os
 import numpy as np
 import time

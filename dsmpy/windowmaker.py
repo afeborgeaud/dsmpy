@@ -1,13 +1,14 @@
+from dsmpy.event import Event
+from dsmpy.station import Station
+from dsmpy.window import Window
+from dsmpy.component import Component
+import pickle
 from obspy.taup import TauPyModel
 import numpy as np
-from pydsm.event import Event
-from pydsm.station import Station
-from pydsm.window import Window
-from pydsm.component import Component
-import pickle
 
 class WindowMaker:
-    """Utility class to compute list of pydsm.window.Window.
+    """Utility class to compute list of Window.
+
     """
 
     @staticmethod
@@ -127,7 +128,7 @@ class WindowMaker:
         return output
         
 if __name__ == '__main__':
-    from pydsm.utils.cmtcatalog import read_catalog
+    from dsmpy.utils.cmtcatalog import read_catalog
     catalog = read_catalog()
     event = Event.event_from_catalog(
     catalog, '200707211534A')

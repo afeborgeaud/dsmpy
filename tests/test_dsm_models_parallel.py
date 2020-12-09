@@ -1,10 +1,10 @@
-from pydsm import dsm, rootdsm_psv
-from pydsm.dataset import Dataset
-from pydsm.seismicmodel import SeismicModel
-from pydsm.station import Station
-from pydsm.event import Event
-from pydsm.utils.cmtcatalog import read_catalog
-from pydsm._tish import parameters
+from dsmpy import dsm, rootdsm_psv
+from dsmpy.dataset import Dataset
+from dsmpy.seismicmodel import SeismicModel
+from dsmpy.station import Station
+from dsmpy.event import Event
+from dsmpy.utils.cmtcatalog import read_catalog
+from dsmpy._tish import parameters
 import os
 import numpy as np
 import time

@@ -12,6 +12,7 @@ class Station:
         network (str): network code
         latitude (float): geographic latitude
         longitude (float): geographic longitude
+        
     """
 
     def __init__(self, name: str, network: str,

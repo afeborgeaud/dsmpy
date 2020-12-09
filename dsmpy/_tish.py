@@ -1,7 +1,7 @@
-'''Interface for Fortran tish
+'''Decorator for the compiled Fortran library tish
 '''
 
-from pydsm.lib import tish
+from dsmpy.flib import tish
 import numpy as np
 
 parameters = dict(maxnzone=tish.parameters.maxnzone.item(),
@@ -16,9 +16,11 @@ def _pinput(parameter_file):
     Args:
         parameter_file (str): path to DSM parameter file
             (e.g. 'PREM_SH.inf')
+
     Returns:
         inputs (tuple): tupe of input parameters 
             (in correct order for _tish)
+            
     """
     inputs = tish.pinput_tish(parameter_file)
     return inputs
@@ -28,7 +30,9 @@ def _tish(
         imin, imax, nzone, vrmin, vrmax, rho,
         vsv, vsh, qmu, r0, eqlat, eqlon, mt, nr,
         theta, phi, lat, lon, output, write_to_file):
-    """Compute spectra for SH wavefield using DSM."""
+    """Compute spectra for SH wavefield using DSM.
+    
+    """
     spcs = tish.tish(
         re, ratc, ratl, tlen, nspc, omegai,
         imin, imax, nzone, vrmin, vrmax, rho,
@@ -38,6 +42,7 @@ def _tish(
 
 def _translat(lat_geodetic):
     """Return geocentric latitude from geodetic latitude.
+
     Notes:
         flattening = 1/298.25
     """
@@ -51,9 +56,11 @@ def _calthetaphi(stalat, stalon, eqlat, eqlon):
         eqlon (float): event longitude
         stalat (float): station geodetic latitude
         stalon (float): station longitude
+
     Returns:
         theta (float): theta spherical coordinate
         phi (float): phi spherical coordinate
+
     """
     eqlat_geocentric = _translat(eqlat)
     stalat_geocentric = _translat(stalat)

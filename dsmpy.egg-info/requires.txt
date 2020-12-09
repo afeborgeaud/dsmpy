@@ -1,0 +1,6 @@
+obspy
+numpy
+mpi4py
+pandas
+matplotlib
+geographiclib

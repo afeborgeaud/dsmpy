@@ -1,8 +1,8 @@
-from pydsm.dataset import Dataset
-from pydsm import rootdsm_psv
+from dsmpy.dataset import Dataset
+from dsmpy import rootdsm_psv
+from dsmpy import rootdsm_psv, rootdsm_sh
 
 if __name__ == '__main__':
-    from pydsm import rootdsm_psv, rootdsm_sh
     parameter_files = [
         rootdsm_psv + 'test2.inf',
         rootdsm_psv + 'test3.inf']

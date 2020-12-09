@@ -1,7 +1,7 @@
-from pydsm import dsm, rootdsm_sh
-from pydsm.station import Station
-from pydsm.event import Event, MomentTensor
-from pydsm.seismicmodel import SeismicModel
+from dsmpy import dsm, rootdsm_sh
+from dsmpy.station import Station
+from dsmpy.event import Event, MomentTensor
+from dsmpy.seismicmodel import SeismicModel
 import numpy as np
 import os
 

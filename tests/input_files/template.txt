@@ -1,5 +1,5 @@
-sac_files ~/git/pydsm/tests/sac_files/*T
-output_folder ~/git/pydsm/tests/sac_files
+sac_files ~/git/dsmpy/tests/sac_files/*T
+output_folder ~/git/dsmpy/tests/sac_files
 # duration of synthetics (in seconds)
 tlen 3276.8
 # number of points of frequency-domain synthetics

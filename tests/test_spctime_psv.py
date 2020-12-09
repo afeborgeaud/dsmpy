@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
-from pydsm import dsm, rootdsm_psv
-from pydsm.spc import spctime
-from pydsm._tish import _pinput, _tish
+from dsmpy import dsm, rootdsm_psv
+from dsmpy.spc import spctime
+from dsmpy._tish import _pinput, _tish
 
 
 def get_u_pydsm():

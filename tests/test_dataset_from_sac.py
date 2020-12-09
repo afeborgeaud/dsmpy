@@ -1,9 +1,9 @@
-from pydsm.dataset import Dataset
-from pydsm import root_sac
+from dsmpy.dataset import Dataset
+from dsmpy import root_sac
+from dsmpy.windowmaker import WindowMaker
+from dsmpy.component import Component
 import glob
 import os
-from pydsm.windowmaker import WindowMaker
-from pydsm.component import Component
 
 if __name__ == '__main__':
     path = '/home/anselme/Dropbox/Kenji/MTZ_JAPAN/DATA/201708161251A'

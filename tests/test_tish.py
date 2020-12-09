@@ -1,8 +1,7 @@
 import numpy as np
-from pydsm._tish import _tish, _pinput
-from pydsm import rootdsm_sh
+from dsmpy._tish import _tish, _pinput
+from dsmpy import rootdsm_sh
 import time
-
 
 def test_tish():
     parameter_file = rootdsm_sh + 'AK135_SH_64.inf'

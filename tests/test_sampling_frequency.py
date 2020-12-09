@@ -1,7 +1,7 @@
 import numpy as np
-from pydsm import dsm
-from pydsm.spc.stf import SourceTimeFunction
-from pydsm import rootdsm_sh
+from dsmpy import dsm
+from dsmpy.spc.stf import SourceTimeFunction
+from dsmpy import rootdsm_sh
 import matplotlib.pyplot as plt
 from scipy.integrate import trapz
 

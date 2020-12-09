@@ -1,9 +1,9 @@
-from pydsm import rootdsm_psv, rootdsm_sh
-from pydsm import dsm
+from dsmpy import rootdsm_psv, rootdsm_sh
+from dsmpy import dsm
+from dsmpy.windowmaker import WindowMaker
+from dsmpy.component import Component
 import os
 import matplotlib.pyplot as plt
-from pydsm.windowmaker import WindowMaker
-from pydsm.component import Component
 
 if __name__ == '__main__':
     # compute P-SV + SH using P-SV input file

@@ -1,7 +1,7 @@
-import numpy as np
-from pydsm._tish import parameters
+from dsmpy._tish import parameters
+from dsmpy.modelparameters import ModelParameters, ParameterType
 import bisect
-from pydsm.modelparameters import ModelParameters, ParameterType
+import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 
@@ -25,6 +25,7 @@ class SeismicModel:
         model_id (str): model identifier (e.g., 'prem')
     
     Attributes:
+
     """
 
     def __init__(

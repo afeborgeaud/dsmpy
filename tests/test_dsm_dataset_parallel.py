@@ -1,12 +1,12 @@
-from pydsm import dsm, rootdsm_psv
-from pydsm.dataset import Dataset
-from pydsm.seismicmodel import SeismicModel
+from dsmpy import dsm, rootdsm_psv
+from dsmpy.dataset import Dataset
+from dsmpy.seismicmodel import SeismicModel
+from dsmpy.component import Component
 import os
 import numpy as np
 import time
 from mpi4py import MPI
 import matplotlib.pyplot as plt
-from pydsm.component import Component
 import glob
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
-from pydsm import dsm, rootdsm_psv, rootdsm_sh
-from pydsm.dataset import Dataset
-from pydsm.seismicmodel import SeismicModel
+from dsmpy import dsm, rootdsm_psv, rootdsm_sh
+from dsmpy.dataset import Dataset
+from dsmpy.seismicmodel import SeismicModel
+from dsmpy.spc.stf import SourceTimeFunction
 import os
 import numpy as np
 import time
@@ -10,7 +11,6 @@ import sys
 import pickle
 import matplotlib.pyplot as plt
 from obspy import read
-from pydsm.spc.stf import SourceTimeFunction
 
 def get_sac_files(root_event_folder):
     sac_files = list(glob.iglob(os.path.join(root_event_folder, '**/*Ts')))
@@ -22,8 +22,6 @@ def write_outputs(outputs, root_event_folder):
         filename = os.path.join(root_event_folder,
                             event_id,
                             event_id + '.pkl')
-        #arr = np.array([output])
-        #np.save(path, arr)
         with open(filename, 'wb') as f:
             pickle.dump(output, f)
 

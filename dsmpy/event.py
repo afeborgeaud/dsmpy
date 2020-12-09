@@ -1,8 +1,8 @@
-import numpy as np
-from pydsm.station import Station
+from dsmpy.station import Station
+from dsmpy._tish import parameters as tish_parameters
 from obspy.taup.taup_geo import calc_dist
-from pydsm._tish import parameters as tish_parameters
 import warnings
+import numpy as np
 
 class Event:
     """Represent an earthquake point-source.

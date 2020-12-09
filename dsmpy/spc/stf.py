@@ -7,6 +7,7 @@ class SourceTimeFunction:
     Args:
         type (str): 'triangle' or 'box car'
         half_duration (float): half duration of the source time function
+        
     """
     _types = {'triangle', 'box car'}
 

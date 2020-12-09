@@ -3,13 +3,12 @@ import matplotlib.pyplot as plt
 import os
 import sys
 from datetime import datetime
-from pydsm import dsm, rootdsm_sh
-from pydsm.spc import spctime
-from pydsm.seismicmodel import SeismicModel
-from pydsm.station import Station
-from pydsm.event import Event, MomentTensor
-
-from pydsm._tish import _pinput, _tish
+from dsmpy import dsm, rootdsm_sh
+from dsmpy.spc import spctime
+from dsmpy.seismicmodel import SeismicModel
+from dsmpy.station import Station
+from dsmpy.event import Event, MomentTensor
+from dsmpy._tish import _pinput, _tish
 
 def get_input():
     seismic_model = SeismicModel.ak135()

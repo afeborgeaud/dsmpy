@@ -1,7 +1,8 @@
-'''Interface for Fortran tipsv
+'''Decorator for the compiled Fortran library tipsv.
+
 '''
 
-from pydsm.lib import tipsv
+from dsmpy.flib import tipsv
 
 
 def _pinput(parameter_file):

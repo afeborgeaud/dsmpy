@@ -1,18 +1,12 @@
-import sys
-from pydsm._tish import _tish, _calthetaphi
-from pydsm._tish import parameters as tish_parameters
-from pydsm._tish import _pinput as _pinput_sh
-from pydsm._tipsv import _pinput, _tipsv
-from pydsm.spc import spctime
-from pydsm import root_resources
-from pydsm.event import Event, MomentTensor
-from pydsm.station import Station
-from pydsm.seismicmodel import SeismicModel
-import numpy as np
-from mpi4py import MPI
-import time
-import functools
-import warnings
+from dsmpy._tish import _tish, _calthetaphi
+from dsmpy._tish import parameters as tish_parameters
+from dsmpy._tish import _pinput as _pinput_sh
+from dsmpy._tipsv import _pinput, _tipsv
+from dsmpy.spc import spctime
+from dsmpy import root_resources
+from dsmpy.event import Event, MomentTensor
+from dsmpy.station import Station
+from dsmpy.seismicmodel import SeismicModel
 from obspy import read_events
 from obspy import Trace
 from obspy.core.trace import Stats
@@ -21,8 +15,14 @@ import obspy.signal.filter
 import obspy.io.sac as sac
 import os
 import glob
+import sys
 import matplotlib.pyplot as plt
 import pickle
+import numpy as np
+from mpi4py import MPI
+import time
+import functools
+import warnings
 
 default_params = dict(
         re=0.01, ratc=1e-10, ratl=1e-5, omegai=0.0014053864092981234)
@@ -128,9 +128,10 @@ class PyDSMOutput:
 
     def to_time_domain(self, source_time_function=None):
         '''Compute time domain waveforms from spetra.
+
         Args:
-            source_time_function (pydsm.sourcetimefunction):
-                (default: None)
+            source_time_function (SourceTimeFunction):
+            (None)
         '''
         # if self.us is not None:
         #     return
@@ -277,7 +278,7 @@ class PyDSMOutput:
         distance_max=np.inf, label=None, normalize='self',
         xlabel='Time (s)', slowness=0.):
         if axes is None:
-            fig, axes = plt.subplots(1, 3, sharey=True, sharex=True)
+            fig, axes = plt.subplots(3, 1, sharey=True, sharex=True)
         else:
             assert len(axes) == 3
             fig = None
@@ -427,7 +428,6 @@ class PyDSMOutput:
                 return self.us[2, ...]
         elif len(key) == 2:
             if type(key[1]) is int:
-                    print(self.__getitem__(key[0])[key[1]])
                     return self.__getitem__(key[0])[key[1]]
             else:
                 try:
@@ -1491,7 +1491,6 @@ def compute_models_parallel(
                     mask = (spcs_local[2,:,:]==0).all(axis=0)
                     print('spc', spcs_local[2,:,mask])
                     print('vsh', model_arr_local[:,:nzone,4,imod])
-                    # print()
                     raise Exception('{} {} some spc is 0'.format(rank, imod))
         countmod += 1
 

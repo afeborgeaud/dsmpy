@@ -1,5 +1,5 @@
-from pydsm import rootdsm_psv, rootdsm_sh
-from pydsm import dsm
+from dsmpy import rootdsm_psv, rootdsm_sh
+from dsmpy import dsm
 import os
 import matplotlib.pyplot as plt
 

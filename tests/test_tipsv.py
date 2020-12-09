@@ -1,6 +1,6 @@
 import numpy as np
-from pydsm._tipsv import _tipsv, _pinput
-from pydsm import rootdsm_psv
+from dsmpy._tipsv import _tipsv, _pinput
+from dsmpy import rootdsm_psv
 import time
 
 

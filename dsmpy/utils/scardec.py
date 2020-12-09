@@ -1,20 +1,23 @@
-from pydsm import root_resources
+from dsmpy import root_resources
+from dsmpy.utils.cmtcatalog import read_catalog
+from dsmpy.event import Event
+from dsmpy.spc.stf import SourceTimeFunction
+from dsmpy.spc.stfcatalog import STFCatalog
 import numpy as np
 import glob
-from pydsm.utils.cmtcatalog import read_catalog
-from pydsm.event import Event
-from pydsm.spc.stf import SourceTimeFunction
-from pydsm.spc.stfcatalog import STFCatalog
 import matplotlib.pyplot as plt
 import os
 
 def get_stf(event):
-    '''Return source time function in time domain.
+    '''Return a source time function in time domain.
+
     Args:
-        event (pydsm.Event): event
+        event (Event): event
+
     Returns:
-        stf (ndarray((2,npts))): source time function, normalized so
-            that its integral is 1
+        stf (ndarray): source time function, normalized so
+        that its integral is 1. (2,npts)
+        
     '''
     dir_stf = _parse_dir_name(event)
     if dir_stf is None:

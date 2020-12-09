@@ -1,7 +1,7 @@
+from dsmpy import root_resources
+from dsmpy.event import Event, MomentTensor
+from dsmpy.spc.stf import SourceTimeFunction
 from obspy import read_events
-from pydsm import root_resources
-from pydsm.event import Event, MomentTensor
-from pydsm.spc.stf import SourceTimeFunction
 import numpy as np
 import warnings
 from datetime import date

@@ -1,7 +1,9 @@
 from enum import IntEnum
 
 class Component(IntEnum):
-    '''Seismic component computed by DSM.'''
+    '''Seismic record geographical components (R T Z).
+    
+    '''
     Z = 0
     R = 1
     T = 2

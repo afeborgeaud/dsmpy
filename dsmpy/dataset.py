@@ -1,40 +1,40 @@
-from pydsm.dsm import PyDSMInput
+from dsmpy.dsm import PyDSMInput
+from dsmpy.event import Event, MomentTensor
+from dsmpy.station import Station
+from dsmpy._tish import _calthetaphi
+from dsmpy import root_resources
+from dsmpy.utils.cmtcatalog import read_catalog
+from dsmpy.component import Component
+from dsmpy.spc.stf import SourceTimeFunction
+from dsmpy.spc.stfcatalog import STFCatalog
 import numpy as np
 from obspy import read
 import obspy.signal.filter
 import pandas as pd
-from pydsm.event import Event, MomentTensor
-from pydsm.station import Station
-from pydsm._tish import _calthetaphi
-from pydsm import root_resources
-from pydsm.utils.cmtcatalog import read_catalog
-from pydsm.component import Component
-from pydsm.spc.stf import SourceTimeFunction
-from pydsm.spc.stfcatalog import STFCatalog
 import matplotlib.pyplot as plt
 
 class Dataset:
-    """Represent a dataset of events and stations used mainly for input
-    to pydsm computation.
+    """Represents a dataset of events and stations.
+    
     Args:
-        lats (ndarray): stations latitudes for each record (len=nr)
-        lons (ndarray): stations longitudes for each record (len=nr)
-        phis (ndarray): stations phis for each record (len=nr)
-        thetas (ndarray): stations thetas for each record (len=nr)
-        eqlats (ndarray): centroids latitudes (len=nev)
-        eqlons (ndarray): centroids longitudes (len=nev)
-        r0s (ndarray): centroids radii (len=nev)
-        mts (ndarray(pydsm.event.MomentTensor)): array of moment tensors
-            (len=nev)
-        nrs (ndarray(int)): number of stations for each event (len=nev)
+        lats (ndarray): stations latitudes for each record (nr,)
+        lons (ndarray): stations longitudes for each record (nr,)
+        phis (ndarray): stations phis for each record (nr,)
+        thetas (ndarray): stations thetas for each record (nr,)
+        eqlats (ndarray): centroids latitudes (nev,)
+        eqlons (ndarray): centroids longitudes (nev,)
+        r0s (ndarray): centroids radii (nev,)
+        mts (ndarray of MomentTensor): array of moment tensors (nev,)
+        nrs (ndarray of int): number of stations for each event (nev,)
         nr (int): total number of event-station pairs
-        stations (ndarray(pydsm.Station)): seismic stations (len=nr)
-        events (ndarray(pydsm.Event)): seismic events (len=nev)
-        data (ndarray((nw,3,nr,npts))): 3-components waveform data.
-            nw: number of windows used to cut the data. If self.cut_data()
-            hasn't been called, then nw=1
-        sampling_hz (int): sampling frequency for synthetics/data. Used
-            for computation with pydsm
+        stations (ndarray of Station): seismic stations (nr,)
+        events (ndarray of Event)): seismic events (nev,)
+        data (ndarray): 3-components waveform data.
+        nw: number of windows used to cut the data (nw,3,nr,npts).
+        If self.cut_data() hasn't been called, then nw=1
+        sampling_hz (int): sampling frequency for data.
+        Used for computation with pydsm
+        
     """
     def __init__(
             self, lats, lons, phis, thetas, eqlats, eqlons,
@@ -469,22 +469,18 @@ class Dataset:
     @staticmethod
     def _round_dividers(dividers, n_cores):
         dividers_rounded = np.round(dividers).astype(np.int64)
-        print(dividers)
-        print(dividers_rounded)
         if np.sum(dividers_rounded) < n_cores:
             dividers_fixed = np.where(
                 dividers_rounded == 0, 1, dividers_rounded)
             if np.sum(dividers_fixed) <= n_cores:
                 dividers_rounded = dividers_fixed
         dividers_sorted = np.sort(dividers)
-        print(dividers_sorted)
         i = -1
         while np.sum(dividers_rounded) != n_cores:
             index_current_max = np.argwhere(dividers == dividers_sorted[i])[0]
             # to avoid problems with identical values
             dividers[index_current_max] = 0.
             dividers_rounded[index_current_max] += 1
-            print(dividers_rounded)
             i -= 1
         if (dividers_rounded.sum() == n_cores
             and (dividers_rounded==0).sum() > 0):

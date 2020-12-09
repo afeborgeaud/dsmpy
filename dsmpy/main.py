@@ -1,7 +1,22 @@
-from pydsm import dsm, rootdsm_psv, rootdsm_sh
-from pydsm.dataset import Dataset
-from pydsm.seismicmodel import SeismicModel
-from pydsm.dsm import PyDSMInputFile
+"""Main script for parallel synthetic computation.
+The script takes a PyDSMInputFile as its single argument.
+
+Examples:
+    To run `inputfile` using 5 cores, do:
+    %mpiexec -n 2 python main.py inputfile
+
+    A template input file can be found in
+    ../tests/input_files/template.txt. Run it with:
+    
+    %mpiexec -n 2 python main.py ../tests/input_files/template.txt
+
+"""
+
+from dsmpy import dsm, rootdsm_psv, rootdsm_sh
+from dsmpy.dataset import Dataset
+from dsmpy.seismicmodel import SeismicModel
+from dsmpy.dsm import PyDSMInputFile
+from dsmpy.spc.stf import SourceTimeFunction
 import os
 import numpy as np
 import time
@@ -11,7 +26,6 @@ import sys
 import pickle
 import matplotlib.pyplot as plt
 from obspy import read
-from pydsm.spc.stf import SourceTimeFunction
 
 def get_sac_files(root_event_folder):
     sac_files = list(glob.iglob(os.path.join(root_event_folder, '**/*Ts')))
@@ -97,9 +111,7 @@ if __name__ == '__main__':
             output.to_time_domain()
             output.write(params['output_folder'], format='sac')
         end_time = time.time()
-        print('rank{}: finished FFT and writing in {} s'
+        print('finished FFT and writing in {} s'
               .format(rank, end_time-start_time))
-
-        #plot(outputs[0], params['sac_files'][0])
     
     log.close()

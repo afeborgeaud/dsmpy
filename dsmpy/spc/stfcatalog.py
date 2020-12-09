@@ -1,26 +1,30 @@
-from pydsm.spc.stf import SourceTimeFunction
-from pydsm import root_resources
+from dsmpy.spc.stf import SourceTimeFunction
+from dsmpy import root_resources
 import os
 import pickle
 
 class STFCatalog:
     '''Utility class to read and save catalog (dict) of
     source time functions with entries:
-        event_id (str): SourceTimeFunction
+    event_id (str): SourceTimeFunction
+
     '''
 
     @staticmethod
     def read_from_file(path):
         '''Read source time functions from a file.
+
         Args:
-            path (str): path of a file containing source time function
+            path (str): path of a file containing source time function.
             informations. The first 3 columns of each row are:
-                (1) event_id (GCMT id); (2) duration (s);
-                (3) amplitude correction
+            (1) event_id (GCMT id); (2) duration (s);
+            (3) amplitude correction
             remaining columns will be ignored. Columns starting with '#'
             will be ignored.
+
         Returns:
             catalog (dict): source time function catalog
+
         '''
         with open(path, 'r') as f:
             lines = f.readlines()
@@ -42,8 +46,10 @@ class STFCatalog:
     @staticmethod
     def read_scardec():
         '''Returns the scardec source time function catalog.
+
         Returns:
             catalog (dict): source time function catalog
+
         '''
         path = os.path.join(root_resources, 'scardec.pkl')
         catalog = STFCatalog.load(path)
@@ -52,9 +58,11 @@ class STFCatalog:
     @staticmethod
     def save(path, catalog):
         '''Save catalog using pickle.dump().
+
         Args:
-            path (str): name of the output file
-            catalog (dict): source time function catalog
+            path (str): name of the output file.
+            catalog (dict): source time function catalog.
+
         '''
         with open(path, 'wb') as f:
             pickle.dump(catalog, f)
@@ -62,10 +70,13 @@ class STFCatalog:
     @staticmethod
     def load(path):
         '''Read path into a catalog using pickle.load().
+
         Args:
-            path (str): name of the file that contains a catalog
+            path (str): name of the file that contains a catalog.
+
         Return:
-            output (PyDSMOutput)
+            output (PyDSMOutput):
+
         '''
         with open(path, 'rb') as f:
             output = pickle.load(f)

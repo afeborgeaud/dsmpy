@@ -1,20 +1,21 @@
+from dsmpy.event import Event
+from dsmpy.station import Station
+from dsmpy.component import Component
 from obspy.taup import TauPyModel
 import numpy as np
-from pydsm.event import Event
-from pydsm.station import Station
-from pydsm.component import Component
 
 class Window:
     """Time or frequency window.
     
     Args:
         travel_time (float): arrival time
-        event (pydsm.Event): seismic event
-        station (pydsm.Station): seismic station
+        event (Event): seismic event
+        station (Station): seismic station
         phaseName (str): a TauP seismic phase
-        component (pydsm.Component): seismic component
+        component (Component): seismic component
         t_before (float): time before arrival (default: 10)
         t_after (float): time after arrival (default: 40)
+        
     """
     def __init__(
             self, travel_time, event, station,
