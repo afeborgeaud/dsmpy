@@ -1,50 +1,36 @@
-# pydsm
+# dsmpy
 Python package for computation of synthetic waveforms in spherically homogeneous transversely isotropic (VTI) media using the Direct Solution Method (DSM; [Kawai et al. 2006](https://doi.org/10.1111/j.1365-246X.2005.02829.x)).<br/><br/>
 Documentation and tutorials can be found [here](https://afeborgeaud.github.io/dsmpy/).
 
 ## INSTALLATION
-1) From the Terminal, clone the pydsm git repository:
-```
-git clone git@github.com:afeborgeaud/pydsm.git
-```
+### Requirements
+1) As ```dsmpy``` relies on mpi4py, you need to have a working MPI implementation installed (see [mpi4py documentation](https://mpi4py.readthedocs.io/en/stable/appendix.html#building-mpi))
+2) gfotran >= 4.8
 
-2) Set the PYTHONPATH
-```export PYTHONPATH="$PYTHONPATH:<path_of_pydsm_folder>"```  
-- Warning: at the moment, the pydsm folder must be named `pydsm' for the python imports to work (not, e.g., pydsm-master)
+### Using pip
+1) In a shell, type
+```
+pip install dsmpy
+```
+This will download the dsmpy package and required dependencies from the PyPI repository.
 
-3) Install [Anaconda (python 3)](https://www.anaconda.com/products/individual)
-
-4) Using ```conda```, install the following python packages required to run *pydsm*:
-```shell
-# create environment pydsm (or any other name)
-conda create -n pydsm python=3.7
-# install dependencies
-conda install -n pydsm numpy mpi4py pandas matplotlib -y
-conda install -n pydsm -c conda-forge obspy geographiclib -y
+2) Check that dsmpy has been installed succesfully:
 ```
-
-5) Activate the pydsm conda environment. *pydsm* should be run within this enviroment (otherwise, you might miss some dependencies)
+python -c "import dsmpy"
 ```
-conda activate pydsm
-```
-
-6) Check that pydsm has been setup succesfully:
-```
-python -c "import pydsm"
-```
-Note: Fortran sources for the DSM will be compiled the first time *pydsm* is imported. Python libraries are created from the DSM Fortran sources using numpy.f2py and the gfortran compiler. If you get compilation errors, check the following:
-- gfortran >= 4.8 is required for succesful compilation, since we use the optimization flag '-Ofast'
-- If you have gfortran <4.8, you should change the compiler flag from '-Ofast' to '-O3' in ```<path_of_pydsm_folder>/pydsm/__init__.py```
+**Note:** Fortran sources for the DSM will be compiled during the installation (using numpy.f2py and the GNU Fortran compiler). If you get compilation errors, check the following:
+- gfortran >= 4.8 is required for succesful compilation, because of the optimization flag '-Ofast'
+- If you have gfortran <4.8, you should change the compiler flag from '-Ofast' to '-O3' in ```<path_of_dsmpy_folder>/pydsm/__init__.py```
 
 ## GETTING STARTED
 Before getting started, you should at least run ```python test_tipsv.py``` and ```python test_tish.psv``` located in in ```<path_of_pydsm_folder>/pydsm/tests```. These scripts check pydsm against pre-computed synthetics using the DSM (Fortran).
 
 ## EXAMPLES OF USAGE
-1) Running pydsm using pydsm input file (run on multiple CPUs).
-A template input file is in ```<path_of_pydsm_folder>/pydsm/tests/input_files/template.txt```:
+1) Running dsmpy using an input file (run on multiple CPUs).
+A template input file is in ```<path_of_pydsm_folder>/dsmpy/tests/input_files/template.txt```:
 ```shell
-sac_files ~/git/pydsm/tests/sac_files/*T
-output_folder ~/git/pydsm/tests/sac_files
+sac_files ~/git/dsmpy/tests/sac_files/*T
+output_folder ~/git/dsmpy/tests/sac_files
 # duration of synthetics (in seconds)
 tlen 3276.8
 # number of points of frequency-domain synthetics
@@ -62,19 +48,19 @@ verbose 0
 
 To run this input file on 2 CPUs:
 1) open a Terminal 
-2) change the current directory to the pydsm directory
+2) change the current directory to the dsmpy directory
 3) paste:
 ```shell
 mpiexec -n 2 python pydsm/main.py tests/input_files/template.txt
 ```
 
-2) Running pydsm from your python script.
-Below is an example of python script using pydsm to compute synthetics:
+2) Running dsmpy from a python script.
+Below is an example of python script using dsmpy to compute synthetics:
 ```python
-from pydsm import dsm, seismicmodel
-from pydsm.event import Event
-from pydsm.station import Station
-from pydsm.utils.cmtcatalog import read_catalog
+from dsmpy import dsm, seismicmodel
+from dsmpy.event import Event
+from dsmpy.station import Station
+from dsmpy.utils.cmtcatalog import read_catalog
 # load gcmt catalog
 catalog = read_catalog()
 # get event from catalog
@@ -97,6 +83,7 @@ input = dsm.PyDSMInput.input_from_arrays(
 # compute synthetics in frequency domain calling DSM Fortran
 output = dsm.compute(input)
 output.to_time_domain() # perform inverse FFT
+output.filter(freq=0.04) # apply a 25 seconds low-pass filter
 us = output.us # synthetics. us.shape = (3,nr,tlen)
 ts = output.ts # time points [0, tlen]
 # brackets can be used to access component and station
@@ -108,8 +95,8 @@ plt.show()
 output.write(root_path='.', format='sac')
 ```
 
-3) Running pydsm using a (Fortran) DSM input file.
-Methods are provided to run pydsm using an input file for the (Fortran) DSM:
+3) Running dsmpy using a (Fortran) DSM input file.
+Methods are provided to run dsmpy using an input file for the (Fortran) DSM:
 ```python
 from pydsm import dsm, rootdsm_sh
 parameter_file = rootdsm_sh + 'AK135_SH.inf'
