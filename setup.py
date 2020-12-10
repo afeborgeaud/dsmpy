@@ -36,7 +36,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name="dsmpy",
-    version='1.0a0',
+    version='1.0a1',
     author='Anselme Borgeaud, Kensuke Konishi',
     author_email='aborgeaud@gmail.com',
     license='MIT',
@@ -46,7 +46,7 @@ setup(
     url='https://github.com/afeborgeaud/dsmpy',
     packages=setuptools.find_packages(),
     classifiers=[
-        "Development Status :: 0 - Alpha",
+        "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
