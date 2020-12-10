@@ -56,13 +56,22 @@ def plot(output, sac_file):
     ax1.legend()
     plt.show()
 
-if __name__ == '__main__':
+def main(path):
+    """Compute synthetics in parallel.
+
+    Args:
+        path (str): path to an input file.
+
+    """
     comm = MPI.COMM_WORLD
     n_cores = comm.Get_size()
     rank = comm.Get_rank()
 
+    # open log file
+    log = open('log', 'w', buffering=1)
+
     if rank == 0:
-        input_file = PyDSMInputFile(sys.argv[1])
+        input_file = PyDSMInputFile(path)
         params = input_file.read()
         seismic_model = SeismicModel.model_from_name(params['seismic_model'])
         tlen = params['tlen']
@@ -76,7 +85,7 @@ if __name__ == '__main__':
                                            verbose=verbose)
         end_time = time.time()
         if verbose >= 1:
-            print('Initalizing dataset finished in {} s'
+            log.write('Initalizing dataset finished in {} s\n'
                   .format(end_time - start_time))
     else:
         params = None
@@ -87,9 +96,6 @@ if __name__ == '__main__':
         sampling_hz = None
         mode = None
         verbose = None
-    
-    # log file
-    log = open('log', 'w')
 
     # run pydsm
     start_time = time.time()
@@ -101,7 +107,7 @@ if __name__ == '__main__':
                                            verbose=verbose,
                                            log=log)
     end_time = time.time()
-    print('rank {}: DSM finished in {} s'
+    log.write('rank {}: DSM finished in {} s\n'
           .format(rank, end_time-start_time))
 
     if rank == 0:
@@ -111,7 +117,13 @@ if __name__ == '__main__':
             output.to_time_domain()
             output.write(params['output_folder'], format='sac')
         end_time = time.time()
-        print('finished FFT and writing in {} s'
+        log.write('finished FFT and writing in {} s\n'
               .format(rank, end_time-start_time))
     
     log.close()
+    
+    return "Done!"
+
+if __name__ == '__main__':
+    path = sys.argv[1]
+    main(path)

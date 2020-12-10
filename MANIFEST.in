@@ -1,0 +1,8 @@
+# include README.md
+inlcude *.md
+
+# include SAC files used for test
+include tests/sac_files/*
+
+# include template input file
+include tests/input_files/*txt

@@ -36,15 +36,18 @@ with open('README.md', 'r') as fh:
 
 setup(
     name="dsmpy",
-    version='2020.12',
+    version='1.0a0',
     author='Anselme Borgeaud, Kensuke Konishi',
     author_email='aborgeaud@gmail.com',
+    license='MIT',
     description='Python wrapper for DSM',
     long_description = long_description,
     long_description_content_type='text/markdown',
-    url='',
+    url='https://github.com/afeborgeaud/dsmpy',
     packages=setuptools.find_packages(),
     classifiers=[
+        "Development Status :: 0 - Alpha",
+        "Intended Audience :: Developers",
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
@@ -58,5 +61,13 @@ setup(
         'geographiclib',
     ],
     ext_modules=[lib_tish, lib_tipsv],
-    python_requires='>=3.7'
+    python_requires='>=3.7',
+    package_data={
+        'dsmpy' : ['resources/scardec.pkl'],
+    },
+    entry_points={
+        'console_scripts': [
+            'dsmpy=dsmpy.commandline:main',
+        ],
+    },
 )
