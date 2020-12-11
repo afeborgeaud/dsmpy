@@ -1,0 +1,12 @@
+[build-system]
+requires = [
+    "setuptools",
+    "wheel",
+    'obspy',
+    'mpi4py',
+    'pandas',
+    'matplotlib',
+    'geographiclib',
+    "numpy",
+]
+build-backend = 'setuptools.build_meta'

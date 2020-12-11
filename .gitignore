@@ -15,3 +15,5 @@ dsmpy.egg-info/*
 dist/*
 build/*
 dsmpy/flib
+venv
+**.swp
