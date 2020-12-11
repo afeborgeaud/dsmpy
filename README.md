@@ -1,6 +1,6 @@
 # dsmpy
 [![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-370/)
-[![PyPI version fury.io](https://d25lcipzij17d.cloudfront.net/badge.svg?id=py&type=6&v=1.0a2&x2=0)](https://test.pypi.org/search/?q=dsmpy)
+[![PyPI version fury.io](https://d25lcipzij17d.cloudfront.net/badge.svg?id=py&type=6&v=1.0a2&x2=0)](https://test.pypi.org/project/dsmpy/)
 
 Python package for computation of synthetic waveforms in spherically homogeneous transversely isotropic (VTI) media using the Direct Solution Method (DSM; [Kawai et al. 2006](https://doi.org/10.1111/j.1365-246X.2005.02829.x)).<br/><br/>
 Documentation and tutorials can be found [here](https://afeborgeaud.github.io/dsmpy/).
