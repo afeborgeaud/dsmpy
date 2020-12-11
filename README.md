@@ -8,22 +8,27 @@ Documentation and tutorials can be found [here](https://afeborgeaud.github.io/ds
 ## INSTALLATION
 ### Requirements
 1) As ```dsmpy``` relies on mpi4py, you need to have a working MPI implementation installed (see [mpi4py documentation](https://mpi4py.readthedocs.io/en/stable/appendix.html#building-mpi))
-2) gfotran >= 4.8
+2) gfotran>=4.8
 
-### Using pip
-1) In a shell, type
+### Using pip (TestPyPI)
+1) (Optional) You may want to install dsmpy in a virtual environment. If so, do
 ```
-pip install dsmpy
+python -m venv venv
+source activate ./venv/bin/activate
 ```
-This will download the dsmpy package and required dependencies from the PyPI repository.
+2) In a shell, type
+```
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple dsmpy
+```
+This will download the dsmpy package from the TestPyPI respository and the required dependencies from the PyPI repository.
 
-2) Check that dsmpy has been installed succesfully:
+3) Check that dsmpy has been installed succesfully:
 ```
 python -c "import dsmpy"
 ```
 **Note:** Fortran sources for the DSM will be compiled during the installation (using numpy.f2py and the GNU Fortran compiler). If you get compilation errors, check the following:
-- gfortran >= 4.8 is required for succesful compilation, because of the optimization flag '-Ofast'
-- If you have gfortran <4.8, you should change the compiler flag from '-Ofast' to '-O3' in ```<path_of_dsmpy_folder>/pydsm/__init__.py```
+- gfortran>=4.8 is required for succesful compilation, because of the optimization flag '-Ofast'
+- If you have gfortran<4.8, you should change the compiler flag from '-Ofast' to '-O3' in ```<path_of_dsmpy_folder>/pydsm/__init__.py```
 
 ## GETTING STARTED
 To get started, you should at least run ```python test_tipsv.py``` and ```python test_tish.psv``` located in in ```<path_of_pydsm_folder>/pydsm/tests```. These scripts check ```dsmpy``` against pre-computed synthetics using the DSM (Fortran).
