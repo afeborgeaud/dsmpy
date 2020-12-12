@@ -13,7 +13,7 @@ Documentation and tutorials can be found [here](https://afeborgeaud.github.io/ds
 ### Using pip (TestPyPI)
 1) (Optional) You may want to install dsmpy in a virtual environment. If so, do
 ```
-python -m venv venv
+python3 -m venv venv
 source activate ./venv/bin/activate
 ```
 2) In a shell, type
@@ -29,6 +29,33 @@ python -c "import dsmpy"
 **Note:** Fortran sources for the DSM will be compiled during the installation (using numpy.f2py and the GNU Fortran compiler). If you get compilation errors, check the following:
 - gfortran>=4.8 is required for succesful compilation, because of the optimization flag '-Ofast'
 - If you have gfortran<4.8, you should change the compiler flag from '-Ofast' to '-O3' in ```<path_of_dsmpy_folder>/pydsm/__init__.py```
+
+### Build from source
+1) Clone the dsmpy repository
+```
+git clone https://github.com/afeborgeaud/dsmpy
+```
+2) (Optional) You may want to install dsmpy in a virtual environment. If so, do
+```
+python3 -m venv venv
+source activate ./venv/bin/activate
+```
+3) Install [*build*](https://pypi.org/project/build/), a PEP517 package builder
+```
+pip install build
+```
+4) To build the dsmpy package, from the root directory ```dsmpy``` run
+```
+python -m build .
+```
+5) This creates ```.whl``` and ```.gz.tar``` dist files in the ```dist``` directory. Now pydsm can be installed with
+```
+pip install dist/pytomo-1.0a0-py3-none-any.whl
+```
+or
+```
+pip install dist/pytomo-1.0a0.tar.gz
+```
 
 ## GETTING STARTED
 To get started, you should at least run ```python test_tipsv.py``` and ```python test_tish.psv``` located in in ```<path_of_pydsm_folder>/pydsm/tests```. These scripts check ```dsmpy``` against pre-computed synthetics using the DSM (Fortran).
