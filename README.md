@@ -50,11 +50,11 @@ python -m build .
 ```
 5) This creates ```.whl``` and ```.gz.tar``` dist files in the ```dist``` directory. Now pydsm can be installed with
 ```
-pip install dist/pytomo-1.0a0-py3-none-any.whl
+pip install dist/*.whl
 ```
 or
 ```
-pip install dist/pytomo-1.0a0.tar.gz
+pip install dist/*.tar.gz
 ```
 
 ## GETTING STARTED
