@@ -92,8 +92,10 @@ class PyDSMOutput:
         source_time_function (SourceTimeFunction): SourceTimeFunction
             object
         sampling_hz (int): sampling frequency for time-domain waveforms
-        tlen (float): length of time series (must be 2**n/10)
-        nspc (int): number of frequency points (must be 2**n)
+        tlen (float): duration of the synthetics (in seconds)
+            (better to be 2**n/10)
+        nspc (int): number of frequency points in the synthetics
+            (better to be 2**n)
         omegai (float):
     """
     color_count = 0

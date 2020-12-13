@@ -10,6 +10,13 @@ class Component(IntEnum):
 
     @staticmethod
     def parse_component(str):
+        '''Parse component from a str.
+
+            Args:
+                str (str): str representation of a component
+                    (e.g., 'Z', 'vertical' -> Z)
+
+        '''
         if (
             str == 'Z'
             or str == 'vertical'
