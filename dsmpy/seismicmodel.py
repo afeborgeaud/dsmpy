@@ -490,7 +490,7 @@ class SeismicModel:
         model._nzone = model._rho.shape[1]
         mesh._nzone = mesh._rho.shape[1]
         mesh._mesh_type = 'triangle'
-        mehs._model_params = model_parameters
+        mesh._model_params = model_parameters
         model._model_params = model_parameters
         return model, mesh
 
@@ -505,67 +505,67 @@ class SeismicModel:
             #     & set(np.where(mesh._vrmin >= nodes[i])[0]))
             if self._mesh_type == 'boxcar':
                 for index in indexes:
-                    mesh._rho[0, index] *= values_p[i, 0]
-                    mesh._vpv[0, index] *= values_p[i, 1]
-                    mesh._vph[0, index] *= values_p[i, 2]
-                    mesh._vsv[0, index] *= values_p[i, 3]
-                    mesh._vsh[0, index] *= values_p[i, 4]
-                    mesh._eta[0, index] *= values_p[i, 5]
-                    mesh._qmu[index] *= values_p[i, 6]
-                    mesh._qkappa[index] *= values_p[i, 7]
+                    mesh._rho[0, index] *= values[i, 0]
+                    mesh._vpv[0, index] *= values[i, 1]
+                    mesh._vph[0, index] *= values[i, 2]
+                    mesh._vsv[0, index] *= values[i, 3]
+                    mesh._vsh[0, index] *= values[i, 4]
+                    mesh._eta[0, index] *= values[i, 5]
+                    mesh._qmu[index] *= values[i, 6]
+                    mesh._qkappa[index] *= values[i, 7]
             elif self._mesh_type == 'triangle':
                 if i == 0:
                     for index in indexes:
-                        mesh._rho[:, index] *= values_p[i, 0]
-                        mesh._vpv[:, index] *= values_p[i, 1]
-                        mesh._vph[:, index] *= values_p[i, 2]
-                        mesh._vsv[:, index] *= values_p[i, 3]
-                        mesh._vsh[:, index] *= values_p[i, 4]
-                        mesh._eta[:, index] *= values_p[i, 5]
-                        mesh._qmu[index] *= values_p[i, 6]
-                        mesh._qkappa[index] *= values_p[i, 7]
+                        mesh._rho[:, index] *= values[i, 0]
+                        mesh._vpv[:, index] *= values[i, 1]
+                        mesh._vph[:, index] *= values[i, 2]
+                        mesh._vsv[:, index] *= values[i, 3]
+                        mesh._vsh[:, index] *= values[i, 4]
+                        mesh._eta[:, index] *= values[i, 5]
+                        mesh._qmu[index] *= values[i, 6]
+                        mesh._qkappa[index] *= values[i, 7]
                 elif i == len(nodes) - 2:
                     a_add = np.array([1., 0., 0., 0.])
                     a_mul = np.array([-1., -1., 0., 0.])
                     for index in indexes:
-                        mesh._rho[:, index] *= values_p[i-1, 0]
-                        mesh._vpv[:, index] *= values_p[i-1, 1]
-                        mesh._vph[:, index] *= values_p[i-1, 2]
-                        mesh._vsv[:, index] *= values_p[i-1, 3]
-                        mesh._vsh[:, index] *= values_p[i-1, 4]
-                        mesh._eta[:, index] *= values_p[i-1, 5]
-                        mesh._qmu[index] *= values_p[i-1, 6]
-                        mesh._qkappa[index] *= values_p[i-1, 7]
+                        mesh._rho[:, index] *= values[i-1, 0]
+                        mesh._vpv[:, index] *= values[i-1, 1]
+                        mesh._vph[:, index] *= values[i-1, 2]
+                        mesh._vsv[:, index] *= values[i-1, 3]
+                        mesh._vsh[:, index] *= values[i-1, 4]
+                        mesh._eta[:, index] *= values[i-1, 5]
+                        mesh._qmu[index] *= values[i-1, 6]
+                        mesh._qkappa[index] *= values[i-1, 7]
                 else:
                     for index in indexes:
                         a_add = np.array([1., 0., 0., 0.])
                         a_mul = np.array([-1., -1., 0., 0.])
                         mesh._rho[:, index] = (
-                            mesh._rho[:,index] * values_p[i, 0]
+                            mesh._rho[:,index] * values[i, 0]
                             + (a_mul*mesh._rho[:,index] + a_add)
-                            * values_p[i-1, 0])
+                            * values[i-1, 0])
                         mesh._vpv[:, index] = (
-                            mesh._vpv[:,index] * values_p[i, 1]
+                            mesh._vpv[:,index] * values[i, 1]
                             + (a_mul*mesh._vpv[:,index] + a_add)
-                            * values_p[i-1, 1])
+                            * values[i-1, 1])
                         mesh._vph[:, index] = (
-                            mesh._vph[:,index] * values_p[i, 2]
+                            mesh._vph[:,index] * values[i, 2]
                             + (a_mul*mesh._vph[:,index] + a_add)
-                            * values_p[i-1, 2])
+                            * values[i-1, 2])
                         mesh._vsv[:, index] = (
-                            mesh._vsv[:,index] * values_p[i, 3]
+                            mesh._vsv[:,index] * values[i, 3]
                             + (a_mul*mesh._vsv[:,index] + a_add)
-                            * values_p[i-1, 3])
+                            * values[i-1, 3])
                         mesh._vsh[:, index] = (
-                            mesh._vsh[:,index] * values_p[i, 4]
+                            mesh._vsh[:,index] * values[i, 4]
                             + (a_mul*mesh._vsh[:,index] + a_add)
-                            * values_p[i-1, 4])
+                            * values[i-1, 4])
                         mesh._eta[:, index] = (
-                            mesh._eta[:,index] * values_p[i, 5]
+                            mesh._eta[:,index] * values[i, 5]
                             + (a_mul*mesh._eta[:,index] + a_add)
-                            * values_p[i-1, 5])
-                        mesh._qmu[index] *= values_p[i, 6]
-                        mesh._qkappa[index] *= values_p[i, 7]
+                            * values[i-1, 5])
+                        mesh._qmu[index] *= values[i, 6]
+                        mesh._qkappa[index] *= values[i, 7]
             elif self._mesh_type == 'lininterp':
                 for index in indexes:
                     # TODO check if no bug
