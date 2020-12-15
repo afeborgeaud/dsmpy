@@ -1,8 +1,4 @@
-import sys
 import os
-import subprocess
-import shutil
-import glob
 from dsmpy.definitions import ROOT_DIR
 
 # set global paths
