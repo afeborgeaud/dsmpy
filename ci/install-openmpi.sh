@@ -28,6 +28,8 @@ else
     echo "Configuring and building OpenMPI"
     mkdir -p $MPI_BUILD_DIR
     cd openmpi-$MPI_FULL_VERSION
+    pwd
+    ls
     export CC=$C_COMPILER
     export CXX=$CXX_COMPILER
     export FORTRAN=$FORTRAN_COMPILER
