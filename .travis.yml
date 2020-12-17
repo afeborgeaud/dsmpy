@@ -21,14 +21,14 @@ matrix:
           sources:
             - deadsnakes
             - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
       env:
         - C_COMPILER="gcc", CXX_COMPILER="g++", FORTRAN_COMPILER="gfortran"
 
 before_install:
   - python -m pip install build
-  - python -m pip install pep517
+  - python -m pip --version
+  - python -m pip install --upgrade pip
+  - python -m pip --version
   - export MPI_BUILD_DIR=$TRAVIS_BUILD_DIR/openmpi-build
   - export MPI_VERSION="3.1"
   - export MPI_FULL_VERSION="3.1.3"
@@ -36,7 +36,7 @@ install:
   - source ci/install-openmpi.sh
   - echo $MPI_FORTRAN
   - echo $MPI_EXEC
-  - env MPICC=$MPI_CC mpifort=$MPI_FORTRAN python -m build .
+  - env MPICC=$MPI_CC MPIFORT=$MPI_FORTRAN python -m pip install .
 
 script:
   - pytest
