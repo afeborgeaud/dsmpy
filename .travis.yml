@@ -36,10 +36,10 @@ before_install:
   - export MPI_VERSION="4.0"
   - export MPI_FULL_VERSION="4.0.5"
 install:
+  - python -m pip install obspy
   - source ci/install-openmpi.sh
   - echo $MPI_FC
   - echo $MPI_EXEC
-  - python -m pip install obspy
   - env MPICC=$MPI_CC MPIFORT=$MPI_FC python -m pip install mpi4py
   - env MPICC=$MPI_CC MPIFORT=$MPI_FC python -m pip install .
 
