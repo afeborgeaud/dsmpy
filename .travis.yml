@@ -41,7 +41,9 @@ install:
   - source ci/install-openmpi.sh
   - echo $MPI_FC
   - echo $MPI_EXEC
-  - env MPICC=$MPI_CC python -m pip install mpi4py
+  - echo $MPI_CC
+  - python -c "import sysconfig;print(sysconfig.get_config_var('LDSHARED'))"
+  - env MPICC=$MPI_CC MPILD=$MPI_CC python -m pip install mpi4py
   - env MPICC=$MPI_CC python -m pip install .
 
 script:

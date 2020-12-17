@@ -35,7 +35,7 @@ else
     ./configure --prefix=$MPI_BUILD_DIR
     ls
     make -j3  # Produce output so that Travis doesn't halt after 10 min.
-    make install &> make-install.log
+    make install
     cd ..
 fi
 export MPI_CC=$MPI_BUILD_DIR/bin/mpicc
