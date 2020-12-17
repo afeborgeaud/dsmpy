@@ -22,9 +22,9 @@ matrix:
             - deadsnakes
             - ubuntu-toolchain-r-test
           packages:
-            - gcc-7
+            - g++-9
       env:
-        - C_COMPILER="gcc-7", CXX_COMPILER="g++-7", FORTRAN_COMPILER="gfortran-7"
+        - C_COMPILER="gcc-9", CXX_COMPILER="g++-9", FORTRAN_COMPILER="gfortran-9"
 
 before_install:
   - python -m pip --version
@@ -35,12 +35,12 @@ before_install:
   - export MPI_VERSION="4.0"
   - export MPI_FULL_VERSION="4.0.5"
 install:
-  - python -m pip install obspy
   - source ci/install-openmpi.sh
   - echo $MPI_FORTRAN
   - echo $MPI_EXEC
-  - env MPICC=$MPI_CC MPIFORT=$MPI_FORTRAN python -m pip install mpi4py
-  - env MPICC=$MPI_CC MPIFORT=$MPI_FORTRAN python -m pip install .
+  - python -m pip install obspy
+  - env MPICC=$MPI_CC MPIFORT=$MPI_FC python -m pip install mpi4py
+  - env MPICC=$MPI_CC MPIFORT=$MPI_FC python -m pip install .
 
 script:
   - pytest

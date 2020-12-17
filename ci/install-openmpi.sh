@@ -35,8 +35,9 @@ else
     export CXX=$CXX_COMPILER
     export FC=$FORTRAN_COMPILER
     echo "Configure"
-    ./configure --prefix=$MPI_BUILD_DIR &> config.log
+    ./configure --prefix=$MPI_BUILD_DIR
     echo "Done"
+    ls
     make -j3  # Produce output so that Travis doesn't halt after 10 min.
     make install &> make-install.log
     cd ..
