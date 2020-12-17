@@ -1,8 +1,60 @@
+# Configuration script for Travis CI.
+# Instructions to install the MPI implementation
+# were taken from https://github.com/mpi4py/
+
 language: python
 python:
   - "3.7"
+
+os: linux
+dist: xenial
+sudo: required
+
+env:
+  global:
+    - HYDRA_LAUNCHER=fork
+    - OMPI_MCA_plm=isolated
+    - OMPI_MCA_rmaps_base_oversubscribe=true
+  matrix:
+    - MPI=mpich
+    - MPI=openmpi
+
+matrix:
+  include:
+    - python: pypy
+      env: MPI=mpich
+    - python: pypy
+      env: MPI=openmpi
+    - python: pypy3
+      env: MPI=mpich
+    - python: pypy3
+      env: MPI=openmpi
+    - python: pypy3.5-6.0
+      env: MPI=mpich
+    - python: pypy3.5-6.0
+      env: MPI=openmpi
+  allow_failures:
+    - python: pypy
+      env: MPI=mpich
+    - python: pypy
+      env: MPI=openmpi
+    - python: pypy3
+      env: MPI=mpich
+    - python: pypy3
+      env: MPI=openmpi
+    - python: pypy3.5-6.0
+      env: MPI=mpich
+    - python: pypy3.5-6.0
+      env: MPI=openmpi
+
+cache:
+  apt: true
+
+before_install:
+  - python -m pip install build
+  - ./conf/ci/travis-ci/install-mpi.sh $MPI
 install:
-  - pip install build
   - python -m build .
+
 script:
   - pytest
