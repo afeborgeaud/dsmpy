@@ -22,10 +22,10 @@ matrix:
             - deadsnakes
             - ubuntu-toolchain-r-test
           packages:
-            - g++-9
-            - gfortran-9
+            - g++-7
+            - gfortran-7
       env:
-        - C_COMPILER="gcc-9", CXX_COMPILER="g++-9", FORTRAN_COMPILER="gfortran-9"
+        - C_COMPILER="gcc-7", CXX_COMPILER="g++-7", FORTRAN_COMPILER="gfortran-7"
 
 before_install:
   - python -m pip --version
@@ -36,6 +36,7 @@ before_install:
   - export MPI_VERSION="4.0"
   - export MPI_FULL_VERSION="4.0.5"
 install:
+  - python -c "import sysconfig;print(sysconfig.get_config_var('LDSHARED'))"
   - python -m pip install obspy
   - source ci/install-openmpi.sh
   - echo $MPI_FC
