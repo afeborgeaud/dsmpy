@@ -23,6 +23,7 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-9
+            - gfortran-9
       env:
         - C_COMPILER="gcc-9", CXX_COMPILER="g++-9", FORTRAN_COMPILER="gfortran-9"
 
@@ -36,7 +37,7 @@ before_install:
   - export MPI_FULL_VERSION="4.0.5"
 install:
   - source ci/install-openmpi.sh
-  - echo $MPI_FORTRAN
+  - echo $MPI_FC
   - echo $MPI_EXEC
   - python -m pip install obspy
   - env MPICC=$MPI_CC MPIFORT=$MPI_FC python -m pip install mpi4py
