@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copied from https://github.com/mpi4py
+# Taken from https://github.com/mpi4py
 set -e
 case `uname` in
 Linux)

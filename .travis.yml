@@ -52,7 +52,7 @@ cache:
 
 before_install:
   - python -m pip install build
-  - .install-mpi.sh $MPI
+  - ./install-mpi.sh $MPI
 install:
   - python -m build .
 
