@@ -1,21 +1,21 @@
+"""Main module of dsmpy. Contains the classes for core dsmpy objects
+and the methods for serial and parallel computation
+of synthetic seismograms using the Fortran DSM."""
+
 from dsmpy._tish import _tish, _calthetaphi
 from dsmpy._tish import parameters as tish_parameters
 from dsmpy._tish import _pinput as _pinput_sh
 from dsmpy._tipsv import _pinput, _tipsv
 from dsmpy.spc import spctime
-from dsmpy import root_resources
-from dsmpy.event import Event, MomentTensor
+from dsmpy.event import Event
 from dsmpy.station import Station
 from dsmpy.seismicmodel import SeismicModel
-from obspy import read_events
 from obspy import Trace
 from obspy.core.trace import Stats
 from obspy.core.util.attribdict import AttribDict
 import obspy.signal.filter
-import obspy.io.sac as sac
 import os
 import glob
-import sys
 import matplotlib.pyplot as plt
 import pickle
 import numpy as np
@@ -25,7 +25,8 @@ import functools
 import warnings
 
 default_params = dict(
-        re=0.01, ratc=1e-10, ratl=1e-5, omegai=0.0014053864092981234)
+    re=0.01, ratc=1e-10, ratl=1e-5, omegai=0.0014053864092981234)
+
 
 def _is_iterable(obj):
     try:
@@ -35,16 +36,18 @@ def _is_iterable(obj):
     else:
         return True
 
+
 class PyDSMInputFile:
-    """Input file for pydsm.
+    """Input file for dsmpy.
 
     Args:
-        input_file (str): path of pydsm input file
+        input_file (str): path of dsmpy input file
 
     """
+
     def __init__(self, input_file):
         self.input_file = input_file
-    
+
     def read(self):
         params = dict()
         params['verbose'] = 0
@@ -82,21 +85,26 @@ class PyDSMInputFile:
             return None, None
         return key, value_parsed
 
+
 class PyDSMOutput:
-    """Output from pydsm compute methods.
+    """Output from dsmpy compute methods.
 
     Args:
-        spcs (ndarray[3, nr, nspc+1]): array of spectra computed by DSM
-        stations (ndarray[nr]): array of stations
-        event (Event): earthquake information
-        source_time_function (SourceTimeFunction): SourceTimeFunction
-            object
+        spcs (ndarray): seismic spectra computed with DSM.
+            Shape is (3, nr, nspc+1).
+        stations (ndarray of Station): stations. Shape is (nr,)
+        event (Event): seismic event (the source).
         sampling_hz (int): sampling frequency for time-domain waveforms
         tlen (float): duration of the synthetics (in seconds)
             (better to be 2**n/10)
         nspc (int): number of frequency points in the synthetics
             (better to be 2**n)
-        omegai (float):
+        omegai (float): numerical damping using in DSM.
+            Default is default_params['omegai'].
+            Better to leave it at its default value.
+        model_id (str): seismic model identifier (e.g., 'PREM', 'mod1').
+            (default is None).
+
     """
     color_count = 0
     colors = (
@@ -129,36 +137,46 @@ class PyDSMOutput:
             pydsm_input.tlen, pydsm_input.nspc, pydsm_input.omegai)
 
     def to_time_domain(self, source_time_function=None):
-        '''Compute time domain waveforms from spetra.
+        """Compute time domain waveforms from spetcra.
 
         Args:
             source_time_function (SourceTimeFunction):
-            (None)
-        '''
+                source time function object (default is None).
+
+        """
         # if self.us is not None:
         #     return
 
         if source_time_function is None:
             spct = spctime.SpcTime(self.tlen, self.nspc,
-                               self.sampling_hz, self.omegai,
-                               self.event.source_time_function)
+                                   self.sampling_hz, self.omegai,
+                                   self.event.source_time_function)
         else:
             spct = spctime.SpcTime(self.tlen, self.nspc,
-                               self.sampling_hz, self.omegai,
-                               source_time_function)
+                                   self.sampling_hz, self.omegai,
+                                   source_time_function)
         us = spct.spctime(self.spcs)
         self.us = us
         self.ts = np.linspace(0, self.tlen,
                               spct.npts, endpoint=False)
 
     def set_source_time_function(self, source_time_function):
+        """Set the source time function for convolution.
+
+        Args:
+            source_time_function (SourceTimeFunction):
+                source time function object.
+
+        """
         self.event.source_time_function = source_time_function
 
     def write(self, root_path, format):
-        """write using obspy.io.write
+        """Write to file using obspy.io.write.
+
         Args:
-            root_path (str): path of root folder in which to write
-            format (str): output files format ('sac')
+            root_path (str): path of root folder in which to write.
+            format (str): output files format ('sac').
+
         """
         for tr in self.get_traces():
             filename = '.'.join((
@@ -167,36 +185,41 @@ class PyDSMOutput:
             tr.write(os.path.join(root_path, filename), format=format)
 
     def save(self, path):
-        '''Save self using pickle.dump().
+        """Save self using pickle.dump().
+
         Args:
-            path (str): name of the output file
-        '''
+            path (str): name of the output file.
+
+        """
         with open(path, 'wb') as f:
             pickle.dump(self, f)
 
     @staticmethod
     def load(path):
-        '''Read file into self using pickle.load().
+        """Read file into self using pickle.load().
+
         Args:
-            path (str): name of the file that contains self
-        Return:
-            output (PyDSMOutput)
-        '''
+            path (str): name of the file that contains self.
+
+        Returns:
+            PyDSMOutput: the loaded PyDSMOutput object.
+
+        """
         with open(path, 'rb') as f:
             output = pickle.load(f)
         return output
 
     def filter(self, freq, freq2=0., type='lowpass', zerophase=False):
-        '''Filter time-domain waveforms using obspy.signal.filter.
+        """Filter time-domain waveforms using obspy.signal.filter.
 
         Args:
             freq (float): filter frequency
             freq2 (float): filter maximum frequency
-            (for bandpass filters only)
-            type (str): type of filter. 'lowpass' or 'bandpass'
-            zerophase (bool): use zero phase filter
+                (for bandpass filters only)
+            type (str): type of filter ('lowpass', 'bandpass').
+            zerophase (bool): use zero-phase filter (default is False).
 
-        '''
+        """
         if self.us is None:
             self.to_time_domain(self.event.source_time_function)
 
@@ -218,6 +241,12 @@ class PyDSMOutput:
                         df=self.sampling_hz, zerophase=zerophase)
 
     def get_traces(self):
+        """Return list of obspy.Trace.
+
+        Returns:
+            list ot obspy.Trace: traces
+
+        """
         traces = []
         if self.us is None:
             self.to_time_domain()
@@ -231,7 +260,7 @@ class PyDSMOutput:
                 stats.sampling_rate = self.sampling_hz
                 stats.delta = self.dt
                 stats.starttime = 0.
-                #stats.endtime = self.tlen
+                # stats.endtime = self.tlen
                 stats.npts = len(data)
                 stats.component = self.components[icomp]
                 sac_header = AttribDict(**dict(
@@ -245,14 +274,26 @@ class PyDSMOutput:
                 trace = Trace(data=data, header=stats)
                 traces.append(trace)
         return traces
-    
+
     def window_spcs(self, windows, window_width):
+        """Window the spectra in the frequency domain
+        using gaussian windows to isolate portions
+        of time-domain waveforms.
+
+        Args:
+            windows (list of Window): windows.
+            window_width (float): duration (in seconds).
+
+        Returns:
+            PyDSMOutput: windowed PyDSMOutput object.
+
+        """
         gaussian_windows = [
             window.get_gaussian_window_in_frequency_domain(
-            self.nspc, self.tlen, window_width)
+                self.nspc, self.tlen, window_width)
             for window in windows]
         spcs_windowed = np.zeros_like(self.spcs)
-        for i in range(self.nspc+1):
+        for i in range(self.nspc + 1):
             start = self.nspc - i
             end = start + self.nspc + 1
             spcs_windowed[:, :, i] = np.sum(
@@ -262,23 +303,24 @@ class PyDSMOutput:
         return output
 
     def get_nr(self):
+        """Returns the number of receivers (stations)."""
         return len(self.stations)
 
     def _normalize(self, ys, mode='self'):
         if mode == 'self':
             maxs = ys.max(axis=2).reshape(3, -1)
-            maxs = np.where(maxs==0, np.inf, maxs)
+            maxs = np.where(maxs == 0, np.inf, maxs)
             maxs = maxs.reshape((*ys.shape[:2], 1))
             return 0.5 * ys / maxs
         elif mode == 'none':
             # TODO ensure minimum distance
-            maxs = ys[:,0,:].max(axis=1).reshape(3, 1, 1)
+            maxs = ys[:, 0, :].max(axis=1).reshape(3, 1, 1)
             return .8 * ys / maxs
 
     def _plot(
-        self, xs, ys, color='black', axes=None, distance_min=0.,
-        distance_max=np.inf, label=None, normalize='self',
-        xlabel='Time (s)', slowness=0.):
+            self, xs, ys, color='black', axes=None, distance_min=0.,
+            distance_max=np.inf, label=None, normalize='self',
+            xlabel='Time (s)', slowness=0.):
         if axes is None:
             fig, axes = plt.subplots(3, 1, sharey=True, sharex=True)
         else:
@@ -292,10 +334,10 @@ class PyDSMOutput:
         if distance_min == 0:
             distance_min = distances.min()
         indexes = (distances >= distance_min) & (distances <= distance_max)
-        ys_ = self._normalize(ys[:,indexes,:], mode=normalize)
+        ys_ = self._normalize(ys[:, indexes, :], mode=normalize)
         distances_ = distances[indexes]
         for ir in range(indexes.sum()):
-            label_ = label if ir==len(self.stations)-1 else None
+            label_ = label if ir == len(self.stations) - 1 else None
             # reduced time plots
             reduce_time = (distances_[ir] - distance_min) * slowness
             reduce_index = int(reduce_time * self.sampling_hz)
@@ -303,7 +345,7 @@ class PyDSMOutput:
                 axes[icomp].plot(
                     xs[reduce_index:] - reduce_time,
                     (ys_[icomp, ir, reduce_index:]
-                    + distances_[ir]),
+                     + distances_[ir]),
                     color=color, label=label_)
                 axes[icomp].set_xlabel(xlabel)
                 axes[icomp].set_title(self.components[icomp])
@@ -311,7 +353,7 @@ class PyDSMOutput:
                     axes[icomp].legend()
             axes[0].set_ylabel('Distance (deg)')
         return fig, axes
-    
+
     def plot_spc(
             self, color='black', axes=None, distance_min=0.,
             distance_max=np.inf, label=None, normalize='self'):
@@ -325,15 +367,19 @@ class PyDSMOutput:
             normalize (str): 'self' for self-normalization
             or 'none' to see amplitude decay with distance
 
+        Returns:
+            figure: matplotlib figure object.
+            Axes: matplotlib Axes object.
+
         """
         freqs = np.linspace(
-            0, self.nspc/self.tlen, self.nspc+1, endpoint=True)
+            0, self.nspc / self.tlen, self.nspc + 1, endpoint=True)
         return self._plot(
             freqs, np.abs(self.spcs), color=color, axes=axes,
             distance_min=distance_min,
             distance_max=distance_max, label=label, normalize=normalize,
             xlabel='Frequency (Hz)')
-    
+
     def plot(
             self, color='black', axes=None, distance_min=0.,
             distance_max=np.inf, label=None, normalize='self',
@@ -341,13 +387,19 @@ class PyDSMOutput:
         if self.us is None:
             self.to_time_domain()
         """Plot a (time-domain) record section.
+        
         Args:
             axes (matplotlib.axes): ax on which to plot
             distance_min (float): minimum epicentral distance (deg)
             distance_max (float): maximum epicentral distance (deg)
             label (str): label for model name
             normalize (str): 'self' for self-normalization
-                or 'none' to see amplitude decay with distance
+                or 'none' to see amplitude decay with distance.
+        
+        Returns:
+            figure: matplotlib figure object.
+            Axes: matplotlib Axes object.
+
         """
         if slowness != 0:
             xlabel = ('Time - {:.1f}*distance (s)'
@@ -355,7 +407,7 @@ class PyDSMOutput:
         else:
             xlabel = 'Time (s)'
         return self._plot(
-            self.ts, self.us, color=color, axes=axes, 
+            self.ts, self.us, color=color, axes=axes,
             distance_min=distance_min,
             distance_max=distance_max, label=label, normalize=normalize,
             xlabel=xlabel, slowness=slowness)
@@ -363,12 +415,16 @@ class PyDSMOutput:
     def plot_component(
             self, component, windows=None, ax=None,
             align_zero=False, **kwargs):
-        '''Plot one seismic component
+        """Plot waveforms for one seismic component.
+
         Args:
-            component (pydsm.component): seismic component
+            component (Component): seismic component.
+
         Returns:
-            fig, ax
-        '''
+            figure: matplotlib figure object.
+            Axes: matplotlib Axes object.
+
+        """
         if self.us is None:
             self.to_time_domain()
         if ax is None:
@@ -383,8 +439,8 @@ class PyDSMOutput:
             if windows is not None:
                 windows_tmp = list(filter(
                     lambda w: ((w.station == self.stations[i])
-                                and (w.event == self.event)
-                                and (w.component == component)),
+                               and (w.event == self.event)
+                               and (w.component == component)),
                     windows))
                 if not windows_tmp:
                     continue
@@ -401,16 +457,16 @@ class PyDSMOutput:
             else:
                 data = self.us[component.value, i]
                 ts = np.linspace(
-                    0, len(data)/self.sampling_hz, len(data))
+                    0, len(data) / self.sampling_hz, len(data))
             if align_zero:
                 ts = np.linspace(
-                    0, len(data)/self.sampling_hz, len(data))
-            
+                    0, len(data) / self.sampling_hz, len(data))
+
             norm = np.abs(data).max() * 2.
-            ax.plot(ts, data/norm+distance, **kwargs)
+            ax.plot(ts, data / norm + distance, **kwargs)
             ax.set(xlabel='Time (s)', ylabel='Distance (deg)')
         return fig, ax
-    
+
     def __getitem__(self, key):
         """Override __getitem__. Allows following indexations:
         output['Z']
@@ -430,12 +486,12 @@ class PyDSMOutput:
                 return self.us[2, ...]
         elif len(key) == 2:
             if type(key[1]) is int:
-                    return self.__getitem__(key[0])[key[1]]
+                return self.__getitem__(key[0])[key[1]]
             else:
                 try:
                     if (type(key[1]) != str) and _is_iterable(key[1]):
                         indexes = [self.stations.index(k)
-                                for k in key[1]]
+                                   for k in key[1]]
                         return self.__getitem__(key[0])[indexes, :]
                     else:
                         index = self.stations.index(key[1])
@@ -459,8 +515,10 @@ class DSMInput:
         re (float):
         ratc (float):
         ratl (float):
-        tlen (float):
-        nspc (float):
+        tlen (float): duration of the synthetics (in seconds)
+            (must be 2**n/10)
+        nspc (int): number of frequency points in the synthetics
+            (must be 2**n)
         omegai (float):
         imin (int): 
         imax (int): 
@@ -541,7 +599,7 @@ class DSMInput:
         """
         if mode not in {1, 2}:
             raise RuntimeError('mode should be 1 or 2')
-        
+
         if mode == 1:
             inputs = _pinput(parameter_file)
             (re, ratc, ratl,
@@ -569,7 +627,7 @@ class DSMInput:
             vph = None
             eta = None
             qkappa = None
-        
+
         return cls(
             re, ratc, ratl, tlen, nspc,
             omegai, imin, imax, nzone, vrmin, vrmax,
@@ -583,16 +641,16 @@ class DSMInput:
         
         Args:
             event (Event): earthquake information.
-            stations (list(Station)): seismic stations.
+            stations (list of Station): seismic stations.
             seismic_model (SeismicModel): Earth structure model 
-            (e.g. PREM).
-            tlen (float): time length of synthetics 
-            (must be 2**n/10).
-            nspc (int): number of frequency points for synthetics
-            (must be 2**n).
+                (e.g. PREM).
+            tlen (float): duration of the synthetics (in seconds)
+                (better to be 2**n/10)
+            nspc (int): number of frequency points in the synthetics
+                (better to be 2**n)
 
         Returns:
-            dsm_input (DSMInput): DSMInput object
+            DSMInput: DSMInput object
 
         """
         # structure parameters
@@ -729,14 +787,12 @@ class DSMInput:
 
 
 class PyDSMInput(DSMInput):
-    """Input parameters for pydsm compute methods.
+    """Input parameters for dsmpy compute methods.
 
     Args:
         dsm_input (DSMInput): input parameters for Fortran DSM.
         sampling_hz (int): sampling frequency for time-domain waveforms.
-        source_time_function (SourceTimeFunction): SourceTimeFunction
-        object.
-        mode (int): 1: P-SV, 2: SH.
+        mode (int): 1: P-SV, 2: SH. (default is 1).
 
     """
 
@@ -749,8 +805,8 @@ class PyDSMInput(DSMInput):
         self.stations = self._parse_stations()
         self.event = self._parse_event()
         self.mode = mode
-        if mode not in {1, 2}:
-            raise RuntimeError('mode should be 1 (PSV) or 2 (SH)')
+
+        assert mode in {1, 2}
 
     @classmethod
     def input_from_file(cls, parameter_file,
@@ -784,18 +840,18 @@ class PyDSMInput(DSMInput):
         
         Args:
             event (Event): earthquake information.
-            stations (list(Station)): seismic stations.
+            stations (list of Station): seismic stations.
             seismic_model (SeismicModel): Earth structure model 
-            (e.g. PREM).
-            tlen (float): time length of synthetics 
-            (must be 2**n/10).
-            nspc (int): number of frequency points for synthetics
-            (must be 2**n).
+                (e.g. PREM).
+            tlen (float): duration of the synthetics (in seconds)
+                (better to be 2**n/10)
+            nspc (int): number of frequency points in the synthetics
+                (better to be 2**n)
             sampling_hz (float): sampling frequency
-            for time-domain synthetics.
+                for time-domain synthetics.
 
         Returns:
-            pydsm_input (:obj:`PyDSMInput`): PyDSMInput object.
+            PyDSMInput: PyDSMInput object.
 
         """
         dsm_input = DSMInput.input_from_arrays(event, stations,
@@ -819,14 +875,14 @@ class PyDSMInput(DSMInput):
     def _parse_stations(self):
         stations = []
         for i in range(self.nr):
-            name, net = self.output[i].tostring(). \
+            name, net = self.output[i].tobytes(). \
                 decode('utf-8').split('/')[-1].split('.')[0].split('_')
             station = Station(name, net, self.lat[i], self.lon[i])
             stations.append(station)
         return tuple(stations)
 
     def _parse_event(self):
-        event_id = self.output[0].tostring(). \
+        event_id = self.output[0].tobytes(). \
             decode('utf-8').split('/')[-1].split('.')[1]
         if event_id[-2:] == 'SH':
             event_id = event_id[:-2]
@@ -837,6 +893,7 @@ class PyDSMInput(DSMInput):
         event = Event(event_id, self.eqlat, self.eqlon,
                       6371. - self.r0, self.mt, None, None)
         return event
+
 
 def compute(pydsm_input, write_to_file=False,
             mode=0):
@@ -880,9 +937,10 @@ def compute(pydsm_input, write_to_file=False,
         spcs = _tish(
             *pydsm_input.get_inputs_for_tish(),
             write_to_file)
-    
+
     dsm_output = PyDSMOutput.output_from_pydsm_input(spcs, pydsm_input)
     return dsm_output
+
 
 def compute_parallel(
         pydsm_input, comm, mode=0, write_to_file=False,
@@ -1011,10 +1069,10 @@ def compute_parallel(
                              write_to_file=False)
     elif scalar_dict['mode'] == 1:
         spcs_local = _tipsv(*input_local.get_inputs_for_tipsv(),
-                             write_to_file=False)
+                            write_to_file=False)
     else:
         spcs_local = _tish(*input_local.get_inputs_for_tish(),
-                           write_to_file=False)         
+                           write_to_file=False)
     end_time = time.time()
     print('{} paths: processor {} in {} s'
           .format(input_local.nr, rank, end_time - start_time))
@@ -1044,12 +1102,12 @@ def compute_parallel(
                   MPI.DOUBLE_COMPLEX],
                  root=0)
     if rank == 0:
-        spcs_gathered = spcs_gathered.transpose(0,2,1)
+        spcs_gathered = spcs_gathered.transpose(0, 2, 1)
         output = PyDSMOutput.output_from_pydsm_input(
             spcs_gathered, pydsm_input)
     else:
         output = None
-        
+
     return output
 
 
@@ -1070,8 +1128,8 @@ def compute_dataset_parallel(
         (default: False).
     
     Returns:
-        outputs ([PyDSMOutput]): list of PyDSMOutput with one
-        entry for each event in dataset.
+        list of PyDSMOutput: list of PyDSMOutput objects with one
+            entry for each event in dataset.
 
     """
     rank = comm.Get_rank()
@@ -1252,10 +1310,10 @@ def compute_dataset_parallel(
     end_time = time.time()
     if log:
         log.write('rank {}: {} paths finished in {} s\n'
-          .format(rank, input_local.nr, end_time - start_time))
+                  .format(rank, input_local.nr, end_time - start_time))
     else:
         print('rank {}: {} paths finished in {} s'
-          .format(rank, input_local.nr, end_time - start_time))
+              .format(rank, input_local.nr, end_time - start_time))
 
     # TODO change the order of outputu in DSM 
     # to have nr as the last dimension
@@ -1304,6 +1362,7 @@ def compute_dataset_parallel(
 
     return outputs
 
+
 def _get_models_array(models, maxnzone):
     """
     Args:
@@ -1318,19 +1377,20 @@ def _get_models_array(models, maxnzone):
     model_ids = np.empty((20, n), dtype='U', order='F')
 
     for i in range(n):
-        model_arr[:,:,0,i] = models[i].get_rho()
-        model_arr[:,:,1,i] = models[i].get_vpv()
-        model_arr[:,:,2,i] = models[i].get_vph()
-        model_arr[:,:,3,i] = models[i].get_vsv()
-        model_arr[:,:,4,i] = models[i].get_vsh()
-        model_arr[:,:,5,i] = models[i].get_eta()
-        model_scal_arr[:,0,i] = models[i].get_qmu()
-        model_scal_arr[:,1,i] = models[i].get_qkappa()
-        model_scal_arr[:,2,i] = models[i].get_vrmin()
-        model_scal_arr[:,3,i] = models[i].get_vrmax()
+        model_arr[:, :, 0, i] = models[i].get_rho()
+        model_arr[:, :, 1, i] = models[i].get_vpv()
+        model_arr[:, :, 2, i] = models[i].get_vph()
+        model_arr[:, :, 3, i] = models[i].get_vsv()
+        model_arr[:, :, 4, i] = models[i].get_vsh()
+        model_arr[:, :, 5, i] = models[i].get_eta()
+        model_scal_arr[:, 0, i] = models[i].get_qmu()
+        model_scal_arr[:, 1, i] = models[i].get_qkappa()
+        model_scal_arr[:, 2, i] = models[i].get_vrmin()
+        model_scal_arr[:, 3, i] = models[i].get_vrmax()
         mid = models[i]._model_id
-        model_ids[:len(mid),i] = [c for c in mid]
+        model_ids[:len(mid), i] = [c for c in mid]
     return model_arr, model_scal_arr, model_ids
+
 
 def compute_models_parallel(
         dataset, models,
@@ -1340,21 +1400,22 @@ def compute_models_parallel(
     """Perform a model grid search with model parallelization.
 
     Args:
-        dataset (:obj: `Dataset`): dataset.
-        models (:obj:`list` of :obj:`SeismicModel`):
-        list of seismic models.
-        tlen (float):
-        nspc (int):
+        dataset (Dataset): dataset.
+        models (list of SeismicModel):
+            list of seismic models.
+        tlen (float): duration of the synthetics (in seconds)
+            (better to be 2**n/10)
+        nspc (int): number of frequency points in the synthetics
+            (better to be 2**n)
         sampling_hz (int): 
         mode (int): computation mode.
-        0: both, 1: P-SV, 2: SH (default: 0).
+            0: both, 1: P-SV, 2: SH (default is 0).
         write_to_file (bool): write output in Kibrary format
-        (default: False).
-        verbose (int): debugging parameter (default: 0).
+            (default is False).
+        verbose (int): debugging parameter (default is 0).
 
     Returns:
-        outputs (:obj:`list` of :obj:`list` of :obj:`PyDSMOutput`):
-        "shape" = (n_models, n_events).
+       list of list of PyDSMOutput: Shape is (n_models, n_events).
 
     """
     rank = comm.Get_rank()
@@ -1363,7 +1424,7 @@ def compute_models_parallel(
     # TODO bad bug fix for when len(models) % n_cores != 0
     if rank == 0:
         if len(models) % n_cores != 0:
-            n_comp = (int(len(models)/n_cores) + 1) * n_cores - len(models)
+            n_comp = (int(len(models) / n_cores) + 1) * n_cores - len(models)
             models_ = models + models[:n_comp]
             warnings.warn(
                 "n_models % n_cores != 0. "
@@ -1386,13 +1447,13 @@ def compute_models_parallel(
         sendcounts = None
         displacements = None
         model_indexes = None
-    
+
     nmod = np.empty(1, dtype='i')
     comm.Scatter(sendcounts, nmod, root=0)
     nmod = int(nmod[0])
 
     model_indexes_local = np.empty(nmod, dtype='i')
-    
+
     if verbose >= 1:
         print('rank {}: nmod={}'.format(rank, nmod))
 
@@ -1404,12 +1465,16 @@ def compute_models_parallel(
     if rank == 0:
         model_arr, model_scal_arr, model_ids = (
             _get_models_array(models_, maxnzone))
-        sendcounts_mod = tuple([size*4*maxnzone*6 for size in sendcounts])
-        displacements_mod = tuple([i*4*maxnzone*6 for i in displacements])
-        sendcounts_scal_mod = tuple([size*maxnzone*4 for size in sendcounts])
-        displacements_scal_mod = tuple([i*maxnzone*4 for i in displacements])
-        sendcounts_id = tuple([size*20 for size in sendcounts])
-        displacements_id = tuple([i*20 for i in displacements])
+        sendcounts_mod = tuple(
+            [size * 4 * maxnzone * 6 for size in sendcounts])
+        displacements_mod = tuple(
+            [i * 4 * maxnzone * 6 for i in displacements])
+        sendcounts_scal_mod = tuple(
+            [size * maxnzone * 4 for size in sendcounts])
+        displacements_scal_mod = tuple(
+            [i * maxnzone * 4 for i in displacements])
+        sendcounts_id = tuple([size * 20 for size in sendcounts])
+        displacements_id = tuple([i * 20 for i in displacements])
     else:
         model_arr, model_scal_arr = None, None
         sendcounts_mod = None
@@ -1421,17 +1486,17 @@ def compute_models_parallel(
         model_ids = None
 
     model_arr_local = np.empty(
-            (4, maxnzone, 6, nmod), dtype=np.float64, order='F')
+        (4, maxnzone, 6, nmod), dtype=np.float64, order='F')
     model_scal_arr_local = np.empty(
         (maxnzone, 4, nmod), dtype=np.float64, order='F')
     model_ids_local = np.empty((20, nmod), dtype='U', order='F')
-    
+
     comm.Scatterv(
         [model_arr, sendcounts_mod, displacements_mod, MPI.DOUBLE],
         model_arr_local, root=0)
     comm.Scatterv(
         [model_scal_arr, sendcounts_scal_mod,
-        displacements_scal_mod, MPI.DOUBLE],
+         displacements_scal_mod, MPI.DOUBLE],
         model_scal_arr_local, root=0)
     # comm.Scatterv(
     #     [model_ids, sendcounts_id,
@@ -1441,22 +1506,22 @@ def compute_models_parallel(
     # TODO broadcast dataset
 
     model_event_spc_local = np.empty(
-        (len(dataset.events), 3, nspc+1, dataset.nr, nmod),
+        (len(dataset.events), 3, nspc + 1, dataset.nr, nmod),
         dtype=np.complex128, order='F')
     countmod = 0
     for imod in range(nmod):
-        nzone = np.where(model_scal_arr_local[:,3,imod] == 0)[0][0]
+        nzone = np.where(model_scal_arr_local[:, 3, imod] == 0)[0][0]
         model_i = SeismicModel(
-            model_scal_arr_local[:nzone,2,imod],
-            model_scal_arr_local[:nzone,3,imod],
-            model_arr_local[:,:nzone,0,imod],
-            model_arr_local[:,:nzone,1,imod],
-            model_arr_local[:,:nzone,2,imod],
-            model_arr_local[:,:nzone,3,imod],
-            model_arr_local[:,:nzone,4,imod],
-            model_arr_local[:,:nzone,5,imod],
-            model_scal_arr_local[:nzone,0,imod],
-            model_scal_arr_local[:nzone,1,imod],
+            model_scal_arr_local[:nzone, 2, imod],
+            model_scal_arr_local[:nzone, 3, imod],
+            model_arr_local[:, :nzone, 0, imod],
+            model_arr_local[:, :nzone, 1, imod],
+            model_arr_local[:, :nzone, 2, imod],
+            model_arr_local[:, :nzone, 3, imod],
+            model_arr_local[:, :nzone, 4, imod],
+            model_arr_local[:, :nzone, 5, imod],
+            model_scal_arr_local[:nzone, 0, imod],
+            model_scal_arr_local[:nzone, 1, imod],
             None, None, None)
         for iev in range(len(dataset.events)):
             start, end = dataset.get_bounds_from_event_index(iev)
@@ -1489,37 +1554,38 @@ def compute_models_parallel(
                 # TODO delete some content
                 if np.isnan(spcs_local.any()):
                     print('{} some spc is NaN'.format(rank))
-                if np.any(spcs_local[2,1:,:]==0):
-                    mask = (spcs_local[2,:,:]==0).all(axis=0)
-                    print('spc', spcs_local[2,:,mask])
-                    print('vsh', model_arr_local[:,:nzone,4,imod])
+                if np.any(spcs_local[2, 1:, :] == 0):
+                    mask = (spcs_local[2, :, :] == 0).all(axis=0)
+                    print('spc', spcs_local[2, :, mask])
+                    print('vsh', model_arr_local[:, :nzone, 4, imod])
                     raise Exception('{} {} some spc is 0'.format(rank, imod))
         countmod += 1
 
     comm.Barrier()
     if rank == 0:
         counts_spcs = tuple(
-            [size * len(dataset.events) * 3 * (nspc+1) * dataset.nr
-            for size in sendcounts])
+            [size * len(dataset.events) * 3 * (nspc + 1) * dataset.nr
+             for size in sendcounts])
         displacements_spcs = tuple(
-            [j * len(dataset.events) * 3 * (nspc+1) * dataset.nr
-            for j in displacements])
+            [j * len(dataset.events) * 3 * (nspc + 1) * dataset.nr
+             for j in displacements])
 
         model_event_spc_gather = np.empty(
-            (len(dataset.events), 3, nspc+1, dataset.nr, len(models_)),
+            (len(dataset.events), 3, nspc + 1, dataset.nr, len(models_)),
             dtype=np.complex128, order='F')
     else:
         model_event_spc_gather = None
         counts_spcs = None
         displacements_spcs = None
-    
+
     comm.Gatherv(
         model_event_spc_local,
         [model_event_spc_gather, counts_spcs, displacements_spcs,
-        MPI.DOUBLE_COMPLEX], root=0)
+         MPI.DOUBLE_COMPLEX], root=0)
 
     if rank == 0:
-        model_event_spc_gather = model_event_spc_gather.transpose(4,0,1,3,2)
+        model_event_spc_gather = model_event_spc_gather.transpose(4, 0, 1, 3,
+                                                                  2)
         outputs = list()
         for imod in range(len(models)):
             output_event_list = list()

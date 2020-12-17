@@ -60,6 +60,7 @@ if __name__ == '__main__':
             'matplotlib',
             'geographiclib',
             "numpy",
+            "pytest",
         ],
         ext_modules=[lib_tish, lib_tipsv],
         python_requires='>=3.7',

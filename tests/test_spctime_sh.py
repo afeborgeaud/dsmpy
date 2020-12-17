@@ -1,3 +1,8 @@
+"""Test dsmpy comparing time-domain waveforms computed using dsmpy
+with spctime (freqency to time domain)
+to waveforms computed using DSM and the Java tool Kibrary
+(https://github.com/kensuke1984/Kibrary)"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -7,7 +12,7 @@ from dsmpy.spc import spctime
 from dsmpy._tish import _pinput, _tish
 
 
-def get_u_pydsm():
+def _get_u_pydsm():
     parameter_file = os.path.join(rootdsm_sh, 'AK135_SH_64.inf')
     inputs = dsm.PyDSMInput.input_from_file(
         parameter_file, sampling_hz=20,
@@ -17,13 +22,13 @@ def get_u_pydsm():
     return outputs
 
 
-def get_u_dsm():
+def _get_u_dsm():
     u = np.loadtxt(os.path.join(rootdsm_sh,
                                 'sac_64/109C_TA.200702131456A.T.txt'))
     return u
 
 
-def plot(ts, udsm, upydsm):
+def _plot(ts, udsm, upydsm):
     fig, (ax0, ax1) = plt.subplots(2, 1, figsize=(10, 8))
     ax0.plot(ts, udsm, label='dsm')
     ax0.plot(ts, upydsm, label='pydsm', color='red')
@@ -40,23 +45,26 @@ def plot(ts, udsm, upydsm):
     return fig, (ax0, ax1)
 
 
-if __name__ == '__main__':
-    udsm = get_u_dsm()
+def test_spctime_sh():
+    udsm = _get_u_dsm()
 
-    print('Computing waveform using pyDSM')
-    outputs = get_u_pydsm()
+    outputs = _get_u_pydsm()
     upydsms, ts = outputs.us, outputs.ts
     upydsm = upydsms[2, 0]
 
+    assert (np.allclose(udsm, upydsm, rtol=1e-10))
+
+    return outputs, udsm
+
+
+if __name__ == '__main__':
+    outputs, udsm = test_spctime_sh()
+
+    # Plot DSM and pydsm waveform comparison
     filename = 'figures/waveform_accuracy_sh.pdf'
-    print('Saving DSM and pyDSM waveform comparison in {}'
-          .format(filename))
-    _ = plot(ts, udsm, upydsm)
+    _plot(outputs.ts, udsm, outputs.us[2, 0])
     plt.savefig(filename, bbox_inches='tight')
 
-    assert (np.allclose(udsm, upydsm, rtol=1e-10))
-    print('All passed!')
-
-    print('Write to SAC')
+    # Write to SAC files
     root_path = 'figures'
     outputs.write(root_path, 'sac')
