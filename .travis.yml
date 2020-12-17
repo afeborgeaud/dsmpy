@@ -40,8 +40,8 @@ install:
   - source ci/install-openmpi.sh
   - echo $MPI_FC
   - echo $MPI_EXEC
-  - env MPICC=$MPI_CC MPIFORT=$MPI_FC python -m pip install mpi4py
-  - env MPICC=$MPI_CC MPIFORT=$MPI_FC python -m pip install .
+  - env MPICC=$MPI_CC python -m pip install mpi4py
+  - env MPICC=$MPI_CC python -m pip install .
 
 script:
   - pytest
