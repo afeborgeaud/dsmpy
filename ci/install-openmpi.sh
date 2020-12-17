@@ -17,6 +17,7 @@ CXX_OLD=$CXX
 FORTRAN_OLD=$FORTRAN
 export CC=$C_COMPILER
 export CXX=$CXX_COMPILER
+export FC=$FORTRAN_COMPILER
 
 # Check to see if we have a cached build from earlier.
 if [ -f "$MPI_BUILD_DIR/bin/mpiexec" ] && [ -f "openmpi-$MPI_FULL_VERSION/config.log" ]; then
@@ -32,16 +33,18 @@ else
     ls
     export CC=$C_COMPILER
     export CXX=$CXX_COMPILER
-    export FORTRAN=$FORTRAN_COMPILER
+    export FC=$FORTRAN_COMPILER
+    echo "Configure"
     ./configure --prefix=$MPI_BUILD_DIR &> config.log
+    echo "Done"
     make -j3  # Produce output so that Travis doesn't halt after 10 min.
     make install &> make-install.log
     cd ..
 fi
 export MPI_CC=$MPI_BUILD_DIR/bin/mpicc
 export MPI_CXX=$MPI_BUILD_DIR/bin/mpic++
-export MPI_FORTRAN=$MPI_BUILD_DIR/bin/mpif90
+export MPI_FC=$MPI_BUILD_DIR/bin/mpif90
 export MPI_EXEC=$MPI_BUILD_DIR/bin/mpiexec
 export CC=$CC_OLD
 export CXX=$CXX_OLD
-export FORTRAN=$FORTRAN_OLD
+export FC=$FORTRAN_OLD
