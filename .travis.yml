@@ -37,4 +37,4 @@ install:
   - echo $MPI_CC
   - echo $MPI_CXX
   - echo $MPI_EXEC
-  - env MPICC=$MPI_CC pipenv install --skip-lock
+  - env PIPENV_IGNORE_VIRTUALENVS=1 MPICC=$MPI_CC pipenv install --skip-lock
