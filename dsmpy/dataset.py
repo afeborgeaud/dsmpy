@@ -118,21 +118,21 @@ class Dataset:
 
     @classmethod
     def dataset_from_sac(
-        cls, sac_files, verbose=0, headonly=True):
-        '''Creates a dataset from a list of sac file names.
+            cls, sac_files, verbose=0, headonly=True):
+        """Creates a dataset from a list of sac files.
 
         Args:
-            sac_files(list of str): list of sac file names.
+            sac_files (list of str): list of paths to sac files.
             verbose (int): 0: quiet, 1: debug.
             headonly (bool): if True, read only header.
                 If False, include data.
 
-        Return:
-            dataset (Dataset): dataset
+        Returns:
+            Dataset: dataset
 
-        '''
+        """
         traces = [read(sac_file, headonly=headonly)[0]
-                   for sac_file in sac_files]
+                  for sac_file in sac_files]
 
         sampling_hz = int(traces[0].stats.sampling_rate)
 
@@ -206,12 +206,12 @@ class Dataset:
             [e.source_time_function for e  in events_])
         centroid_times = np.array([e.centroid_time for e in events_])
 
-        events = [
+        events = np.array([
             Event(id, lat, lon, depth, mt, ctime, source_time_function)
             for id, lat, lon, depth, mt, ctime, source_time_function
             in zip(
                 evids, eqlats, eqlons, eqdeps,
-                mts, centroid_times, source_time_functions)]
+                mts, centroid_times, source_time_functions)])
         stations = dataset_info.apply(
             lambda x: Station(x.names, x.nets, x.lats, x.lons),
             axis=1).values
