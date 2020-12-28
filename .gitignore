@@ -18,3 +18,4 @@ dsmpy/flib
 venv
 **.swp
 pip-wheel-metadata
+**/*.pyc

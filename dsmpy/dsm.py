@@ -1547,10 +1547,10 @@ def compute_models_parallel(
             # TODO change the order of outputu in DSM 
             # to have nr as the last dimension
             spcs_local = np.array(spcs_local.transpose(0, 2, 1), order='F')
-            model_event_spc_local[iev, ..., countmod] = spcs_local
+            model_event_spc_local[iev, :, :, start:end, countmod] = spcs_local
             if verbose == 2:
                 print(rank, model_event_spc_local[0, 2, 15, 0, 0])
-            if verbose == 1:
+            if verbose >= 1:
                 # TODO delete some content
                 if np.isnan(spcs_local.any()):
                     print('{} some spc is NaN'.format(rank))
