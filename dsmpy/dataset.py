@@ -506,3 +506,54 @@ class Dataset:
         splits.fill(int(chunk_size))
         splits[-1] = size - (n-1) * int(chunk_size)
         return splits
+
+def filter_sac_files(sac_files, f):
+    """Filter sac files using the boolean function f.
+
+    Args:
+        sac_files (list of str): paths to sac files
+        f (function): (event_id: str, station: Station) -> bool
+
+    Returns:
+        list of str: filtered list of paths to sac files
+
+    """
+    traces = [read(sac_file, headonly=True)[0]
+              for sac_file in sac_files]
+
+    x = lambda tr: (get_event_id(tr), get_station(tr))
+    mask = list(map(f, list(map(x, traces))))
+
+    sac_files_filt = [sac_file for i, sac_file in enumerate(sac_files)
+                      if mask[i]]
+    return sac_files_filt
+
+
+def get_event_id(trace):
+    """Return event GCMT ID from obspy Trace.
+
+    Args:
+        trace (Trace): obspy Trace object
+
+    Returns:
+        str: GCMT ID
+
+    """
+    evid = trace.stats.sac.kevnm
+    return evid
+
+def get_station(trace):
+    """Return Station object from obspy Trace.
+
+    Args:
+        trace (Trace): obspy Trace object
+
+    Returns:
+        Station: station
+
+    """
+    sta_nm = trace.stats.sac.kstnm
+    sta_net = trace.stats.sac.knetwk
+    sta_la = trace.stats.sac.stla
+    sta_lo = trace.stats.sac.stlo
+    return Station(sta_nm, sta_net, sta_la, sta_lo)

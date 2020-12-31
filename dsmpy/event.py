@@ -1,6 +1,6 @@
 from dsmpy.station import Station
 from dsmpy._tish import parameters as tish_parameters
-from obspy.taup.taup_geo import calc_dist
+from obspy.taup.taup_geo import calc_dist, calc_dist_azi
 import warnings
 import numpy as np
 
@@ -64,16 +64,67 @@ class Event:
         return event
     
     def get_epicentral_distance(self, station):
+        """Returns the epicentral distance in degrees.
+
+        Args:
+            station (Station): station
+
+        Returns:
+            float: epicentral distance in degrees
+
+        """
         return calc_dist(
                 self.latitude, self.longitude,
                 station.latitude, station.longitude,
                 6371., tish_parameters['flattening'])
 
     def get_epicentral_distance_(self, sta_lat, sta_lon):
+        """Returns the epicentral distance in degrees.
+
+        Args:
+            sta_lat (float): station latitude in degrees
+            sta_lon (float): station longitude in degrees
+
+        Returns:
+            float: epicentral distance in degrees
+
+        """
         return calc_dist(
                 self.latitude, self.longitude,
                 sta_lat, sta_lon,
                 6371., tish_parameters['flattening'])
+
+    def get_azimuth(self, station):
+        """Returns the source-station azimuth in degrees.
+
+        Args:
+            station (Station): seismic station
+
+        Returns:
+            float: azimuth in degrees
+
+        """
+        dist, az, backaz = calc_dist_azi(
+            self.latitude, self.longitude,
+            station.latitude, station.longitude,
+            6371., tish_parameters['flattening'])
+        return az
+
+    def get_backazimuth(self, station):
+        """Returns the station-source backazimuth in degrees.
+
+        Args:
+            station (Station): seismic station
+
+        Returns:
+            float: backazimuth in degrees
+
+        """
+        dist, az, backaz = calc_dist_azi(
+            self.latitude, self.longitude,
+            station.latitude, station.longitude,
+            6371., tish_parameters['flattening'])
+        return backaz
 
     def __repr__(self):
         return self.event_id
