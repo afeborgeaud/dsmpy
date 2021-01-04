@@ -160,6 +160,23 @@ class PyDSMOutput:
         self.ts = np.linspace(0, self.tlen,
                               spct.npts, endpoint=False)
 
+    def free(self):
+        """Free memory for the large fields self.us and self.ts.
+
+        Can be used after processing the time-domain waveform in cases
+        where a large number of waveforms are used, which can quickly
+        requires a lot of memory.
+
+        Examples:
+            output.to_time_domain()
+            # process output.us
+            # ...
+            output.free()
+
+        """
+        del self.us
+        del self.ts
+
     def set_source_time_function(self, source_time_function):
         """Set the source time function for convolution.
 
@@ -694,8 +711,8 @@ class DSMInput:
         f = functools.partial(_calthetaphi, eqlat=eqlat, eqlon=eqlon)
         theta_phi = [f(stalat, stalon)
                      for stalat, stalon in zip(lat, lon)]
-        theta = np.array([x[0] for x in theta_phi])
-        phi = np.array([x[1] for x in theta_phi])
+        theta = np.array([x[0] for x in theta_phi], dtype=np.float64)
+        phi = np.array([x[1] for x in theta_phi], dtype=np.float64)
 
         # TODO change maxnr requirements in DSM
         lat = np.pad(lat, (0, maxnr - nr),
@@ -1079,7 +1096,8 @@ def compute_parallel(
 
     # TODO change the order of outputu in DSM 
     # to have nr as the last dimension
-    spcs_local = np.array(spcs_local.transpose(0, 2, 1), order='F')
+    spcs_local = np.array(
+        spcs_local.transpose(0, 2, 1), order='F', dtype=np.complex128)
 
     if rank == 0:
         spcs_gathered = np.empty((3, (pydsm_input.nspc + 1), pydsm_input.nr),
@@ -1099,7 +1117,7 @@ def compute_parallel(
     comm.Barrier()
     comm.Gatherv(spcs_local,
                  [spcs_gathered, spcs_chunk_sizes, spcs_start_indices,
-                  MPI.DOUBLE_COMPLEX],
+                  MPI.C_DOUBLE_COMPLEX],
                  root=0)
     if rank == 0:
         spcs_gathered = spcs_gathered.transpose(0, 2, 1)
@@ -1317,7 +1335,8 @@ def compute_dataset_parallel(
 
     # TODO change the order of outputu in DSM 
     # to have nr as the last dimension
-    spcs_local = np.array(spcs_local.transpose(0, 2, 1), order='F')
+    spcs_local = np.array(
+        spcs_local.transpose(0, 2, 1), order='F', dtype=np.complex128)
 
     if rank == 0:
         nspc = scalar_dict['nspc']
@@ -1338,7 +1357,7 @@ def compute_dataset_parallel(
     comm.Barrier()
     comm.Gatherv(spcs_local,
                  [spcs_gathered, counts_spcs, displacements_spcs,
-                  MPI.DOUBLE_COMPLEX],
+                  MPI.C_DOUBLE_COMPLEX],
                  root=0)
 
     if rank == 0:
@@ -1437,10 +1456,12 @@ def compute_models_parallel(
     maxnzone = tish_parameters['maxnzone']
 
     if rank == 0:
-        model_indexes = np.array(list(range(len(models_))), dtype='i')
+        model_indexes = np.array(
+            list(range(len(models_))), dtype=np.int64)
         n_models = len(models_) // n_cores
         n0_models = len(models_) - n_models * (n_cores - 1)
-        sendcounts = np.array([n_models for i in range(n_cores)], dtype='i')
+        sendcounts = np.array(
+            [n_models for i in range(n_cores)], dtype=np.int64)
         sendcounts[0] = n0_models
         displacements = sendcounts.cumsum() - sendcounts[0]
     else:
@@ -1448,17 +1469,17 @@ def compute_models_parallel(
         displacements = None
         model_indexes = None
 
-    nmod = np.empty(1, dtype='i')
+    nmod = np.empty(1, dtype=np.int64)
     comm.Scatter(sendcounts, nmod, root=0)
     nmod = int(nmod[0])
 
-    model_indexes_local = np.empty(nmod, dtype='i')
+    model_indexes_local = np.empty(nmod, dtype=np.int64)
 
     if verbose >= 1:
         print('rank {}: nmod={}'.format(rank, nmod))
 
     comm.Scatterv(
-        [model_indexes, sendcounts, displacements, MPI.INT],
+        [model_indexes, sendcounts, displacements, MPI.LONG],
         model_indexes_local, root=0)
 
     # broadcast models
@@ -1503,12 +1524,14 @@ def compute_models_parallel(
     #     displacements_id, MPI.CHAR],
     #     model_ids_local, root=0)
 
-    # TODO broadcast dataset
+    # TODO could broadcast dataset instead of reading it on each core
 
-    model_event_spc_local = np.empty(
+    # TODO could use max(dataset.nrs) instead of dataset.nr to reduce
+    # TODO the number of zero (unused) entries.
+    model_event_spc_local = np.zeros(
         (len(dataset.events), 3, nspc + 1, dataset.nr, nmod),
         dtype=np.complex128, order='F')
-    countmod = 0
+
     for imod in range(nmod):
         nzone = np.where(model_scal_arr_local[:, 3, imod] == 0)[0][0]
         model_i = SeismicModel(
@@ -1544,10 +1567,18 @@ def compute_models_parallel(
                 spcs_local = _tish(
                     *input_local.get_inputs_for_tish(),
                     write_to_file=False)
-            # TODO change the order of outputu in DSM 
+
+            if np.any(spcs_local[2, :, 1:] == 0):
+                print('some spcs_local is zero')
+            if np.any(spcs_local[2, :, :] > 1e3):
+                print('some spcs_local might be too large')
+
+            # TODO could change the order of outputu in DSM
             # to have nr as the last dimension
-            spcs_local = np.array(spcs_local.transpose(0, 2, 1), order='F')
-            model_event_spc_local[iev, :, :, start:end, countmod] = spcs_local
+            model_event_spc_local[iev, :, :, start:end, imod] = (
+                spcs_local.transpose(0, 2, 1))
+            if np.any(model_event_spc_local[iev, 2, 1:, start:end, imod] == 0):
+                print(iev, imod, 'some model_event_spc_local is zero 0')
             if verbose == 2:
                 print(rank, model_event_spc_local[0, 2, 15, 0, 0])
             if verbose >= 1:
@@ -1559,7 +1590,8 @@ def compute_models_parallel(
                     print('spc', spcs_local[2, :, mask])
                     print('vsh', model_arr_local[:, :nzone, 4, imod])
                     raise Exception('{} {} some spc is 0'.format(rank, imod))
-        countmod += 1
+                if np.any(spcs_local[2, :, :] > 1e3):
+                    print('Some spc might be too large')
 
     comm.Barrier()
     if rank == 0:
@@ -1570,7 +1602,7 @@ def compute_models_parallel(
             [j * len(dataset.events) * 3 * (nspc + 1) * dataset.nr
              for j in displacements])
 
-        model_event_spc_gather = np.empty(
+        model_event_spc_gather = np.zeros(
             (len(dataset.events), 3, nspc + 1, dataset.nr, len(models_)),
             dtype=np.complex128, order='F')
     else:
@@ -1581,19 +1613,21 @@ def compute_models_parallel(
     comm.Gatherv(
         model_event_spc_local,
         [model_event_spc_gather, counts_spcs, displacements_spcs,
-         MPI.DOUBLE_COMPLEX], root=0)
+         MPI.C_DOUBLE_COMPLEX], root=0)
 
     if rank == 0:
-        model_event_spc_gather = model_event_spc_gather.transpose(4, 0, 1, 3,
-                                                                  2)
+        # (nev, 3, nspc+1, nr, nmod) -> (nmod, nev, 3, nr, nspc+1)
+        # (nev, 3, nspc+1, nr, nmod) -> (nev, 3, nr, nspc+1, nmod)
+        model_event_spc_gather = model_event_spc_gather.transpose(0, 1, 3, 2,
+                                                                  4)
+
         outputs = list()
         for imod in range(len(models)):
             output_event_list = list()
             for iev in range(len(dataset.events)):
-                # (n_mod, n_events, 3, nspc+1, n_sta
                 start, end = dataset.get_bounds_from_event_index(iev)
                 output = PyDSMOutput(
-                    model_event_spc_gather[imod, iev],
+                    model_event_spc_gather[iev, :, start:end, :, imod],
                     dataset.stations[start:end],
                     dataset.events[iev],
                     sampling_hz,

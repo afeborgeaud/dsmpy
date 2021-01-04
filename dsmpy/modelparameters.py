@@ -29,7 +29,7 @@ class ModelParameters:
             self._n_nodes = len(radii)
             self._n_grd_params = 2 * len(radii) - 1
             n = 2 * len(radii) - 1
-            self._nodes = np.zeros(n, dtype=np.float64)
+            self._nodes = np.zeros(n, dtype=np.float32)
             for i in range(n - 1):
                 self._nodes[i] = (radii[i // 2] + (i % 2)
                                   * (radii[i // 2 + 1] - radii[i // 2]) / 2.)
@@ -161,7 +161,7 @@ class ParameterType(IntEnum):
 
 if __name__ == '__main__':
     types = [ParameterType.VSV, ParameterType.VSH]
-    radii = np.array([3480., 3700.], dtype=np.float64)
+    radii = np.array([3480., 3700.], dtype=np.float32)
     model_params = ModelParameters(types, radii)
     values_dict = {
         ParameterType.VSV: -1.,

@@ -37,7 +37,7 @@ class Window:
         '''Returns an ndarray [t_start, t_end].'''
         return np.array(
             [self.travel_time-self.t_before, self.travel_time+self.t_after],
-             dtype=np.float64)
+             dtype=np.float32)
     
     def get_gaussian_window_in_frequency_domain(
             self, nspc, tlen, window_width):

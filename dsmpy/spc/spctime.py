@@ -52,7 +52,7 @@ class SpcTime:
         uspc = np.concatenate((uspc, uspc_conj))
 
         ureal = np.real(np.fft.ifft(uspc))
-        return ureal.astype(np.float64)
+        return ureal.astype(np.float32)
 
     def apply_growing_exponential(self, u):
         c = self.omegai * self.tlen

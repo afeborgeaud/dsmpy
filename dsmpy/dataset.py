@@ -97,8 +97,8 @@ class Dataset:
         lats = np.array([s.latitude for stas in stations for s in stas])
         lons = np.array([s.longitude for stas in stations for s in stas])
 
-        thetas = np.zeros(len(lats), dtype=np.float64)
-        phis = np.zeros(len(lats), dtype=np.float64)
+        thetas = np.zeros(len(lats), dtype=np.float32)
+        phis = np.zeros(len(lats), dtype=np.float32)
         count = 0
         for i in range(len(events)):
             for sta in stations[i]:
@@ -163,8 +163,8 @@ class Dataset:
         theta_phi = [_calthetaphi(stalat, stalon, eqlat, eqlon) 
                      for stalat, stalon, eqlat, eqlon 
                      in zip(lats_, lons_, eqlats_, eqlons_)]
-        thetas_ = np.array([x[0] for x in theta_phi], dtype=np.float64)
-        phis_ = np.array([x[1] for x in theta_phi], dtype=np.float64)
+        thetas_ = np.array([x[0] for x in theta_phi], dtype=np.float32)
+        phis_ = np.array([x[1] for x in theta_phi], dtype=np.float32)
 
         dataset_info = pd.DataFrame(dict(
             lats=lats_, lons=lons_, names=names_,
@@ -190,9 +190,9 @@ class Dataset:
         nrs = dataset_info.groupby('evids').count().lats.values
         dataset_event_info = dataset_info.drop_duplicates(['evids'])
         evids = dataset_event_info.evids.values
-        eqlats = dataset_event_info.eqlats.values.astype(np.float64)
-        eqlons = dataset_event_info.eqlons.values.astype(np.float64)
-        eqdeps = dataset_event_info.eqdeps.values.astype(np.float64)
+        eqlats = dataset_event_info.eqlats.values.astype(np.float32)
+        eqlons = dataset_event_info.eqlons.values.astype(np.float32)
+        eqdeps = dataset_event_info.eqdeps.values.astype(np.float32)
         r0s = 6371. - eqdeps
 
         # read event catalog
@@ -221,11 +221,11 @@ class Dataset:
         lons = dataset_info.lons.values
         lats = dataset_info.lats.values
 
-        # lons = np.array(lons_, dtype=np.float64)
-        # lats = np.array(lats_, dtype=np.float64)
+        # lons = np.array(lons_, dtype=np.float32)
+        # lats = np.array(lats_, dtype=np.float32)
         
         npts = np.array([len(d) for d in data_], dtype=int).max()
-        data_arr = np.zeros((1, 3, nr, npts), dtype=np.float64)
+        data_arr = np.zeros((1, 3, nr, npts), dtype=np.float32)
         for ista in range(len(dataset_info.indices.values)):
             component = components_[dataset_info.indices.values[ista]]
             icomp = Component.parse_component(component).value
@@ -289,9 +289,9 @@ class Dataset:
         npts_buffer = int(buffer * self.sampling_hz)
         data_cut = np.zeros(
             (n_phase, 3, self.nr, npts_max+2*npts_buffer),
-            dtype='float')
-        self.ts_start_end = np.zeros((n_phase, self.nr, 2), dtype='float')
-        self.noise = np.zeros((n_phase, 3, self.nr), dtype='float')
+            dtype=np.float32)
+        self.ts_start_end = np.zeros((n_phase, self.nr, 2), dtype=np.float32)
+        self.noise = np.zeros((n_phase, 3, self.nr), dtype=np.float32)
         for iev, event in enumerate(self.events):
             start, end = self.get_bounds_from_event_index(iev)
             for ista in range(start, end):

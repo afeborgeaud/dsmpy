@@ -10,7 +10,7 @@ import requests
 
 def convert_catalog(cat):
     #cat = read_events(root_resources + 'gcmt.ndk')
-    #mts = np.zeros((cat.count(), 6), dtype=np.float64)
+    #mts = np.zeros((cat.count(), 6), dtype=np.float32)
     events = np.empty(cat.count(), dtype=np.object)
     for i, event in enumerate(cat):
         tensor = event.preferred_focal_mechanism().moment_tensor.tensor

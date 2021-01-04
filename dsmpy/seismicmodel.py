@@ -133,11 +133,11 @@ class SeismicModel:
         vrmin = np.array([
             0, 1217.5, 3479.5, 3631, 5611, 5711,
             5961, 6161, 6251, 6336.6, 6351
-        ], dtype=np.float64)
+        ], dtype=np.float32)
         vrmax = np.array([
             1217.5, 3479.5, 3631, 5611, 5711,
             5961, 6161, 6251, 6336.6, 6351, 6371
-        ], dtype=np.float64)
+        ], dtype=np.float32)
         rho = np.array([
             [13.0885, 0, -8.8381, 0],
             [12.5815, -1.2638, -3.6426, -5.5281],
@@ -150,7 +150,7 @@ class SeismicModel:
             [2.691, 0.6924, 0, 0],
             [2.691, 0.6924, 0, 0],
             [2.9, 0, 0, 0],
-        ], dtype=np.float64).T
+        ], dtype=np.float32).T
         vpv = np.array([
             [11.261692, 0.028794, -6.627846, 0],
             [10.118851, 3.457774, -13.434875, 0],
@@ -163,7 +163,7 @@ class SeismicModel:
             [8.785412, -0.749529, 0, 0,],
             [6.5, 0.0, 0.0, 0.0],
             [5.8, 0.0, 0.0, 0.0]
-        ], dtype=np.float64).T
+        ], dtype=np.float32).T
         vph = np.array([
             [11.261692, 0.028794, -6.627846, 0],
             [10.118851, 3.457774, -13.434875, 0],
@@ -176,7 +176,7 @@ class SeismicModel:
             [8.785412, -0.749529, 0, 0,],
             [6.5, 0, 0, 0],
             [5.8, 0, 0, 0]
-        ], dtype=np.float64).T
+        ], dtype=np.float32).T
         vsv = np.array([
             [3.667865, -0.001345, -4.440915, 0],
             [0, 0, 0, 0],
@@ -189,7 +189,7 @@ class SeismicModel:
             [5.970824, -1.499059, 0, 0],
             [3.85, 0, 0, 0],
             [3.46, 0, 0, 0]
-        ], dtype=np.float64).T
+        ], dtype=np.float32).T
         vsh = np.array([
             [3.667865, -0.001345, -4.440915, 0],
             [0, 0, 0, 0],
@@ -202,7 +202,7 @@ class SeismicModel:
             [5.970824, -1.499059, 0, 0],
             [3.85, 0, 0, 0],
             [3.46, 0, 0, 0]
-        ], dtype=np.float64).T
+        ], dtype=np.float32).T
         eta = np.array([
             [1, 0, 0, 0],
             [1, 0, 0, 0],
@@ -215,15 +215,15 @@ class SeismicModel:
             [1, 0, 0, 0],
             [1, 0, 0, 0],
             [1, 0, 0, 0]
-        ], dtype=np.float64).T
+        ], dtype=np.float32).T
         qmu = np.array([
             84.6, -1, 312, 312, 312, 143,
             143, 80, 600, 600, 600
-        ], dtype=np.float64)
+        ], dtype=np.float32)
         qkappa = np.array([
             1327.7, 57823, 57823, 57823, 57823, 57823,
             57823, 57823, 57823, 57823, 57823
-        ], dtype=np.float64)
+        ], dtype=np.float32)
         model_id = 'ak135'
         return cls(
             vrmin, vrmax, rho, vpv, vph,
@@ -239,11 +239,11 @@ class SeismicModel:
         vrmin = np.array([
             0, 1221.5, 3480, 3630, 5600, 5701, 5771,
             5971, 6151, 6291, 6346.6, 6356
-            ], dtype=np.float64)
+            ], dtype=np.float32)
         vrmax = np.array([
             1221.5, 3480, 3630, 5600, 5701, 5771,
             5971, 6151, 6291, 6346.6, 6356, 6371
-            ], dtype=np.float64)
+            ], dtype=np.float32)
         rho = np.array([
             [13.0885, 0, -8.8381, 0],
             [12.5815, -1.2638, -3.6426, -5.5281],
@@ -257,7 +257,7 @@ class SeismicModel:
             [2.691, 0.6924, 0, 0],
             [2.9, 0, 0, 0],
             [2.6, 0, 0, 0]
-        ], dtype=np.float64).T
+        ], dtype=np.float32).T
         vpv = np.array([
             [11.2622, 0, -6.364, 0],
             [11.0487, -4.0362, 4.8023, -13.5732],
@@ -271,7 +271,7 @@ class SeismicModel:
             [0.8317, 7.218, 0, 0],
             [6.8, 0, 0, 0],
             [5.8, 0, 0, 0]
-        ], dtype=np.float64).T
+        ], dtype=np.float32).T
         vph = np.array([
             [11.2622, 0, -6.364, 0],
              [11.0487, -4.0362, 4.8023, -13.5732],
@@ -285,7 +285,7 @@ class SeismicModel:
               [3.5908, 4.6172, 0, 0],
                [6.8, 0, 0, 0],
             [5.8, 0, 0, 0]
-        ], dtype=np.float64).T
+        ], dtype=np.float32).T
         vsv = np.array([
             [3.6678, 0, -4.4475, 0],
             [0, 0, 0, 0],
@@ -297,7 +297,7 @@ class SeismicModel:
             [8.9496, -4.4597, 0, 0],
             [5.8582, -1.4678, 0, 0], [5.8582, -1.4678, 0, 0], [3.9, 0, 0, 0],
             [3.2, 0, 0, 0]
-        ], dtype=np.float64).T
+        ], dtype=np.float32).T
         vsh = np.array([
             [3.6678, 0, -4.4475, 0],
             [0, 0, 0, 0],
@@ -311,7 +311,7 @@ class SeismicModel:
             [-1.0839, 5.7176, 0, 0],
             [3.9, 0, 0, 0],
             [3.2, 0, 0, 0]
-        ], dtype=np.float64).T
+        ], dtype=np.float32).T
         eta = np.array([
             [1, 0, 0, 0],
             [1, 0, 0, 0],
@@ -325,15 +325,15 @@ class SeismicModel:
             [3.3687, -2.4778, 0, 0],
             [1, 0, 0, 0],
             [1, 0, 0, 0]
-        ], dtype=np.float64).T
+        ], dtype=np.float32).T
         qmu = np.array([
             84.6, 1e12, 312, 312, 312, 143,
             143, 143, 80, 600, 600, 600
-        ], dtype=np.float64)
+        ], dtype=np.float32)
         qkappa = np.array([
             1327.7, 57823, 57823, 57823, 57823,
             57823, 57823, 57823, 57823, 57823, 57823, 57823
-        ], dtype=np.float64)
+        ], dtype=np.float32)
         model_id = 'prem'
         return cls(
             vrmin, vrmax, rho, vpv, vph,
@@ -434,14 +434,14 @@ class SeismicModel:
             model = model._add_boundary(node)
         mesh = model.__copy__()
         for i in range(mesh._nzone):
-            mesh._set_all_layers(i, np.zeros(4, dtype=np.float64), 0.)
+            mesh._set_all_layers(i, np.zeros(4, dtype=np.float32), 0.)
         nodes = model_parameters.get_nodes()
         for i in range(model_parameters._n_nodes-1):
             indexes = (set(np.where(mesh._vrmin < nodes[i+1])[0])
                 & set(np.where(mesh._vrmin >= nodes[i])[0]))
             for index in indexes:
                 mesh._set_all_layers(
-                    index, np.array([1, 0, 0, 0], dtype=np.float64), 1.)
+                    index, np.array([1, 0, 0, 0], dtype=np.float32), 1.)
         model._nzone = model._rho.shape[1]
         mesh._nzone = mesh._rho.shape[1]
         mesh._mesh_type = 'boxcar'
@@ -469,7 +469,7 @@ class SeismicModel:
 
         mesh = model.__copy__()
         for i in range(mesh._nzone):
-            mesh._set_all_layers(i, np.zeros(4, dtype=np.float64), 0.)
+            mesh._set_all_layers(i, np.zeros(4, dtype=np.float32), 0.)
         # all but top layer
         for i in range(len(nodes)-2):
             indexes = (set(np.where(mesh._vrmin < nodes[i+1])[0])
@@ -478,7 +478,7 @@ class SeismicModel:
             a1 = 1 / (nodes[i+1] - nodes[i]) * 6371.
             for index in indexes:
                 mesh._set_all_layers(
-                    index, np.array([a0, a1, 0, 0], dtype=np.float64), 1.)
+                    index, np.array([a0, a1, 0, 0], dtype=np.float32), 1.)
         # top layer
         indexes = (set(np.where(mesh._vrmin < nodes[-1])[0])
                 & set(np.where(mesh._vrmin >= nodes[-2])[0]))
@@ -486,7 +486,7 @@ class SeismicModel:
         a1 = -1 / (nodes[-1] - nodes[-2]) * 6371.
         for index in indexes:
             mesh._set_all_layers(
-                index, np.array([a0, a1, 0, 0], dtype=np.float64), 1.)
+                index, np.array([a0, a1, 0, 0], dtype=np.float32), 1.)
         model._nzone = model._rho.shape[1]
         mesh._nzone = mesh._rho.shape[1]
         mesh._mesh_type = 'triangle'
@@ -711,16 +711,16 @@ class SeismicModel:
     def __copy__(self):
         """Deep copy of SeismicModel."""
         return SeismicModel(
-            np.array(self._vrmin, dtype=np.float64),
-            np.array(self._vrmax, dtype=np.float64),
-            np.array(self._rho, dtype=np.float64),
-            np.array(self._vpv, dtype=np.float64),
-            np.array(self._vph, dtype=np.float64),
-            np.array(self._vsv, dtype=np.float64),
-            np.array(self._vsh, dtype=np.float64),
-            np.array(self._eta, dtype=np.float64),
-            np.array(self._qmu, dtype=np.float64),
-            np.array(self._qkappa, dtype=np.float64),
+            np.array(self._vrmin, dtype=np.float32),
+            np.array(self._vrmax, dtype=np.float32),
+            np.array(self._rho, dtype=np.float32),
+            np.array(self._vpv, dtype=np.float32),
+            np.array(self._vph, dtype=np.float32),
+            np.array(self._vsv, dtype=np.float32),
+            np.array(self._vsh, dtype=np.float32),
+            np.array(self._eta, dtype=np.float32),
+            np.array(self._qmu, dtype=np.float32),
+            np.array(self._qkappa, dtype=np.float32),
             self._model_id,
             self._mesh_type,
             self._model_params,
@@ -830,7 +830,7 @@ class SeismicModel:
             self, model_ref, types, in_percent=False,
             range_dict=None):
         perturbations = np.zeros(
-            (self._model_params._n_grd_params*len(types)), dtype='float')
+            (self._model_params._n_grd_params*len(types)), dtype=np.float32)
         for igrd in range(self._model_params._n_grd_params):
             ri = self._model_params._nodes[igrd]
             for ipar, param_type in enumerate(types):
@@ -969,7 +969,7 @@ if __name__ == '__main__':
         [0. if i%2==1 else 0. for i in range(model_params._n_grd_params)])
     values[2] = -0.1
     values[3] = 0
-    values_r = np.zeros(model_params._n_grd_params, dtype='float')
+    values_r = np.zeros(model_params._n_grd_params, dtype=np.float32)
     values_r[2] = -20
     values_r[3] = -0
     values_dict = {

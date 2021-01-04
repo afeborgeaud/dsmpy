@@ -6,7 +6,9 @@ from dsmpy.seismicmodel import SeismicModel
 import time
 from mpi4py import MPI
 import glob
+import numpy as np
 
+MAX_SPC = 1e6
 
 def test_compute_models_parallel():
     comm = MPI.COMM_WORLD
@@ -14,7 +16,8 @@ def test_compute_models_parallel():
     rank = comm.Get_rank()
 
     # Set the SAC file paths
-    sac_path = "./sac_files/*T"
+    # sac_path = "./sac_files/*T"
+    sac_path = "/work/anselme/japan/DATA/200502*/*T"
     sac_files = list(glob.iglob(sac_path))
 
     # Create the dataset
@@ -25,7 +28,7 @@ def test_compute_models_parallel():
     nspc = 64
     sampling_hz = 20
     mode = 2
-    verbose = 2
+    verbose = 0
 
     # Create the seismic models
     if rank == 0:
@@ -41,8 +44,18 @@ def test_compute_models_parallel():
 
     if rank == 0:
         assert len(outputs) == len(models)
-        assert len(outputs[0]) == len(dataset.events)
-        assert outputs[0][0].spcs.shape == (3, dataset.nr, nspc+1)
+        for imod in range(len(models)):
+            assert len(outputs[imod]) == len(dataset.events)
+            for iev in range(len(dataset.events)):
+                assert outputs[imod][iev].spcs.shape == (
+                    3, dataset.nrs[iev], nspc + 1)
+                assert not np.isnan(outputs[imod][iev].spcs[2]).any()
+                assert (
+                        np.abs(outputs[imod][iev].spcs[2].max(axis=1))
+                        < MAX_SPC).all()
+                assert (
+                    np.abs(outputs[imod][iev].spcs[2]).max(axis=1)
+                    > 0).all()
 
     return outputs, comm
 

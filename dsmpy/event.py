@@ -166,7 +166,7 @@ class MomentTensor:
             mt_arr[1,1], mt_arr[1,2], mt_arr[2,2])
 
     def to_array(self):
-        mt = np.zeros((3, 3), dtype=np.float64)
+        mt = np.zeros((3, 3), dtype=np.float32)
         mt[0, 0] = self.Mrr
         mt[0, 1] = self.Mrt
         mt[0, 2] = self.Mrp
