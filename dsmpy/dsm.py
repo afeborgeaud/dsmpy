@@ -1585,9 +1585,9 @@ def compute_models_parallel(
                 # TODO delete some content
                 if np.isnan(spcs_local.any()):
                     print('{} some spc is NaN'.format(rank))
-                if np.any(spcs_local[2, 1:, :] == 0):
-                    mask = (spcs_local[2, :, :] == 0).all(axis=0)
-                    print('spc', spcs_local[2, :, mask])
+                if np.any(spcs_local[2, :, 1:] == 0):
+                    mask = (spcs_local[2, :, 1:] == 0)
+                    print('spc', mask)
                     print('vsh', model_arr_local[:, :nzone, 4, imod])
                     raise Exception('{} {} some spc is 0'.format(rank, imod))
                 if np.any(spcs_local[2, :, :] > 1e3):

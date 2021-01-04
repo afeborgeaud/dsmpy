@@ -28,7 +28,7 @@ def test_compute_models_parallel():
     nspc = 64
     sampling_hz = 20
     mode = 2
-    verbose = 0
+    verbose = 1
 
     # Create the seismic models
     if rank == 0:
