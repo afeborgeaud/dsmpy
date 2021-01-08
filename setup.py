@@ -37,7 +37,7 @@ if __name__ == '__main__':
 
     setup(
         name="dsmpy",
-        version='1.0a2',
+        version='1.0a3',
         author='Anselme Borgeaud, Kensuke Konishi',
         author_email='aborgeaud@gmail.com',
         license='MIT',
