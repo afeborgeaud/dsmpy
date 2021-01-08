@@ -47,6 +47,12 @@ class ModelParameters:
     def get_n_params(self):
         return self._n_grd_params * len(self._types)
 
+    def get_mesh_type(self):
+        return self._mesh_type
+
+    def get_types(self):
+        return self._types
+
     def set_constraints(
             self, mask_dict=None, equal_dict=None,
             discon_arr=None):

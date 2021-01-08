@@ -108,6 +108,8 @@ class SeismicModel:
         return np.pad(
             self._qkappa, (0, parameters['maxnzone']-self._nzone),
             mode='constant', constant_values=0)
+    def get_model_id(self):
+        return self._model_id
 
     @classmethod
     def model_from_name(cls, model_name):

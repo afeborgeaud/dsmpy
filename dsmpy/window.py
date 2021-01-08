@@ -32,6 +32,9 @@ class Window:
         '''Returns the epicentral distance in degree.'''
         return self.event.get_epicentral_distance(
                 self.station)
+
+    def get_length(self):
+        return self.t_before + self.t_after
     
     def to_array(self):
         '''Returns an ndarray [t_start, t_end].'''

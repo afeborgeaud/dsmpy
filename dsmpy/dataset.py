@@ -88,7 +88,7 @@ class Dataset:
             r0s, mts, nrs, stations, events)
     
     @classmethod
-    def dataset_from_arrays(cls, events, stations, sampling_hz):
+    def dataset_from_arrays(cls, events, stations, sampling_hz=20):
         eqlats = np.array([e.latitude for e in events])
         eqlons = np.array([e.longitude for e in events])
         r0s = np.array([6371. - e.depth for e in events])
@@ -527,6 +527,49 @@ def filter_sac_files(sac_files, f):
     sac_files_filt = [sac_file for i, sac_file in enumerate(sac_files)
                       if mask[i]]
     return sac_files_filt
+
+
+def filter_abnormal_data(sac_files, f, threshold=5):
+    """Filter sac data using the boolean function f.
+
+    Args:
+        sac_files (list of str): paths to sac files
+        f (function): (event_id: str, station: Station) -> bool
+        threshold (float): number of standard deviations of
+            the distribution of the log of max of data within which to
+            keep the data (default is 5).
+
+    Returns:
+        list of str: filtered list of paths to sac files
+
+    """
+    traces = [read(sac_file, headonly=False)[0]
+              for sac_file in sac_files]
+    mask = np.ones(len(traces), dtype='bool')
+    maxs = np.zeros(len(traces))
+
+    for i, trace in enumerate(traces):
+        if np.isnan(trace.data).any():
+            mask[i] = False
+        if (trace.data == 0).all():
+            mask[i] = False
+        maxs[i] = np.max(np.abs(trace.data))
+
+    maxs_filt = maxs[mask]
+    log_maxs = np.log(maxs_filt)
+    mean_log_max = log_maxs.mean()
+    std_log_max = log_maxs.std()
+
+    up = mean_log_max + threshold * std_log_max
+    lo = mean_log_max - threshold * std_log_max
+
+    for i, trace in enumerate(traces):
+        if mask[i]:
+            log_max = np.log(maxs[i])
+            if (log_max > up) or (log_max < lo):
+                mask[i] = False
+
+    return [file for i, file in enumerate(sac_files) if mask[i]]
 
 
 def get_event_id(trace):
