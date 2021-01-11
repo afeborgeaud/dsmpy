@@ -48,6 +48,8 @@ if __name__ == '__main__':
     upydsm = upydsms[2, 0]
     upydsm_psv = upydsms_psv[2, 0]
 
+    if 'figures' not in os.listdir('.'):
+        os.mkdir('./figures')
     filename = 'figures/waveform_accuracy_psv.pdf'
     print('Saving DSM and pyDSM waveform comparison in {}'
           .format(filename))

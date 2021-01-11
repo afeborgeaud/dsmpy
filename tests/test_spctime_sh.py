@@ -61,6 +61,8 @@ if __name__ == '__main__':
     outputs, udsm = test_spctime_sh()
 
     # Plot DSM and pydsm waveform comparison
+    if 'figures' not in os.listdir('.'):
+        os.mkdir('./figures')
     filename = 'figures/waveform_accuracy_sh.pdf'
     _plot(outputs.ts, udsm, outputs.us[2, 0])
     plt.savefig(filename, bbox_inches='tight')
