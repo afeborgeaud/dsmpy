@@ -8,7 +8,7 @@ include tests/sac_files/*
 include tests/input_files/*txt
 
 # include test scripts
-include tests/test*py
+include tests/test*
 
 # include environment.yml for conda
-include environment.yml
+include environment*
