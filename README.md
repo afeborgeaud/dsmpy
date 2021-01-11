@@ -14,15 +14,19 @@ Documentation and tutorials can be found [here](https://afeborgeaud.github.io/ds
 1) (Optional) You may want to install dsmpy in a virtual environment. If so, do
 ```
 python3 -m venv venv
-source activate ./venv/bin/activate
+source ./venv/bin/activate
 ```
-2) In a shell, type
+2) Install [*build*](https://pypi.org/project/build/), a PEP517 package builder
+```
+pip install build
+```
+3) In a shell, type
 ```
 pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple dsmpy
 ```
 This will download the dsmpy package from the TestPyPI respository and the required dependencies from the PyPI repository.
 
-3) Check that dsmpy has been installed succesfully:
+4) Check that dsmpy has been installed succesfully:
 ```
 python -c "import dsmpy"
 ```
@@ -46,7 +50,7 @@ git clone https://github.com/afeborgeaud/dsmpy
 2) (Optional) You may want to install dsmpy in a virtual environment. If so, do
 ```
 python3 -m venv venv
-source activate ./venv/bin/activate
+source ./venv/bin/activate
 ```
 3) Install [*build*](https://pypi.org/project/build/), a PEP517 package builder
 ```
