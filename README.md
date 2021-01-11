@@ -51,7 +51,7 @@ conda activate dsm
 ```bash
 export PYTHONPATH=$(pwd):$PYTHONPATH
 ```
-4) Build the DSM Fortran librairies:
+4) Build the DSM Fortran librairies
 ```bash
 python build.py
 ```
