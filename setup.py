@@ -1,5 +1,6 @@
 import setuptools
 from numpy.distutils.core import setup, Extension
+from distutils.command.sdist import sdist
 
 lib_tish = Extension(
         name='dsmpy.flib.tish',
@@ -37,7 +38,7 @@ if __name__ == '__main__':
 
     setup(
         name="dsmpy",
-        version='1.0a3',
+        version='1.0a4',
         author='Anselme Borgeaud, Kensuke Konishi',
         author_email='aborgeaud@gmail.com',
         license='MIT',
@@ -67,4 +68,5 @@ if __name__ == '__main__':
         package_data={
             'dsmpy' : ['resources/scardec.pkl'],
         },
+        cmdclass={'sdist': sdist},
     )

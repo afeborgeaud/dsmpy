@@ -30,6 +30,14 @@ python -c "import dsmpy"
 - gfortran>=4.8 is required for succesful compilation, because of the optimization flag '-Ofast'
 - If you have gfortran<4.8, you should change the compiler flag from '-Ofast' to '-O3' in ```<path_of_dsmpy_folder>/pydsm/__init__.py```
 
+### Using conda
+At the moment, we do not yet provide dsmpy as a conda package. If you want to use a conda environment to run dsmpy:
+1) Download dsmpy tar file
+```bash
+pip download --index-url https://test.pypi.org/simple/ --no-deps dsmpy
+```
+2) 
+
 ### Build from source
 1) Clone the dsmpy repository
 ```
