@@ -59,7 +59,7 @@ python build.py
 ```bash
 pytest
 ```
-This might take a few minutes to complete, because it will also download the GCMT catalog to ```dsmpy/resources/gcmt.npy```, which takes some time.
+This might take a few minutes to complete, because it will also download the GCMT catalog to ```dsmpy-1.0a4/resources/gcmt.npy```, which takes some time.
 
 ### Build from source
 1) Clone the dsmpy repository
