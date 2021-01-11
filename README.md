@@ -36,7 +36,7 @@ python -c "import dsmpy"
 
 ### Using conda
 We do not yet provide dsmpy as a conda package. If you want to use a conda environment to run dsmpy:
-1) From the terminal, download the (latest)[(https://github.com/afeborgeaud/dsmpy/releases/download/v1.0a4/dsmpy-1.0a4.tar.gz)] dsmpy .tar.gz release from Github and extract it to your local directory
+1) From the terminal, download the [latest](https://github.com/afeborgeaud/dsmpy/releases/download/v1.0a4/dsmpy-1.0a4.tar.gz) dsmpy .tar.gz release from Github and extract it to your local directory
 ```bash
 wget https://github.com/afeborgeaud/dsmpy/releases/download/v1.0a4/dsmpy-1.0a4.tar.gz
 tar -xzf dsmpy*.tar.gz
