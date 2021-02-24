@@ -66,8 +66,7 @@ if __name__ == '__main__':
     # run pydsm
     start_time = time.time()
     outputs = dsm.compute_dataset_parallel(dataset, seismic_model,
-                                           tlen, nspc, sampling_hz,
-                                           comm)
+                                           tlen, nspc, sampling_hz)
     end_time = time.time()
     print('rank {}: DSM finished in {} s'
           .format(rank, end_time-start_time))

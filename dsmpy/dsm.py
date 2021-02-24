@@ -960,11 +960,12 @@ def compute(pydsm_input, write_to_file=False,
 
 
 def compute_parallel(
-        pydsm_input, comm, mode=0, write_to_file=False,
+        pydsm_input, mode=0, write_to_file=False,
         verbose=0):
     """Compute spectra using DSM with data parallelization.
 
     """
+    comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     n_cores = comm.Get_size()
 
@@ -1134,13 +1135,12 @@ def compute_parallel(
 def compute_dataset_parallel(
         dataset, seismic_model,
         tlen, nspc, sampling_hz,
-        comm, mode=0, write_to_file=False,
+        mode=0, write_to_file=False,
         verbose=0, log=None):
     """Compute spectra using DSM with data parallelization.
 
     Args:
         dataset (Dataset): dataset of events & stations.
-        comm (MPI.COMM_WORLD): MPI communicator.
         mode (int): computation mode. 0: both, 1: P-SV, 2: SH.
         write_to_file (bool): write output in Kibrary format
         (default: False).
@@ -1150,6 +1150,7 @@ def compute_dataset_parallel(
             entry for each event in dataset.
 
     """
+    comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     n_cores = comm.Get_size()
 
@@ -1414,7 +1415,7 @@ def _get_models_array(models, maxnzone):
 def compute_models_parallel(
         dataset, models,
         tlen, nspc, sampling_hz,
-        comm, mode=0, write_to_file=False,
+        mode=0, write_to_file=False,
         verbose=0):
     """Perform a model grid search with model parallelization.
 
@@ -1437,6 +1438,7 @@ def compute_models_parallel(
        list of list of PyDSMOutput: Shape is (n_models, n_events).
 
     """
+    comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     n_cores = comm.Get_size()
 

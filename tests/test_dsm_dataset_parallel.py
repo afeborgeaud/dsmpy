@@ -51,11 +51,11 @@ if __name__ == '__main__':
     start_time = time.time()
     outputs = dsm.compute_dataset_parallel(dataset, seismic_model,
                                            tlen, nspc, sampling_hz,
-                                           comm, mode=2)
+                                           mode=2)
 
     outputs2 = dsm.compute_dataset_parallel(dataset2, seismic_model,
                                            tlen, nspc, sampling_hz,
-                                           comm, mode=2)
+                                           mode=2)
     end_time = time.time()
 
     if rank == 0:

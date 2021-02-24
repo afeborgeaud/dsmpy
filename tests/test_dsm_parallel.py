@@ -17,7 +17,7 @@ if __name__ == '__main__':
         inputs = None
 
     start_time = time.time()
-    spcs = dsm.compute_parallel(inputs, comm)
+    spcs = dsm.compute_parallel(inputs)
     end_time = time.time()
 
     if rank == 0:

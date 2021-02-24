@@ -64,7 +64,6 @@ def main(path):
 
     """
     comm = MPI.COMM_WORLD
-    n_cores = comm.Get_size()
     rank = comm.Get_rank()
 
     # open log file
@@ -103,7 +102,7 @@ def main(path):
                                            tlen,
                                            nspc,
                                            sampling_hz,
-                                           comm, mode=mode,
+                                           mode=mode,
                                            verbose=verbose,
                                            log=log)
     end_time = time.time()

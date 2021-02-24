@@ -40,7 +40,7 @@ def test_compute_models_parallel():
     # Parallel computation of synthetics
     outputs = dsm.compute_models_parallel(dataset, models,
                                           tlen, nspc, sampling_hz,
-                                          comm, mode=mode, verbose=verbose)
+                                          mode=mode, verbose=verbose)
 
     if rank == 0:
         assert len(outputs) == len(models)
@@ -57,7 +57,7 @@ def test_compute_models_parallel():
                     np.abs(outputs[imod][iev].spcs[2]).max(axis=1)
                     > 0).all()
 
-    return outputs, comm
+    return outputs
 
 
 if __name__ == '__main__':
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     outputs, comm = test_compute_models_parallel()
     end_time = time.time()
 
-    if comm.Get_rank() == 0:
+    if MPI.COMM_WORLD.Get_rank() == 0:
         print('DSM on {} core(s) finished in {} s'
               .format(comm.Get_size(), end_time - start_time))
         print('0', outputs[0][0].spcs[2, 0, 15])
