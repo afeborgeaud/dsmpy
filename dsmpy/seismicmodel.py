@@ -391,8 +391,8 @@ class SeismicModel:
 
         for r in (set(model._vrmin) - set(model_parameters.get_nodes())):
             if (r > model_parameters.get_nodes()[0]
-               and r < model_parameters.get_nodes()[-1]):
-               model = model._del_boundary(r)
+                and r < model_parameters.get_nodes()[-1]):
+                model = model._del_boundary(r)
 
         for node in (set(model_parameters.get_nodes()) - set(model._vrmin)):
             model = model._add_boundary(node)
@@ -401,14 +401,15 @@ class SeismicModel:
             izone = model.get_zone(node)
             r0 = model._vrmin[izone]
             r1 = model._vrmax[izone]
-            for param_type in model_parameters._types:
+            for param_type in ParameterType.structure_types(): # model_parameters._types
                 if param_type == ParameterType.RADIUS:
                     continue
-                y0 = self.get_value_at(r0, param_type)
+                y0 = model.get_value_at(r0, param_type) # self
                 if discontinuous:
-                    y1 = self.get_value_at(r1-1e-5, param_type)
+                    y1 = model.get_value_at(r1-1e-5, param_type) # self
                 else:
-                    y1 = self.get_value_at(r1, param_type)
+                    y1 = model.get_value_at(r1, param_type) # self
+
                 x0 = r0 / 6371.
                 x1 = r1 / 6371.
                 lin_elem = self._lin_element(x0, x1, y0, y1)
@@ -575,14 +576,23 @@ class SeismicModel:
                     r1 = self._vrmax[index]
                     # r0 = mesh._vrmin[index]
                     # r1 = mesh._vrmax[index]
-                    r0_p = r0 + values[2*i+1, 8]
-                    r1_p = r1 + values[2*i+3, 8]
+                    r0_p = r0 + values[2 * i + 1, 8]
+                    r1_p = r1 + values[2 * i + 3, 8]
+
                     for p_type in ParameterType.structure_types():
                         itype = p_type.value
+
+                        # y0 = self.get_value_at(
+                        #     r0, p_type) + values[2*i+1, itype]
+                        # y1 = self.get_value_at(
+                        #     r1-1e-5, p_type) + values[2*i+2, itype]
+
+                        # TODO check
                         y0 = self.get_value_at(
-                            r0, p_type) + values[2*i+1, itype]
+                            r0_p, p_type) + values[2 * i + 1, itype]
                         y1 = self.get_value_at(
-                            r1-1e-5, p_type) + values[2*i+2, itype]
+                            r1_p - 1e-5, p_type) + values[2 * i + 2, itype]
+
                         x0 = r0_p / 6371.
                         x1 = r1_p / 6371.
                         mesh.set_value(
@@ -860,14 +870,20 @@ class SeismicModel:
 
     
     def plot(self, dr=1., ax=None, types=None, color=None, **kwargs):
-        '''Plot the seismicModel.
+        """Plot the seismicModel.
+
         Args:
+            dr (float): depth increment (default is 1)
             ax (matplotlib.ax): ax
-            parameters (modelparameters.ParameterTypes): e.g., RHO, VSH
+            types (ParameterTypes): e.g., RHO, VSH
             color (str): color
+            kwargs (dict):
+
         Returns:
-            fig, ax
-        '''
+            fig
+            ax
+
+        """
         rs, values = self.get_values(dr=dr)
         if ax == None:
             fig, ax = plt.subplots(1,1)
@@ -893,7 +909,7 @@ class SeismicModel:
         ax.set(
             xlabel='Velocity (km/s)',
             ylabel='Radius (km)')
-        ax.legend()
+        # ax.legend()
         return fig, ax
 
     def save(self, path):
