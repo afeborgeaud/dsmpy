@@ -3,6 +3,7 @@
 from dsmpy import dsm
 from dsmpy.dataset import Dataset
 from dsmpy.seismicmodel import SeismicModel
+from dsmpy import root_sac
 import time
 from mpi4py import MPI
 import glob
@@ -16,8 +17,7 @@ def test_compute_models_parallel():
     rank = comm.Get_rank()
 
     # Set the SAC file paths
-    # sac_path = "./sac_files/*T"
-    sac_path = "/work/anselme/japan/DATA/200502*/*T"
+    sac_path = root_sac + "/*T"
     sac_files = list(glob.iglob(sac_path))
 
     # Create the dataset

@@ -8,4 +8,15 @@ include tests/sac_files/*
 include tests/input_files/*txt
 
 # include test scripts
-# include tests/test*py
+include tests/test*
+
+# include environment.yml for conda
+include environment*
+
+# include example files to test Fortran sources
+recursive-include dsmpy/src_f90/tish/example *
+recursive-include dsmpy/src_f90/tipsv/example *
+
+# include build.py to build the Fortran lib when using conda
+include *.py
+

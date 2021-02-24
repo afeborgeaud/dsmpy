@@ -1,6 +1,6 @@
 # dsmpy
 [![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-370/)
-[![PyPI version fury.io](https://d25lcipzij17d.cloudfront.net/badge.svg?id=py&type=6&v=1.0a3&x2=0)](https://test.pypi.org/project/dsmpy/)
+[![PyPI version fury.io](https://d25lcipzij17d.cloudfront.net/badge.svg?id=py&type=6&v=1.0a4&x2=0)](https://test.pypi.org/project/dsmpy/)
 
 Python package for computation of synthetic waveforms in spherically homogeneous transversely isotropic (VTI) media using the Direct Solution Method (DSM; [Kawai et al. 2006](https://doi.org/10.1111/j.1365-246X.2005.02829.x)).<br/><br/>
 Documentation and tutorials can be found [here](https://afeborgeaud.github.io/dsmpy/).
@@ -33,6 +33,33 @@ python -c "import dsmpy"
 **Note:** Fortran sources for the DSM will be compiled during the installation (using numpy.f2py and the GNU Fortran compiler). If you get compilation errors, check the following:
 - gfortran>=4.8 is required for succesful compilation, because of the optimization flag '-Ofast'
 - If you have gfortran<4.8, you should change the compiler flag from '-Ofast' to '-O3' in ```<path_of_dsmpy_folder>/pydsm/__init__.py```
+
+### Using conda
+We do not yet provide dsmpy as a conda package. If you want to use a conda environment to run dsmpy:
+1) Download the [latest dsmpy release](https://github.com/afeborgeaud/dsmpy/releases/download/v1.0a4/dsmpy-1.0a4.tar.gz) from Github and extract it to your local directory. On Unix (or macOS if you have installed wget or curl), you can also run
+```bash
+wget https://github.com/afeborgeaud/dsmpy/releases/download/v1.0a4/dsmpy-1.0a4.tar.gz
+tar -xzf dsmpy*.tar.gz
+```
+2) Create the dsm conda environment using the ```dsmpy-1.0a4/environment.yml``` file
+```bash
+cd dsmpy-1.0a4
+conda env create -f environment.yml
+conda activate dsm
+```
+3) Set the ```PYTHONPATH``` environment variable to let python know about dsmpy
+```bash
+export PYTHONPATH=$(pwd):$PYTHONPATH
+```
+4) Build the DSM Fortran librairies
+```bash
+python build.py
+```
+5) Run the test scripts
+```bash
+pytest
+```
+This might take a few minutes to complete, because it will also download the GCMT catalog to ```dsmpy-1.0a4/resources/gcmt.npy```, which takes some time.
 
 ### Build from source
 1) Clone the dsmpy repository

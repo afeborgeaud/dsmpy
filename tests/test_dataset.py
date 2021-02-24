@@ -4,13 +4,12 @@ from dsmpy.dataset import Dataset, filter_sac_files
 from dsmpy import root_sac
 from dsmpy.windowmaker import WindowMaker
 from dsmpy.component import Component
+from dsmpy import root_sac
 import glob
 import os
 
-sac_file_root = './sac_files'
-
 def test_dataset_from_sac():
-    sac_files = glob.glob(os.path.join(sac_file_root, '*[RZT]'))
+    sac_files = glob.glob(os.path.join(root_sac, '*[RZT]'))
 
     dataset = Dataset.dataset_from_sac(
         sac_files, verbose=0, headonly=False)
@@ -24,7 +23,7 @@ def test_dataset_from_sac():
 
 
 def test_dataset_filter_sac_files():
-    sac_files = glob.glob(os.path.join(sac_file_root, '*[RZT]'))
+    sac_files = glob.glob(os.path.join(root_sac, '*[RZT]'))
 
     f = lambda evid_sta: evid_sta[0] == '201702211409A'
     sac_files_filt = filter_sac_files(sac_files, f)
