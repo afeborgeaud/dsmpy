@@ -176,6 +176,8 @@ class PyDSMOutput:
         """
         del self.us
         del self.ts
+        self.us = None
+        self.ts = None
 
     def set_source_time_function(self, source_time_function):
         """Set the source time function for convolution.
