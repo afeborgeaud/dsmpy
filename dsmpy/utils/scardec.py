@@ -5,20 +5,19 @@ from dsmpy.spc.stf import SourceTimeFunction
 from dsmpy.spc.stfcatalog import STFCatalog
 import numpy as np
 import glob
-import matplotlib.pyplot as plt
 import os
 
 def get_stf(event):
-    '''Return a source time function in time domain.
+    """Returns a source time function in time domain.
 
     Args:
         event (Event): event
 
     Returns:
-        stf (ndarray): source time function, normalized so
-        that its integral is 1. (2,npts)
-        
-    '''
+        ndarray: source time function, normalized so
+            that its integral is 1. The shape is (2, npts).
+
+    """
     dir_stf = _parse_dir_name(event)
     if dir_stf is None:
         return None
@@ -42,23 +41,22 @@ def create_catalog():
     cmt_catalog = read_catalog()
     stf_catalog = dict()
     for event in cmt_catalog:
-        print(event)
         dir_name = _parse_dir_name(event)
         if dir_name:
             duration = get_duration(event)
-            stf = SourceTimeFunction(
-                'triangle', duration/2.)
-            stf_catalog[event.event_id] = stf
+            if stf is not None:
+                stf = SourceTimeFunction(
+                    'triangle', duration/2.)
+                stf_catalog[event.event_id] = stf
 
-    path = os.path.joint(root_resources, 'scardec.pkl')
-    STFCatalog.save(path, scardec_catalog)
+    path = os.path.join(root_resources, 'scardec.pkl')
+    STFCatalog.save(path, stf_catalog)
 
 def _parse_dir_name(event):
     dir_scardec = os.path.join(root_resources, 'scardec')
     # event_id_post2005 = _convert_name_to_post2005(event)
     partial_scardec_dir_name = _convert_name_to_partial_scardec(event)
     dirs = glob.glob(dir_scardec + '/*' + partial_scardec_dir_name + '*')
-    print(dirs)
     parsed_dir = None
     for dir_ in dirs:
         ss = int(dir_.split(partial_scardec_dir_name)[1][:2])
@@ -97,5 +95,5 @@ def _compute_integral(stf):
     return integral
 
 # if __name__ == '__main__':
-    # create_catalog()
+#     create_catalog()
     
