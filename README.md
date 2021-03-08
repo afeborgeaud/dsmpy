@@ -7,8 +7,18 @@ Documentation and tutorials can be found [here](https://afeborgeaud.github.io/ds
 
 ## INSTALLATION
 ### Requirements
+If you install dsmpy using conda, you can skip this step. Else, you will need
 1) As ```dsmpy``` relies on mpi4py, you need to have a working MPI implementation installed (see [mpi4py documentation](https://mpi4py.readthedocs.io/en/stable/appendix.html#building-mpi))
 2) gfotran>=4.8
+
+### Using conda
+We recommend using ```conda``` to install ```dsmpy```, as it takes care of the dependencies required to compile the Fortran sources in dsmpy. At the moment, dsmpy has been compiled for ```linux-64``` and ```osx-64``` platforms. <br>
+To install ```dsmpy``` using ```conda```:
+1) From a terminal, run
+```bash
+conda create -n dsmpy
+conda install -n dsmpy -c afeborgeaud -c conda-forge dsmpy
+```
 
 ### Using pip (TestPyPI)
 1) (Optional) You may want to install dsmpy in a virtual environment. If so, do
@@ -33,33 +43,6 @@ python -c "import dsmpy"
 **Note:** Fortran sources for the DSM will be compiled during the installation (using numpy.f2py and the GNU Fortran compiler). If you get compilation errors, check the following:
 - gfortran>=4.8 is required for succesful compilation, because of the optimization flag '-Ofast'
 - If you have gfortran<4.8, you should change the compiler flag from '-Ofast' to '-O3' in ```<path_of_dsmpy_folder>/pydsm/__init__.py```
-
-### Using conda
-We do not yet provide dsmpy as a conda package. If you want to use a conda environment to run dsmpy:
-1) Download the [latest dsmpy release](https://github.com/afeborgeaud/dsmpy/releases/download/v1.0a4/dsmpy-1.0a4.tar.gz) from Github and extract it to your local directory. On Unix (or macOS if you have installed wget or curl), you can also run
-```bash
-wget https://github.com/afeborgeaud/dsmpy/releases/download/v1.0a4/dsmpy-1.0a4.tar.gz
-tar -xzf dsmpy*.tar.gz
-```
-2) Create the dsm conda environment using the ```dsmpy-1.0a4/environment.yml``` file
-```bash
-cd dsmpy-1.0a4
-conda env create -f environment.yml
-conda activate dsm
-```
-3) Set the ```PYTHONPATH``` environment variable to let python know about dsmpy
-```bash
-export PYTHONPATH=$(pwd):$PYTHONPATH
-```
-4) Build the DSM Fortran librairies
-```bash
-python build.py
-```
-5) Run the test scripts
-```bash
-pytest
-```
-This might take a few minutes to complete, because it will also download the GCMT catalog to ```dsmpy-1.0a4/resources/gcmt.npy```, which takes some time.
 
 ### Build from source
 1) Clone the dsmpy repository
