@@ -7,7 +7,7 @@ from obspy.taup import TauPyModel
 import numpy as np
 
 class WindowMaker:
-    """Utility class to compute list of Window.
+    """Utility class to compute list of Windows.
 
     """
 
@@ -37,20 +37,29 @@ class WindowMaker:
     def windows_from_dataset(
             dataset, model_name, phase_names,
             components, t_before=10., t_after=40.):
-        '''Compute list of Window from a Dataset.
+        """Compute list of Windows from a Dataset using TauP.
 
         Args:
             dataset (Dataset): dataset
-            model_name (str): name of the 1-D reference model
-            phase_names (list of str): name of seismic phases
+            model_name (str): name of the 1-D reference model.
+                The model name corresponds to that used in TauP.
+            phase_names (list of str): name of seismic phases.
+                The phase name corresponds to that used in TauP.
             components (list of Component): seismic components
             t_before (float): time before arrival (default: 10)
             t_after (float): time after arrival (default: 40)
 
         Returns:
-            windows (list of Window): time windows
+            list of Window: list of time windows
 
-        '''
+        Examples:
+            >>> dataset = Dataset.dataset_from_sac(
+                    sac_files, headonly=False)
+            >>> windows = WindowMaker.windows_from_dataset(
+                    dataset, 'prem', 'ScS', [Component.T],
+                    t_before=10., t_after=30.)
+
+        """
         windows = []
         for i, event in enumerate(dataset.events):
             start, end = dataset.get_bounds_from_event_index(i)
@@ -65,7 +74,7 @@ class WindowMaker:
     def compute(
             event, stations, model_name, phase_names,
             components, t_before=10., t_after=40.):
-        '''Compute time windows using TauP.
+        """Compute list of Windows using TauP.
 
         Args:
             event (Event): seismic event
@@ -77,9 +86,9 @@ class WindowMaker:
             t_after (float): time after arrival (default is 40)
 
         Returns:
-            windows (list of Window): time windows
+            list of Window: time windows
 
-        '''
+        """
         taup_model = TauPyModel(model_name)
         windows = []
         for station in stations:
@@ -106,32 +115,32 @@ class WindowMaker:
 
     @staticmethod
     def set_limit(windows, t_before, t_after):
-        '''Set t_before and t_after for all window in windows.
+        """Set t_before and t_after for all window in windows.
         
         Args:
             windows (list of Windows): time windows
             t_before (float): time before arrival (in seconds)
             t_after (float): time after arrival (in seconds)
-        '''
+        """
         for i in range(len(windows)):
             windows[i].t_before = t_before
             windows[i].t_after = t_after
 
     @staticmethod
     def save(path, windows):
-        '''Save windows using pickle.dump().
+        """Save windows using pickle.dump().
 
         Args:
             path (str): name of the output file.
             windows (list of Window): time windows.
 
-        '''
+        """
         with open(path, 'wb') as f:
             pickle.dump(windows, f)
 
     @staticmethod
     def load(path):
-        '''Read path into list of Window using pickle.load().
+        """Read path into list of Window using pickle.load().
 
         Args:
             path (str): path to the file that contains time windows
@@ -139,11 +148,12 @@ class WindowMaker:
         Returns:
             windows (list of Window)): time windows
 
-        '''
+        """
         with open(path, 'rb') as f:
             output = pickle.load(f)
         return output
-        
+
+
 if __name__ == '__main__':
     from dsmpy.utils.cmtcatalog import read_catalog
     catalog = read_catalog()

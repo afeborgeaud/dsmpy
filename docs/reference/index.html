@@ -915,11 +915,11 @@ closest larger integer that satisfies this relation.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="dsmpy.windowmaker.WindowMaker">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.windowmaker.</span></span><span class="sig-name descname"><span class="pre">WindowMaker</span></span><a class="headerlink" href="#dsmpy.windowmaker.WindowMaker" title="Permalink to this definition">¶</a></dt>
-<dd><p>Utility class to compute list of Window.</p>
+<dd><p>Utility class to compute list of Windows.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsmpy.windowmaker.WindowMaker.compute">
 <em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_before</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_after</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.windowmaker.WindowMaker.compute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute time windows using TauP.</p>
+<dd><p>Compute list of Windows using TauP.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -936,7 +936,7 @@ closest larger integer that satisfies this relation.</p>
 <dd class="field-even"><p>time windows</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>windows (list of Window)</p>
+<dd class="field-odd"><p>list of Window</p>
 </dd>
 </dl>
 </dd></dl>
@@ -990,25 +990,35 @@ closest larger integer that satisfies this relation.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsmpy.windowmaker.WindowMaker.windows_from_dataset">
 <em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">windows_from_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_before</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_after</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.windowmaker.WindowMaker.windows_from_dataset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute list of Window from a Dataset.</p>
+<dd><p>Compute list of Windows from a Dataset using TauP.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dataset</strong> (<a class="reference internal" href="#dsmpy.dataset.Dataset" title="dsmpy.dataset.Dataset"><em>Dataset</em></a>) – dataset</p></li>
-<li><p><strong>model_name</strong> (<em>str</em>) – name of the 1-D reference model</p></li>
-<li><p><strong>phase_names</strong> (<em>list of str</em>) – name of seismic phases</p></li>
+<li><p><strong>model_name</strong> (<em>str</em>) – name of the 1-D reference model.
+The model name corresponds to that used in TauP.</p></li>
+<li><p><strong>phase_names</strong> (<em>list of str</em>) – name of seismic phases.
+The phase name corresponds to that used in TauP.</p></li>
 <li><p><strong>components</strong> (<em>list of Component</em>) – seismic components</p></li>
 <li><p><strong>t_before</strong> (<em>float</em>) – time before arrival (default: 10)</p></li>
 <li><p><strong>t_after</strong> (<em>float</em>) – time after arrival (default: 40)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>time windows</p>
+<dd class="field-even"><p>list of time windows</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>windows (list of Window)</p>
+<dd class="field-odd"><p>list of Window</p>
 </dd>
 </dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="o">.</span><span class="n">dataset_from_sac</span><span class="p">(</span>
+<span class="go">        sac_files, headonly=False)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">windows</span> <span class="o">=</span> <span class="n">WindowMaker</span><span class="o">.</span><span class="n">windows_from_dataset</span><span class="p">(</span>
+<span class="go">        dataset, &#39;prem&#39;, &#39;ScS&#39;, [Component.T],</span>
+<span class="go">        t_before=10., t_after=30.)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </dd></dl>
