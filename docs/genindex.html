@@ -6,14 +6,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Index &#8212; pydsm  documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" /> 
@@ -65,9 +64,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.ak135">ak135() (dsmpy.seismicmodel.SeismicModel class method)</a>
 </li>
+      <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.ak135_prime">ak135_prime() (dsmpy.seismicmodel.SeismicModel class method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.ak135_prime">ak135_prime() (dsmpy.seismicmodel.SeismicModel class method)</a>
+      <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.apply_constraint">apply_constraint() (dsmpy.modelparameters.ModelParameters method)</a>
 </li>
       <li><a href="reference/index.html#dsmpy.dataset.Dataset.apply_windows">apply_windows() (dsmpy.dataset.Dataset method)</a>
 </li>
@@ -101,6 +102,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.compute_avg">compute_avg() (dsmpy.seismicmodel.SeismicModel method)</a>
+</li>
       <li><a href="reference/index.html#dsmpy.dsm.compute_dataset_parallel">compute_dataset_parallel() (in module dsmpy.dsm)</a>
 </li>
       <li><a href="reference/index.html#dsmpy.dsm.compute_models_parallel">compute_models_parallel() (in module dsmpy.dsm)</a>
@@ -114,6 +117,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/index.html#dsmpy.dataset.Dataset">Dataset (class in dsmpy.dataset)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.dataset.Dataset.dataset_from_arrays">dataset_from_arrays() (dsmpy.dataset.Dataset class method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.dataset.Dataset.dataset_from_files">dataset_from_files() (dsmpy.dataset.Dataset class method)</a>
 </li>
       <li><a href="reference/index.html#dsmpy.dataset.Dataset.dataset_from_sac">dataset_from_sac() (dsmpy.dataset.Dataset class method)</a>
 </li>
@@ -170,6 +177,8 @@
         <li><a href="reference/index.html#module-dsmpy.event">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     dsmpy.modelparameters
 
@@ -177,8 +186,6 @@
         <li><a href="reference/index.html#module-dsmpy.modelparameters">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     dsmpy.seismicmodel
 
@@ -268,8 +275,14 @@
         <li><a href="reference/index.html#dsmpy.dsm.PyDSMOutput.filter">(dsmpy.dsm.PyDSMOutput method)</a>
 </li>
       </ul></li>
+      <li><a href="reference/index.html#dsmpy.dataset.filter_abnormal_data">filter_abnormal_data() (in module dsmpy.dataset)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/index.html#dsmpy.dataset.filter_sac_files">filter_sac_files() (in module dsmpy.dataset)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.dsm.PyDSMOutput.free">free() (dsmpy.dsm.PyDSMOutput method)</a>
+</li>
       <li><a href="reference/index.html#dsmpy.event.MomentTensor.from_dsm_array">from_dsm_array() (dsmpy.event.MomentTensor class method)</a>
 </li>
   </ul></td>
@@ -278,17 +291,57 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/index.html#dsmpy.event.Event.get_azimuth">get_azimuth() (dsmpy.event.Event method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.event.Event.get_backazimuth">get_backazimuth() (dsmpy.event.Event method)</a>
+</li>
       <li><a href="reference/index.html#dsmpy.dataset.Dataset.get_bounds_from_event_index">get_bounds_from_event_index() (dsmpy.dataset.Dataset method)</a>
 </li>
-      <li><a href="reference/index.html#dsmpy.window.Window.get_epicentral_distance">get_epicentral_distance() (dsmpy.window.Window method)</a>
+      <li><a href="reference/index.html#dsmpy.event.Event.get_epicentral_distance">get_epicentral_distance() (dsmpy.event.Event method)</a>
+
+      <ul>
+        <li><a href="reference/index.html#dsmpy.window.Window.get_epicentral_distance">(dsmpy.window.Window method)</a>
+</li>
+      </ul></li>
+      <li><a href="reference/index.html#dsmpy.event.Event.get_epicentral_distance_">get_epicentral_distance_() (dsmpy.event.Event method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.dataset.get_event_id">get_event_id() (in module dsmpy.dataset)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_free_indices">get_free_indices() (dsmpy.modelparameters.ModelParameters method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.window.Window.get_gaussian_window_in_frequency_domain">get_gaussian_window_in_frequency_domain() (dsmpy.window.Window method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_mesh_type">get_mesh_type() (dsmpy.modelparameters.ModelParameters method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_n_grd_params">get_n_grd_params() (dsmpy.modelparameters.ModelParameters method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_n_nodes">get_n_nodes() (dsmpy.modelparameters.ModelParameters method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/index.html#dsmpy.window.Window.get_gaussian_window_in_frequency_domain">get_gaussian_window_in_frequency_domain() (dsmpy.window.Window method)</a>
+      <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_n_params">get_n_params() (dsmpy.modelparameters.ModelParameters method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_nodes">get_nodes() (dsmpy.modelparameters.ModelParameters method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.dsm.PyDSMOutput.get_nr">get_nr() (dsmpy.dsm.PyDSMOutput method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.dataset.get_station">get_station() (in module dsmpy.dataset)</a>
 </li>
       <li><a href="reference/index.html#dsmpy.utils.scardec.get_stf">get_stf() (in module dsmpy.utils.scardec)</a>
 </li>
+      <li><a href="reference/index.html#dsmpy.dsm.PyDSMOutput.get_traces">get_traces() (dsmpy.dsm.PyDSMOutput method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_types">get_types() (dsmpy.modelparameters.ModelParameters method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.get_value">get_value() (dsmpy.seismicmodel.SeismicModel method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.get_value_at">get_value_at() (dsmpy.seismicmodel.SeismicModel method)</a>
+</li>
       <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.get_values">get_values() (dsmpy.seismicmodel.SeismicModel method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_values_matrix">get_values_matrix() (dsmpy.modelparameters.ModelParameters method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.get_zone">get_zone() (dsmpy.seismicmodel.SeismicModel method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -397,6 +450,8 @@
 </li>
       <li><a href="reference/index.html#dsmpy.event.Event.mt">mt (dsmpy.event.Event attribute)</a>
 </li>
+      <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.multiply">multiply() (dsmpy.seismicmodel.SeismicModel method)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -408,6 +463,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/index.html#dsmpy.station.Station.network">network (dsmpy.station.Station attribute)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.next">next() (dsmpy.modelparameters.ModelParameters method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -425,14 +482,18 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/index.html#dsmpy.modelparameters.ParameterType">ParameterType (class in dsmpy.modelparameters)</a>
 </li>
+      <li><a href="reference/index.html#dsmpy.component.Component.parse_component">parse_component() (dsmpy.component.Component static method)</a>
+</li>
       <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.plot">plot() (dsmpy.seismicmodel.SeismicModel method)</a>
 </li>
       <li><a href="reference/index.html#dsmpy.dsm.PyDSMOutput.plot_component">plot_component() (dsmpy.dsm.PyDSMOutput method)</a>
 </li>
-      <li><a href="reference/index.html#dsmpy.dsm.PyDSMOutput.plot_spc">plot_spc() (dsmpy.dsm.PyDSMOutput method)</a>
+      <li><a href="reference/index.html#dsmpy.dataset.Dataset.plot_event">plot_event() (dsmpy.dataset.Dataset method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/index.html#dsmpy.dsm.PyDSMOutput.plot_spc">plot_spc() (dsmpy.dsm.PyDSMOutput method)</a>
+</li>
       <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.prem">prem() (dsmpy.seismicmodel.SeismicModel class method)</a>
 </li>
       <li><a href="reference/index.html#dsmpy.dsm.PyDSMInput">PyDSMInput (class in dsmpy.dsm)</a>
@@ -471,9 +532,17 @@
       </ul></li>
       <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel">SeismicModel (class in dsmpy.seismicmodel)</a>
 </li>
+      <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.set_constraints">set_constraints() (dsmpy.modelparameters.ModelParameters method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.windowmaker.WindowMaker.set_limit">set_limit() (dsmpy.windowmaker.WindowMaker static method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.dsm.PyDSMOutput.set_source_time_function">set_source_time_function() (dsmpy.dsm.PyDSMOutput method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/index.html#dsmpy.windowmaker.WindowMaker.set_limit">set_limit() (dsmpy.windowmaker.WindowMaker static method)</a>
+      <li><a href="reference/index.html#dsmpy.dataset.Dataset.set_source_time_functions">set_source_time_functions() (dsmpy.dataset.Dataset method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.set_value">set_value() (dsmpy.seismicmodel.SeismicModel method)</a>
 </li>
       <li><a href="reference/index.html#dsmpy.event.Event.source_time_function">source_time_function (dsmpy.event.Event attribute)</a>
 </li>
@@ -482,6 +551,8 @@
       <li><a href="reference/index.html#dsmpy.station.Station">Station (class in dsmpy.station)</a>
 </li>
       <li><a href="reference/index.html#dsmpy.spc.stfcatalog.STFCatalog">STFCatalog (class in dsmpy.spc.stfcatalog)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.modelparameters.ParameterType.structure_types">structure_types() (dsmpy.modelparameters.ParameterType static method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -505,10 +576,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/index.html#dsmpy.window.Window">Window (class in dsmpy.window)</a>
 </li>
-      <li><a href="reference/index.html#dsmpy.windowmaker.WindowMaker">WindowMaker (class in dsmpy.windowmaker)</a>
+      <li><a href="reference/index.html#dsmpy.dsm.PyDSMOutput.window_spcs">window_spcs() (dsmpy.dsm.PyDSMOutput method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/index.html#dsmpy.windowmaker.WindowMaker">WindowMaker (class in dsmpy.windowmaker)</a>
+</li>
       <li><a href="reference/index.html#dsmpy.windowmaker.WindowMaker.windows_from_dataset">windows_from_dataset() (dsmpy.windowmaker.WindowMaker static method)</a>
 </li>
       <li><a href="reference/index.html#dsmpy.dsm.PyDSMOutput.write">write() (dsmpy.dsm.PyDSMOutput method)</a>
@@ -553,7 +626,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2020, Anselme Borgeaud, Kensuke Konishi.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.3.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
     </div>
   </body>
 </html>

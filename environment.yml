@@ -1,6 +1,6 @@
 name: dsm
 dependencies:
-  - python=3.7
+  - python=3.9
   - pytest
   - numpy
   - mpi4py
@@ -8,3 +8,4 @@ dependencies:
   - pandas
   - conda-forge::obspy
   - conda-forge::geographiclib
+  - cartopy

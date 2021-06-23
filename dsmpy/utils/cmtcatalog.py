@@ -66,7 +66,7 @@ def _download_gcmt_catalog():
                       'catalog/jan76_dec17.ndk')
     start_year = 2018
     end_year = date.today().year
-    p=re.compile('[a-z]+\d\d\.ndk')
+    p=re.compile(r'[a-z]+\d\d\.ndk')
     for year in range(start_year, end_year+1):
         dir = ('https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/'
                'NEW_MONTHLY/' + str(year))
@@ -80,6 +80,7 @@ def _download_gcmt_catalog():
                 pass
     #cat.write(root_resources + 'gcmt.xml', format='quakeml')
     return cat
+
 
 if __name__ == '__main__':
     cat = read_catalog()

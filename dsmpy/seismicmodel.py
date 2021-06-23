@@ -435,22 +435,47 @@ class SeismicModel:
         model = self.__copy__()
         for node in model_parameters.get_nodes():
             model = model._add_boundary(node)
-        mesh = model.__copy__()
-        for i in range(mesh._nzone):
-            mesh._set_all_layers(i, np.zeros(4, dtype=np.float32), 0.)
+        # for i in range(model._nzone):
+        #     model._set_all_layers(i, np.zeros(4, dtype=np.float32), 0.)
         nodes = model_parameters.get_nodes()
         for i in range(model_parameters._n_nodes-1):
-            indexes = (set(np.where(mesh._vrmin < nodes[i+1])[0])
-                & set(np.where(mesh._vrmin >= nodes[i])[0]))
-            for index in indexes:
-                mesh._set_all_layers(
-                    index, np.array([1, 0, 0, 0], dtype=np.float32), 1.)
+            indexes = (set(np.where(model._vrmin < nodes[i+1])[0])
+                & set(np.where(model._vrmin >= nodes[i])[0]))
+            for type in [
+                ParameterType.VSH, ParameterType.VSV,
+                ParameterType.VPH, ParameterType.VPV,
+                ParameterType.RHO, ParameterType.QMU,
+                ParameterType.QKAPPA, ParameterType.ETA
+            ]:
+                value_at_top = model.get_value_at(
+                    model._vrmax[max(indexes)], type)
+                for izone in indexes:
+                    if type not in [ParameterType.QMU, ParameterType.QKAPPA]:
+                        model.set_value(
+                            izone, type, np.array([value_at_top, 0, 0, 0]))
+                    else:
+                        model.set_value(
+                            izone, type, value_at_top)
         model._nzone = model._rho.shape[1]
-        mesh._nzone = mesh._rho.shape[1]
-        mesh._mesh_type = 'boxcar'
-        mesh._model_params = model_parameters
+        model._nzone = model._rho.shape[1]
+        model._mesh_type = 'boxcar'
         model._model_params = model_parameters
-        return model, mesh
+        return model
+
+    def compute_avg(
+            self, izones: list, type: ParameterType, n=2) -> float:
+        """Return the average value for type in layers izones.
+        """
+        if len(izones) == 0:
+            return 0
+        avg = 0.
+        for izone in izones:
+            rmin = self._vrmin[izone]
+            rmax = self._vrmax[izone]
+            radii = np.linspace(rmin, rmax, n, endpoint=False)
+            values = [self.get_value_at(r, type) for r in radii]
+            avg += sum([self.get_value_at(r, type) for r in radii])
+        return avg / (n * len(izones))
 
     def triangle_mesh(self, model_parameters):
         """Create a triangular mesh.
@@ -497,25 +522,58 @@ class SeismicModel:
         model._model_params = model_parameters
         return model, mesh
 
-    def multiply(self, nodes, values):
-        # assert values.shape == (len(nodes)-1, 8)
-        assert values.dtype == np.float64
+    def multiply(self, values: np.ndarray):
+        """Return a copy of self with the model perturbations in values
+        added.
+
+        Args:
+            values (np.ndarray): perturbations to model parameters
+                (see ModelParameter.get_values_matrix())
+
+        Returns:
+            SeismicModel: new mesh with added values
+
+        Examples:
+            >>> model_params = ModelParameters(
+                    types=[ParameterType.VSH],
+                    radii=[3480., 3680.],
+                    mesh_type='boxcar')
+            >>> model = SeismicModel.prem().boxcar_mesh(model_params)
+            >>> values_dict = {ParameterType.VSH: [0.1]}
+            >>> values = model_params.get_values_matrix(values_dict)
+            >>> updated_model = model.multiply(values)
+
+            >>> model_params = ModelParameters(
+                    types=[ParameterType.VSH],
+                    radii=[3480., 3680.],
+                    mesh_type='boxcar')
+            >>> model = SeismicModel.prem().boxcar_mesh(model_params)
+            >>> values = np.random.rand(
+                    model_params.get_n_grd_params(), 9)
+            >>> updated_model = model.multiply(values)
+
+        """
+        if self._model_params is None:
+            return None
         mesh = self.__copy__()
-        for i in range(len(nodes)-1):
-            indexes = (set(np.where(self._vrmin < nodes[i+1])[0])
-                & set(np.where(self._vrmin >= nodes[i])[0]))
+        for i in range(len(self._model_params.get_nodes())-1):
+            indexes = (
+                set(np.where(
+                    self._vrmin < self._model_params.get_nodes()[i+1])[0])
+                & set(np.where(
+                    self._vrmin >= self._model_params.get_nodes()[i])[0]))
             # indexes = (set(np.where(mesh._vrmin < nodes[i+1])[0])
             #     & set(np.where(mesh._vrmin >= nodes[i])[0]))
             if self._mesh_type == 'boxcar':
                 for index in indexes:
-                    mesh._rho[0, index] *= values[i, 0]
-                    mesh._vpv[0, index] *= values[i, 1]
-                    mesh._vph[0, index] *= values[i, 2]
-                    mesh._vsv[0, index] *= values[i, 3]
-                    mesh._vsh[0, index] *= values[i, 4]
-                    mesh._eta[0, index] *= values[i, 5]
-                    mesh._qmu[index] *= values[i, 6]
-                    mesh._qkappa[index] *= values[i, 7]
+                    mesh._rho[0, index] += values[i, 0]
+                    mesh._vpv[0, index] += values[i, 1]
+                    mesh._vph[0, index] += values[i, 2]
+                    mesh._vsv[0, index] += values[i, 3]
+                    mesh._vsh[0, index] += values[i, 4]
+                    mesh._eta[0, index] += values[i, 5]
+                    mesh._qmu[index] += values[i, 6]
+                    mesh._qkappa[index] += values[i, 7]
             elif self._mesh_type == 'triangle':
                 if i == 0:
                     for index in indexes:
@@ -639,14 +697,17 @@ class SeismicModel:
         b = (y1 - y0) / (r1 - r0)
         return np.array([a, b, 0, 0])
 
-    def _set_all_layers(self, index, values, scalar_value=0.):
+    def _set_all_layers(self, index: int, values, scalar_value=0.):
         """
+        Initialize all layers and all types to values and scalara_values.
+
         Args:
             index (int): index of layer to be set
             values (ndarray): values.shape = (4,)
+            scalar_value (float): value for QMU and QKAPPA (default is 0)
         """
         assert values.shape == (4,)
-        assert values.dtype == np.float64
+        # assert values.dtype == np.float64
         self._rho[:, index] = values
         self._vpv[:, index] = values
         self._vph[:, index] = values
@@ -695,6 +756,7 @@ class SeismicModel:
 
         Returns:
             SeismicModel with removed boundary
+
         """
         model = self.__copy__()
         if (r not in self._vrmin) and (r not in self._vrmax):
@@ -738,7 +800,10 @@ class SeismicModel:
             self._model_params,
             self._discontinuous)
     
-    def get_zone(self, r):
+    def get_zone(self, r: float) -> int:
+        """Return index of layer that contains radius r
+        (left inclusive, right exclusive).
+        """
         return bisect.bisect_right(self._vrmin, r) - 1
 
     def evaluate(self, r, poly):
@@ -748,14 +813,17 @@ class SeismicModel:
                + poly[2]*x**2
                + poly[3]*x**3)
     
-    def get_values(self, dr=1):
-        '''Return a dict with values for each ParameterType.
+    def get_values(self, dr=1.) -> (np.ndarray, dict):
+        """Return a dict with values for each ParameterType.
+
         Args:
             dr (float): radius increment in km (default: 1)
+
         Returns:
-            rs (ndarray): radii
-            values (dict): values. Keys are of type ParameterType
-        '''
+            ndarray: radii
+            dict: values. Keys are of type ParameterType
+
+        """
         rs = np.linspace(0, 6371, int(6371/dr))
         values = {ParameterType.RHO:
                     [self.evaluate(r, self._rho[:, self.get_zone(r)])
@@ -783,7 +851,17 @@ class SeismicModel:
                     for r in rs]}
         return rs, values
 
-    def get_value_at(self, r, type):
+    def get_value_at(self, r: float, type: ParameterType) -> float:
+        """Return value at radius r.
+
+        Args:
+            r (float): radius
+            type(ParameterType): type (e.g., ParameterType.VSH)
+
+        Returns:
+            float: value for type at radius r
+
+        """
         if type == ParameterType.RHO:
             v = self.evaluate(r, self._rho[:, self.get_zone(r)])
         elif type == ParameterType.VPV:
@@ -802,7 +880,15 @@ class SeismicModel:
             v = self._qkappa[self.get_zone(r)]
         return v
 
-    def set_value(self, izone, type, values):
+    def set_value(self, izone: int, type: ParameterType, values: np.ndarray):
+        """Set the polynomial coefficients for layer izone.
+
+        Args:
+            izone (int): index of the layer
+            type (ParameterType): type (e.g., ParameterType.VSH)
+            values (np.ndarray): 3-degree polynomial coefficient
+
+        """
         if type == ParameterType.RHO:
             self._rho[:, izone] = values
         elif type == ParameterType.VPV:
@@ -816,11 +902,21 @@ class SeismicModel:
         elif type == ParameterType.ETA:
             self._eta[:, izone] = values
         elif type == ParameterType.QMU:
-            self._qmu[izone] = values
+            self._qmu[izone] = float(values)
         elif type == ParameterType.QKAPPA:
-            self._qkappa[izone] = values
+            self._qkappa[izone] = float(values)
 
-    def get_value(self, izone, type):
+    def get_value(self, izone: int, type: ParameterType) -> np.ndarray:
+        """Get the polynomial coefficients for layer izone.
+
+        Args:
+            izone (int): index of the layer
+            type (ParameterType): type (e.g., ParameterType.VSH)
+
+        Returns:
+            np.ndarray: 3-degree polynomial coefficients
+
+        """
         if type == ParameterType.RHO:
             return self._rho[:, izone]
         elif type == ParameterType.VPV:
@@ -918,30 +1014,23 @@ class SeismicModel:
 
     
     def build_model(
-            self, mesh, model_params, value_dict):
-        """Build a SeismicModel
+            self, model, model_params,
+            value_dict: dict):
+        """Convenience function to build an updated seismic model with model
+        perturbations added.
+
         Args:
-            model_params (pydsm.ModelParameters)
+            model (SeismicModel): the reference seismic model
+            model_params (ModelParameters): model parameters
             value_dict_p (dict): dict of ParameterType:ndarray
+
+        Returns:
+            SeismicModel: the updated seismic model
+
         """
         values_mat = model_params.get_values_matrix(value_dict)
-
-        # if (value_dict_m is not None) and (mesh._discontinuous):
-        #     values_mat_m = model_params.get_values_matrix(value_dict_m)
-        #     if model_params.discon_dict is not None:
-        #         for param_type in model_params.discon_dict.keys():
-        #             mask = ~model_params.discon_dict[param_type]
-        #             values_mat_m[mask, param_type.value] = (
-        #                 values_mat_p[mask, param_type.value])
-        # else:
-        #     values_mat_m = None
-        mesh_ = mesh.multiply(
-            model_params.get_nodes(), values_mat)
-        if mesh_._mesh_type == 'lininterp':
-            model = mesh_
-        else:
-            model = self + mesh_
-        return model
+        model_updated = model.multiply(values_mat)
+        return model_updated
 
     @staticmethod
     def load(path):

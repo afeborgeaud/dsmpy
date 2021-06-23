@@ -606,20 +606,20 @@ class DSMInput:
             max_nzone=len(self.vrmin), max_nr=len(self.lat))
 
     @classmethod
-    def input_from_file(cls, parameter_file, mode=1):
+    def input_from_file(cls, parameter_file, file_mode=1):
         """Build a DSMInput object from a DSM input file.
 
         Args:
             parameter_file (str): path of a DSM input file
-            mode (int): 1: P-SV, 2: SH
+            file_mode (int): 1: P-SV, 2: SH
         Returns:
             DSMInput
 
         """
-        if mode not in {1, 2}:
-            raise RuntimeError('mode should be 1 or 2')
+        if file_mode not in {1, 2}:
+            raise RuntimeError('file_mode should be 1 or 2')
 
-        if mode == 1:
+        if file_mode == 1:
             inputs = _pinput(parameter_file)
             (re, ratc, ratl,
              tlen, nspc, omegai,
@@ -830,7 +830,7 @@ class PyDSMInput(DSMInput):
     @classmethod
     def input_from_file(cls, parameter_file,
                         sampling_hz=None, source_time_function=None,
-                        mode=1):
+                        file_mode=1):
         """Build a PyDSMInput object from a DSM input file.
         
         Args:
@@ -839,13 +839,13 @@ class PyDSMInput(DSMInput):
             for time-domain waveforms.
             source_time_function (SourceTimeFunction): 
             SourceTimeFunction object.
-            mode (int): 1: P-SV, 2: SH.
+            file_mode (int): 1: P-SV, 2: SH.
 
         Returns:
             PyDSMInput object
 
         """
-        dsm_input = DSMInput.input_from_file(parameter_file, mode)
+        dsm_input = DSMInput.input_from_file(parameter_file, file_mode)
         pydsm_input = cls(dsm_input, sampling_hz, mode)
         pydsm_input.set_source_time_function(source_time_function)
         return pydsm_input
@@ -925,13 +925,31 @@ def compute(pydsm_input, write_to_file=False,
         as specified in dsm_input.output.
 
     Returns:
-        dsm_output (PyDSMOutput): object containing spectra and
-        stations/source information.
+        PyDSMOutput: object containing spectra and
+            stations/source information.
     
     Note:
         SH and P-SV spectra are summed by default. Using only P-SV
         or SH results in non-physical waves and should be avoided.
         See Kawai et al. (2006) for details.
+
+    Examples:
+        >>> catalog = dsmpy.utils.cmtcatalog.read_catalog()
+        >>> event = Event.event_from_catalog(
+                catalog, '200707211534A')
+        >>> stations = [
+                Station(
+                    name='FCC', network='CN',
+                    latitude=58.7592, longitude=-94.0884),
+                ]
+        >>> model = SeismicModel.prem()
+        >>> input = PyDSMInput.input_from_arrays(
+                event, stations,
+                model, tlen=1638.4, nspc=256,
+                sampling_hz=20)
+        >>> output = compute(input, mode=0)
+        >>> output.plot()
+        >>> plt.show()
 
     """
     if mode not in {0, 1, 2}:
@@ -1131,8 +1149,6 @@ def compute_parallel(
 
     return output
 
-
-# TODO implements mode when tipsv ready
 # TODO check write_to_file
 def compute_dataset_parallel(
         dataset, seismic_model,
@@ -1145,11 +1161,21 @@ def compute_dataset_parallel(
         dataset (Dataset): dataset of events & stations.
         mode (int): computation mode. 0: both, 1: P-SV, 2: SH.
         write_to_file (bool): write output in Kibrary format
-        (default: False).
+            (default is False).
     
     Returns:
         list of PyDSMOutput: list of PyDSMOutput objects with one
             entry for each event in dataset.
+
+    Examples:
+        >>> dataset = Dataset.dataset_from_sac(
+                sac_files, headonly=False)
+        >>> model = SeismicModel.prem()
+        >>> outputs = compute_dataset_parallel(
+                dataset, model, tlen=1638.4, nspc=256,
+                sampling_hz=20, mode=0)
+        >>> outputs[0].plot()
+        >>> plt.show()
 
     """
     comm = MPI.COMM_WORLD
@@ -1388,7 +1414,7 @@ def compute_dataset_parallel(
 def _get_models_array(models, maxnzone):
     """
     Args:
-        models (:obj:`list` of :obj:`SeismicModel`):
+        models (list of SeismicModel):
 
     Returns:
 
@@ -1419,12 +1445,15 @@ def compute_models_parallel(
         tlen, nspc, sampling_hz,
         mode=0, write_to_file=False,
         verbose=0):
-    """Perform a model grid search with model parallelization.
+    """Compute synthetics for a list of models in parallel.
+
+    At the moment, we must have len(models) % n_cores == 0.
+    If this is not satisfied, the list of models will be padded to the
+    closest larger integer that satisfies this relation.
 
     Args:
         dataset (Dataset): dataset.
-        models (list of SeismicModel):
-            list of seismic models.
+        models (list of SeismicModel): the models
         tlen (float): duration of the synthetics (in seconds)
             (better to be 2**n/10)
         nspc (int): number of frequency points in the synthetics
@@ -1438,6 +1467,20 @@ def compute_models_parallel(
 
     Returns:
        list of list of PyDSMOutput: Shape is (n_models, n_events).
+
+    Examples:
+        >>> dataset = Dataset.dataset_from_sac(
+                sac_files, headonly=False)
+        >>> models = [SeismicModel.prem(), SeismicModel.ak135]
+        >>> outputs = compute_models_parallel(
+                dataset, models, tlen=1638.4, nspc=256,
+                sampling_hz=20, mode=0)
+        >>> fig, ax = plt.subplots(1)
+        >>> outputs[0][0].plot_component(
+                component=Component.T, ax=ax, label='prem')
+        >>> outputs[1][0].plot_component(
+                component=Component.T, ax=ax, label='ak135')
+        >>> plt.show()
 
     """
     comm = MPI.COMM_WORLD

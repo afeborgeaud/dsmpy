@@ -57,8 +57,20 @@ class Dataset:
         self.is_cut = False
 
     @classmethod
-    def dataset_from_files(cls, parameter_files, mode=1):
-        pydsm_inputs = [PyDSMInput.input_from_file(file, mode=mode)
+    def dataset_from_files(cls, parameter_files, file_mode=1):
+        """Create a Dataset object from a list of DSM input files.
+        This dataset does not contain waveform data (self.data is None),
+        and is used only to compute synthetics.
+
+        Args:
+            parameter_file (str): path of a DSM input file.
+            file_mode (int): The kind of DSM input file. 1: P-SV, 2: SH.
+
+        Returns:
+            Dataset
+
+        """
+        pydsm_inputs = [PyDSMInput.input_from_file(file, mode=file_mode)
                             for file in parameter_files]
         
         lats = np.concatenate([input.lat[:input.nr]
@@ -89,6 +101,19 @@ class Dataset:
     
     @classmethod
     def dataset_from_arrays(cls, events, stations, sampling_hz=20):
+        """Create a Dataset object from a list of events and stations.
+        This dataset does not contain waveform data (self.data is None),
+        and is used only to compute synthetics.
+
+        Args:
+            events (iterable of Event): earthquake events
+            stations (iterable of Station): seismic stations
+            sampling_hz (float): waveform sampling that will be
+                inherited by the synthetics (default is 20)
+
+        Returns:
+            Dataset
+        """
         eqlats = np.array([e.latitude for e in events])
         eqlons = np.array([e.longitude for e in events])
         r0s = np.array([6371. - e.depth for e in events])
@@ -120,6 +145,8 @@ class Dataset:
     def dataset_from_sac(
             cls, sac_files, verbose=0, headonly=True):
         """Creates a dataset from a list of sac files.
+        With headonly=False, time series data from the sac_files
+        will be stored in self.data.
 
         Args:
             sac_files (list of str): list of paths to sac files.
@@ -277,6 +304,8 @@ class Dataset:
             self, windows, n_phase, npts_max, buffer=0.,
             t_before_noise=100.):
         '''Cut the data using provided windows.
+        The operation is done in-place
+        (i.e., this will modify self.data)
 
         Args:
             windows (list of Window): time windows.
@@ -374,7 +403,9 @@ class Dataset:
         return 9*counts, 9*displacements
 
     def filter(self, freq, freq2=0., type='bandpass', zerophase=False):
-        '''Filter waveforms using obspy.signal.filter.
+        """Filter waveforms using obspy.signal.filter.
+        The operation is done in-place
+        (i.e., this will modify self.data)
 
         Args:
             freq (float): filter frequency.
@@ -383,7 +414,7 @@ class Dataset:
             type (str): type of filter. 'lowpass' or 'bandpass'.
             zerophase (bool): use zero phase filter.
 
-        '''
+        """
         if type == 'bandpass':
             assert freq2 > freq
 
@@ -411,18 +442,38 @@ class Dataset:
                                 self.data[iwin, icomp, ista], freq, freq2,
                                 df=self.sampling_hz, zerophase=zerophase))
 
-    def get_bounds_from_event_index(self, ievent):
-        '''Return start,end indicies to slice 
-        self.stations[start:end].'''
+    def get_bounds_from_event_index(self, ievent: int) -> (int, int):
+        """Return the start, end indices to slice
+        self.stations[start:end].
+
+        Args:
+            ievent (int): index of the event as in self.events
+
+        Returns:
+            int: index of the first station recording event ievent
+            int: index of the last station
+        """
         start = self.nrs[:ievent].sum()
         end = start + self.nrs[ievent]
         return start, end
 
-    def set_source_time_functions(self, type, catalog_name):
+    def set_source_time_functions(self, type, catalog_path=None):
+        """Set the catalog for source time functions.
+        By default, source time functions specified in the GCMT catalog
+        are used.
+
+        Args:
+            type (str): 'scardec' or 'user'
+            catalog_path: path to a custom catalog.
+                Must be specified if type='user'
+        """
         if type == 'scardec':
             stf_catalog = STFCatalog.read_scardec()
         elif type == 'user':
-            stf_catalog = STFCatalog.read_from_file(catalog_name)
+            if catalog_name is None:
+                raise ValueError(
+                    'Expect a path to a catalog when type="user"')
+            stf_catalog = STFCatalog.read_from_file(catalog_path)
         else:
             raise ValueError('Expect "scardec" or "user" for arg "type"')
         for i, event in enumerate(self.events):
@@ -434,6 +485,26 @@ class Dataset:
             self, ievent, windows=None, align_zero=False,
             component=Component.T, ax=None,
             dist_min=0, dist_max=360, **kwargs):
+        """Plot a record section for event ievent.
+
+        Args:
+            ievent (int): index of the event as in self.events
+            windows (list of Window): time windows used to cut the
+                waveforms if specified (default is None)
+            align_zero (bool): if True, set the start of time windows
+                as t=0 (default is False)
+            component (Component): seismic component
+                (default is Component.T)
+            ax (Axes): matplotlib Axes object
+            dist_min (float): minimum epicentral distance (default is 0)
+            dist_max (float) maximum epicentral distances (default is 360)
+            **kwargs: key-value arguments for the pyplot.plot function
+
+        Returns:
+            Figure: matplotlib Figure object
+            Axes: matplotlib Axes object
+
+        """
         start, end = self.get_bounds_from_event_index(ievent)
         if ax == None:
             fig, ax = plt.subplots(1)
