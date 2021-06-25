@@ -51,9 +51,19 @@ utils.cmtcatalog
 .. automodule:: dsmpy.utils.cmtcatalog
    :members:
 
+utils.modelutils
+~~~~~~~~~~~~~~~~
+.. automodule:: dsmpy.utils.modelutils
+   :members:
+
 utils.scardec
 ~~~~~~~~~~~~~
 .. automodule:: dsmpy.utils.scardec
+   :members:
+
+utils.sklearnutils
+~~~~~~~~~~~~~~~~~~
+.. automodule:: dsmpy.utils.sklearnutils
    :members:
 
 spc.spctime

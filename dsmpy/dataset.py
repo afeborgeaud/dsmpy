@@ -38,7 +38,8 @@ class Dataset:
     """
     def __init__(
             self, lats, lons, phis, thetas, eqlats, eqlons,
-            r0s, mts, nrs, stations, events, data=None, sampling_hz=20):
+            r0s, mts, nrs, stations, events, data=None,
+            sampling_hz=20, is_cut=False):
         self.lats = lats
         self.lons = lons
         self.phis = phis
@@ -51,10 +52,22 @@ class Dataset:
         self.nr = len(self.lats)
         self.stations = stations
         self.events = events
-        self.data = data
+        self.data = np.array(data)
         self.sampling_hz = sampling_hz
-        
-        self.is_cut = False
+        self.is_cut = is_cut
+
+    def copy(self):
+        """Return a deep copy of self.
+
+        Returns:
+            Dataset: deep copy of self
+
+        """
+        return Dataset(
+            self.lats, self.lons, self.phis, self.thetas,
+            self.eqlats, self.eqlons, self.r0s, self.mts,
+            self.nrs, self.stations, self.events, self.data,
+            self.sampling_hz, self.is_cut)
 
     @classmethod
     def dataset_from_files(cls, parameter_files, file_mode=1):
@@ -156,6 +169,11 @@ class Dataset:
 
         Returns:
             Dataset: dataset
+
+        Examples:
+            >>> sac_files = ['FCC.CN.201205280204A.T']
+            >>> dataset = Dataset.dataset_from_sac(
+            ...        sac_files, headonly=False)
 
         """
         traces = [read(sac_file, headonly=headonly)[0]
@@ -302,10 +320,8 @@ class Dataset:
 
     def apply_windows(
             self, windows, n_phase, npts_max, buffer=0.,
-            t_before_noise=100.):
-        '''Cut the data using provided windows.
-        The operation is done in-place
-        (i.e., this will modify self.data)
+            t_before_noise=100., inplace=True):
+        """Cut the data using provided windows.
 
         Args:
             windows (list of Window): time windows.
@@ -313,20 +329,29 @@ class Dataset:
             npts_max (int): number of time points in the longest window.
             buffer (float): default is 0.
             t_before_noise (float): default is 50.
-            
-        '''
-        npts_buffer = int(buffer * self.sampling_hz)
+            inplace (bool): if True, performs the operation in-place
+                (i.e., modifies self.data)
+
+        Returns:
+            Dataset: if inplace is True, else None.
+
+        """
+        if not inplace:
+            ds = self.copy()
+        else:
+            ds = self
+        npts_buffer = int(buffer * ds.sampling_hz)
         data_cut = np.zeros(
-            (n_phase, 3, self.nr, npts_max+2*npts_buffer),
+            (n_phase, 3, ds.nr, npts_max+2*npts_buffer),
             dtype=np.float32)
-        self.ts_start_end = np.zeros((n_phase, self.nr, 2), dtype=np.float32)
-        self.noise = np.zeros((n_phase, 3, self.nr), dtype=np.float32)
-        for iev, event in enumerate(self.events):
-            start, end = self.get_bounds_from_event_index(iev)
+        ds.ts_start_end = np.zeros((n_phase, ds.nr, 2), dtype=np.float32)
+        ds.noise = np.zeros((n_phase, 3, ds.nr), dtype=np.float32)
+        for iev, event in enumerate(ds.events):
+            start, end = ds.get_bounds_from_event_index(iev)
             for ista in range(start, end):
                 windows_filt = [
                     w for w in windows
-                    if w.station == self.stations[ista]
+                    if w.station == ds.stations[ista]
                     and w.event == event]
 
                 # TODO do it. Current state leads to data dupplication
@@ -348,21 +373,26 @@ class Dataset:
 
                 for iwin, window in enumerate(windows_filt):
                     window_arr = window.to_array()
-                    i_start = int((window_arr[0] - buffer) * self.sampling_hz)
-                    i_end = int((window_arr[1] + buffer) * self.sampling_hz)
-                    data_cut[iwin, :, ista, :] = self.data[0, :,
+                    i_start = int((window_arr[0] - buffer) * ds.sampling_hz)
+                    i_end = int((window_arr[1] + buffer) * ds.sampling_hz)
+                    data_cut[iwin, :, ista, :] = ds.data[0, :,
                         ista, i_start:i_end]
-                    self.ts_start_end[iwin, ista] = window_arr
+                    ds.ts_start_end[iwin, ista] = window_arr
                     # compute noise
                     i_end_noise = (i_start
-                        - int(t_before_noise*self.sampling_hz))
+                        - int(t_before_noise*ds.sampling_hz))
                     i_start_noise = (i_end_noise - (i_end-i_start))
-                    noise_tr = self.data[0, :, ista, i_start_noise:i_end_noise]
+                    noise_tr = ds.data[0, :, ista, i_start_noise:i_end_noise]
                     noise = np.sqrt(
                         np.sum(noise_tr**2, axis=1) / noise_tr.shape[1])
-                    self.noise[iwin, :, ista] = noise
-        self.data = data_cut
-        self.is_cut = True
+                    ds.noise[iwin, :, ista] = noise
+        ds.data = data_cut
+        ds.is_cut = True
+
+        if not inplace:
+            return ds
+        else:
+            return None
 
     def get_chunks_station(self, n_cores, verbose=0):
         chunk_size = self.nr // n_cores
@@ -402,10 +432,10 @@ class Dataset:
         counts, displacements = self.get_chunks_eq(n_cores)
         return 9*counts, 9*displacements
 
-    def filter(self, freq, freq2=0., type='bandpass', zerophase=False):
+    def filter(
+            self, freq, freq2=0., type='bandpass', zerophase=False,
+            inplace=True):
         """Filter waveforms using obspy.signal.filter.
-        The operation is done in-place
-        (i.e., this will modify self.data)
 
         Args:
             freq (float): filter frequency.
@@ -413,6 +443,11 @@ class Dataset:
                 For bandpass filters only.
             type (str): type of filter. 'lowpass' or 'bandpass'.
             zerophase (bool): use zero phase filter.
+            inplace (bool): if True, performs the operation in-place
+                (i.e., modifies self.data).
+
+        Returns:
+            Dataset: if inplace is True, else None
 
         """
         if type == 'bandpass':
@@ -425,22 +460,28 @@ class Dataset:
             print('Do nothing')
             return
 
-        if type == 'bandpass':
-            assert freq2 > freq
+        if not inplace:
+            ds = self.copy()
+        else:
+            ds = self
 
-        for iwin in range(self.data.shape[0]):
+        for iwin in range(ds.data.shape[0]):
             for icomp in range(3):
-                for ista in range(self.data.shape[2]):
+                for ista in range(ds.data.shape[2]):
                     if type == 'lowpass':
-                        self.data[iwin, icomp, ista] = (
+                        ds.data[iwin, icomp, ista] = (
                             obspy.signal.filter.lowpass(
-                                self.data[iwin, icomp, ista], freq,
-                                df=self.sampling_hz, zerophase=zerophase))
+                                ds.data[iwin, icomp, ista], freq,
+                                df=ds.sampling_hz, zerophase=zerophase))
                     elif type == 'bandpass':
-                        self.data[iwin, icomp, ista] = (
+                        ds.data[iwin, icomp, ista] = (
                             obspy.signal.filter.bandpass(
-                                self.data[iwin, icomp, ista], freq, freq2,
-                                df=self.sampling_hz, zerophase=zerophase))
+                                ds.data[iwin, icomp, ista], freq, freq2,
+                                df=ds.sampling_hz, zerophase=zerophase))
+        if not inplace:
+            return ds
+        else:
+            return None
 
     def get_bounds_from_event_index(self, ievent: int) -> (int, int):
         """Return the start, end indices to slice

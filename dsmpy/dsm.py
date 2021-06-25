@@ -136,6 +136,13 @@ class PyDSMOutput:
             pydsm_input.sampling_hz,
             pydsm_input.tlen, pydsm_input.nspc, pydsm_input.omegai)
 
+    def get_us_shape(self) -> (int, int, int):
+        """Return the shape of self.us (without doing FFT)."""
+        spct = spctime.SpcTime(self.tlen, self.nspc,
+                               self.sampling_hz, self.omegai,
+                               self.event.source_time_function)
+        return (3, len(self.stations), spct.npts)
+
     def to_time_domain(self, source_time_function=None):
         """Compute time domain waveforms from spetcra.
 

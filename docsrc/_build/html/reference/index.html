@@ -286,6 +286,12 @@ output.free()</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput.get_us_shape">
+<span class="sig-name descname"><span class="pre">get_us_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'int'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'int'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'int'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput.get_us_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the shape of self.us (without doing FFT).</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput.load">
 <em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput.load" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read file into self using pickle.load().</p>
@@ -1179,6 +1185,55 @@ dict: values. Keys are of type ParameterType</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.gradient_models">
+<span class="sig-name descname"><span class="pre">gradient_models</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.gradient_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of seismic models to compute the waveform
+gradients with respect to model parameters using central
+differences.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the first half of the list corresponds
+to positive perturbations, the second half corresponds
+to negative perturbations
+list of float: corresponding perturbation vector</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list of SeismicModel</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">dsmpy.dsm</span> <span class="kn">import</span> <span class="n">compute_models_parallel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_params</span> <span class="o">=</span> <span class="n">ModelParameters</span><span class="p">(</span>
+<span class="gp">... </span>       <span class="n">types</span><span class="o">=</span><span class="p">[</span><span class="n">ParameterType</span><span class="o">.</span><span class="n">VSH</span><span class="p">],</span>
+<span class="gp">... </span>       <span class="n">radii</span><span class="o">=</span><span class="p">[</span><span class="mf">3480.</span><span class="p">,</span> <span class="mf">3680.</span><span class="p">],</span>
+<span class="gp">... </span>       <span class="n">mesh_type</span><span class="o">=</span><span class="s1">&#39;boxcar&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">SeismicModel</span><span class="o">.</span><span class="n">prem</span><span class="p">()</span><span class="o">.</span><span class="n">boxcar_mesh</span><span class="p">(</span><span class="n">model_params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grad_models</span><span class="p">,</span> <span class="n">dxs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">gradient_models</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">compute_models_parallel</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">dataset</span><span class="p">,</span> <span class="n">grad_models</span><span class="p">,</span> <span class="n">tlen</span><span class="o">=</span><span class="mf">1638.4</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">nspc</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">sampling_hz</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n_params</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">grad_models</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n_evs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waveform_grads</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_params</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">waveform_grad_i</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">iev</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+<span class="gp">... </span>        <span class="n">outputs</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">iev</span><span class="p">]</span><span class="o">.</span><span class="n">to_time_domain</span><span class="p">()</span>
+<span class="gp">... </span>        <span class="n">outputs</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">n_params</span><span class="p">][</span><span class="n">iev</span><span class="p">]</span><span class="o">.</span><span class="n">to_time_domain</span><span class="p">()</span>
+<span class="gp">... </span>        <span class="n">waveform_grad_i_iev</span> <span class="o">=</span> <span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">iev</span><span class="p">]</span><span class="o">.</span><span class="n">us</span>
+<span class="gp">... </span>            <span class="o">-</span> <span class="n">outputs</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">n_params</span><span class="p">][</span><span class="n">iev</span><span class="p">]</span><span class="o">.</span><span class="n">us</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">dxs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="gp">... </span>            <span class="o">-</span> <span class="n">dxs</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">n_params</span><span class="p">])</span>
+<span class="gp">... </span>        <span class="n">waveform_grad_i</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">waveform_grad_i_iev</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">waveform_grads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">waveform_grad_i</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span><span class="p">,</span> <span class="n">itypes</span><span class="p">,</span> <span class="n">igrds</span> <span class="o">=</span> <span class="n">model_params</span><span class="o">.</span><span class="n">get_free_all_indices</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">types</span> <span class="o">=</span> <span class="p">[</span><span class="n">model_params</span><span class="o">.</span><span class="n">types</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">itypes</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">radii</span> <span class="o">=</span> <span class="p">[</span><span class="n">model_params</span><span class="o">.</span><span class="n">get_grd_params</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span>
+<span class="gp">... </span>         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">igrds</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.iasp91">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">iasp91</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.iasp91" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return model IAS91.</p>
@@ -1266,8 +1321,11 @@ added.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>fig
-ax</p>
+<dd class="field-even"><p>matplotlib Figure object
+Axes: matplotlib Axes object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Figure</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1377,6 +1435,24 @@ perturbations</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.get_free_all_indices">
+<span class="sig-name descname"><span class="pre">get_free_all_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'list'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'list'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'list'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.get_free_all_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the generic, type, and grid indices of parameters
+without constraints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>counter-like monotonous indices
+list of int: corresponding type index as in self.types
+list of int: corresponding grd_param index as in
+self.get_grd_params()</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list of int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.get_free_indices">
 <span class="sig-name descname"><span class="pre">get_free_indices</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.get_free_indices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the indices of parameters without constraints.</p>
@@ -1396,10 +1472,13 @@ parameters (e.g. ParameterType.VSH) can be set.</p>
 <dl class="simple">
 <dt>The number of parameters depend on the mesh type:</dt><dd><ul class="simple">
 <li><p>boxcar: get_n_grd_params() = get_nodes() - 1</p></li>
-<li><p>lininterp: get_n_grd_params() = get_nodes() * 2.
-At each radial node, there is one parameter for the line
-segment above the node, and one parameter for the line
-segment below the node.</p></li>
+<li><dl class="simple">
+<dt>lininterp: get_n_grd_params() = get_nodes() * 2.</dt><dd><p>At each radial node, there is one parameter for
+the line segment above the node, and one parameter
+for the line segment below the node.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
@@ -1422,6 +1501,12 @@ get_n_grd_params() * len(get_types()).</p>
 <dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.get_nodes">
 <span class="sig-name descname"><span class="pre">get_nodes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.get_nodes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an array of radial grid nodes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.get_shape_value_matrix">
+<span class="sig-name descname"><span class="pre">get_shape_value_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'int'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'int'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.get_shape_value_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the shape of the value matrix</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1482,10 +1567,10 @@ radial nodes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mask_dict</strong> (<em>dict</em>) – keys are of type ParameterType,
-values are boolean np.ndarray of shape (n_grd_params,)</p></li>
-<li><p><strong>equal_dict</strong> (<em>dict</em>) – keys are of type ParameterType,
-values are integer np.ndarray of shape (n_grd_params,)</p></li>
+<li><p><strong>mask_dict</strong> (<em>dict</em>) – keys are of type ParameterType,</p></li>
+<li><p><strong>are boolean np.ndarray of shape</strong> (<em>values</em>) – </p></li>
+<li><p><strong>equal_dict</strong> (<em>dict</em>) – keys are of type ParameterType,</p></li>
+<li><p><strong>are integer np.ndarray of shape</strong> (<em>values</em>) – </p></li>
 <li><p><strong>discon_arr</strong> (<em>np.ndarray</em>) – boolean array of shape (n_nodes,)</p></li>
 </ul>
 </dd>
@@ -1544,7 +1629,7 @@ values are integer np.ndarray of shape (n_grd_params,)</p></li>
 <span id="dataset"></span><h2>dataset<a class="headerlink" href="#module-dsmpy.dataset" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="dsmpy.dataset.Dataset">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.dataset.</span></span><span class="sig-name descname"><span class="pre">Dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thetas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eqlats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eqlons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r0s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.dataset.</span></span><span class="sig-name descname"><span class="pre">Dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thetas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eqlats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eqlons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r0s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_cut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Represents a dataset of events and stations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1571,10 +1656,8 @@ Used for computation with pydsm.</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsmpy.dataset.Dataset.apply_windows">
-<span class="sig-name descname"><span class="pre">apply_windows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_phase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_before_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.apply_windows" title="Permalink to this definition">¶</a></dt>
-<dd><p>Cut the data using provided windows.
-The operation is done in-place
-(i.e., this will modify self.data)</p>
+<span class="sig-name descname"><span class="pre">apply_windows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_phase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_before_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.apply_windows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cut the data using provided windows.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -1583,7 +1666,29 @@ The operation is done in-place
 <li><p><strong>npts_max</strong> (<em>int</em>) – number of time points in the longest window.</p></li>
 <li><p><strong>buffer</strong> (<em>float</em>) – default is 0.</p></li>
 <li><p><strong>t_before_noise</strong> (<em>float</em>) – default is 50.</p></li>
+<li><p><strong>inplace</strong> (<em>bool</em>) – if True, performs the operation in-place
+(i.e., modifies self.data)</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>if inplace is True, else None.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#dsmpy.dataset.Dataset" title="dsmpy.dataset.Dataset">Dataset</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dataset.Dataset.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a deep copy of self.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>deep copy of self</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#dsmpy.dataset.Dataset" title="dsmpy.dataset.Dataset">Dataset</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1650,14 +1755,18 @@ If False, include data.</p></li>
 <dd class="field-odd"><p><a class="reference internal" href="#dsmpy.dataset.Dataset" title="dsmpy.dataset.Dataset">Dataset</a></p>
 </dd>
 </dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sac_files</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;FCC.CN.201205280204A.T&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="o">.</span><span class="n">dataset_from_sac</span><span class="p">(</span>
+<span class="gp">... </span>       <span class="n">sac_files</span><span class="p">,</span> <span class="n">headonly</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dsmpy.dataset.Dataset.filter">
-<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bandpass'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zerophase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.filter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Filter waveforms using obspy.signal.filter.
-The operation is done in-place
-(i.e., this will modify self.data)</p>
+<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bandpass'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zerophase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter waveforms using obspy.signal.filter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -1666,7 +1775,15 @@ The operation is done in-place
 For bandpass filters only.</p></li>
 <li><p><strong>type</strong> (<em>str</em>) – type of filter. ‘lowpass’ or ‘bandpass’.</p></li>
 <li><p><strong>zerophase</strong> (<em>bool</em>) – use zero phase filter.</p></li>
+<li><p><strong>inplace</strong> (<em>bool</em>) – if True, performs the operation in-place
+(i.e., modifies self.data).</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>if inplace is True, else None</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#dsmpy.dataset.Dataset" title="dsmpy.dataset.Dataset">Dataset</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1828,6 +1945,26 @@ keep the data (default is 5).</p></li>
 </dd></dl>
 
 </section>
+<section id="module-dsmpy.utils.modelutils">
+<span id="utils-modelutils"></span><h2>utils.modelutils<a class="headerlink" href="#module-dsmpy.utils.modelutils" title="Permalink to this headline">¶</a></h2>
+<p>Utilities to build various model meshes.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.utils.modelutils.single_layer_dpp">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.utils.modelutils.</span></span><span class="sig-name descname"><span class="pre">single_layer_dpp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.utils.modelutils.single_layer_dpp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create objects for a single-layer D’’ model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>reference model
+ModelParameters: model parameters
+dict: range dict</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#dsmpy.seismicmodel.SeismicModel" title="dsmpy.seismicmodel.SeismicModel">SeismicModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="module-dsmpy.utils.scardec">
 <span id="utils-scardec"></span><h2>utils.scardec<a class="headerlink" href="#module-dsmpy.utils.scardec" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
@@ -1847,6 +1984,34 @@ keep the data (default is 5).</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-dsmpy.utils.sklearnutils">
+<span id="utils-sklearnutils"></span><h2>utils.sklearnutils<a class="headerlink" href="#module-dsmpy.utils.sklearnutils" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.utils.sklearnutils.get_XY">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.utils.sklearnutils.</span></span><span class="sig-name descname"><span class="pre">get_XY</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">model</span></em>, <em class="sig-param"><span class="pre">dataset</span></em>, <em class="sig-param"><span class="pre">windows</span></em>, <em class="sig-param"><span class="pre">tlen</span></em>, <em class="sig-param"><span class="pre">nspc</span></em>, <em class="sig-param"><span class="pre">freq</span></em>, <em class="sig-param"><span class="pre">freq2</span></em>, <em class="sig-param"><span class="pre">filter_type='bandpass'</span></em>, <em class="sig-param"><span class="pre">sampling_hz=20</span></em>, <em class="sig-param"><span class="pre">mode=0)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'numpy.ndarray'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'numpy.ndarray'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.utils.sklearnutils.get_XY" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – </p></li>
+<li><p><strong>dataset</strong> – </p></li>
+<li><p><strong>windows</strong> – </p></li>
+<li><p><strong>tlen</strong> – </p></li>
+<li><p><strong>nspc</strong> – </p></li>
+<li><p><strong>sampling_hz</strong> – </p></li>
+<li><p><strong>mode</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>X
+np.ndarray: y</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1985,7 +2150,9 @@ event_id (str): SourceTimeFunction</p>
 <li><a class="reference internal" href="#module-dsmpy.component">component</a></li>
 <li><a class="reference internal" href="#module-dsmpy.dataset">dataset</a></li>
 <li><a class="reference internal" href="#module-dsmpy.utils.cmtcatalog">utils.cmtcatalog</a></li>
+<li><a class="reference internal" href="#module-dsmpy.utils.modelutils">utils.modelutils</a></li>
 <li><a class="reference internal" href="#module-dsmpy.utils.scardec">utils.scardec</a></li>
+<li><a class="reference internal" href="#module-dsmpy.utils.sklearnutils">utils.sklearnutils</a></li>
 <li><a class="reference internal" href="#module-dsmpy.spc.spctime">spc.spctime</a></li>
 <li><a class="reference internal" href="#module-dsmpy.spc.stf">spc.stf</a></li>
 <li><a class="reference internal" href="#module-dsmpy.spc.stfcatalog">spc.stfcatalog</a></li>

@@ -110,6 +110,8 @@
 </li>
       <li><a href="reference/index.html#dsmpy.dsm.compute_parallel">compute_parallel() (in module dsmpy.dsm)</a>
 </li>
+      <li><a href="reference/index.html#dsmpy.dataset.Dataset.copy">copy() (dsmpy.dataset.Dataset method)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -177,8 +179,6 @@
         <li><a href="reference/index.html#module-dsmpy.event">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     dsmpy.modelparameters
 
@@ -186,6 +186,8 @@
         <li><a href="reference/index.html#module-dsmpy.modelparameters">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     dsmpy.seismicmodel
 
@@ -229,10 +231,24 @@
 </li>
       </ul></li>
       <li>
+    dsmpy.utils.modelutils
+
+      <ul>
+        <li><a href="reference/index.html#module-dsmpy.utils.modelutils">module</a>
+</li>
+      </ul></li>
+      <li>
     dsmpy.utils.scardec
 
       <ul>
         <li><a href="reference/index.html#module-dsmpy.utils.scardec">module</a>
+</li>
+      </ul></li>
+      <li>
+    dsmpy.utils.sklearnutils
+
+      <ul>
+        <li><a href="reference/index.html#module-dsmpy.utils.sklearnutils">module</a>
 </li>
       </ul></li>
       <li>
@@ -307,6 +323,8 @@
 </li>
       <li><a href="reference/index.html#dsmpy.dataset.get_event_id">get_event_id() (in module dsmpy.dataset)</a>
 </li>
+      <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_free_all_indices">get_free_all_indices() (dsmpy.modelparameters.ModelParameters method)</a>
+</li>
       <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_free_indices">get_free_indices() (dsmpy.modelparameters.ModelParameters method)</a>
 </li>
       <li><a href="reference/index.html#dsmpy.window.Window.get_gaussian_window_in_frequency_domain">get_gaussian_window_in_frequency_domain() (dsmpy.window.Window method)</a>
@@ -317,13 +335,15 @@
 </li>
       <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_n_nodes">get_n_nodes() (dsmpy.modelparameters.ModelParameters method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_n_params">get_n_params() (dsmpy.modelparameters.ModelParameters method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_nodes">get_nodes() (dsmpy.modelparameters.ModelParameters method)</a>
 </li>
       <li><a href="reference/index.html#dsmpy.dsm.PyDSMOutput.get_nr">get_nr() (dsmpy.dsm.PyDSMOutput method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_shape_value_matrix">get_shape_value_matrix() (dsmpy.modelparameters.ModelParameters method)</a>
 </li>
       <li><a href="reference/index.html#dsmpy.dataset.get_station">get_station() (in module dsmpy.dataset)</a>
 </li>
@@ -333,6 +353,8 @@
 </li>
       <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_types">get_types() (dsmpy.modelparameters.ModelParameters method)</a>
 </li>
+      <li><a href="reference/index.html#dsmpy.dsm.PyDSMOutput.get_us_shape">get_us_shape() (dsmpy.dsm.PyDSMOutput method)</a>
+</li>
       <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.get_value">get_value() (dsmpy.seismicmodel.SeismicModel method)</a>
 </li>
       <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.get_value_at">get_value_at() (dsmpy.seismicmodel.SeismicModel method)</a>
@@ -341,7 +363,11 @@
 </li>
       <li><a href="reference/index.html#dsmpy.modelparameters.ModelParameters.get_values_matrix">get_values_matrix() (dsmpy.modelparameters.ModelParameters method)</a>
 </li>
+      <li><a href="reference/index.html#dsmpy.utils.sklearnutils.get_XY">get_XY() (in module dsmpy.utils.sklearnutils)</a>
+</li>
       <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.get_zone">get_zone() (dsmpy.seismicmodel.SeismicModel method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.gradient_models">gradient_models() (dsmpy.seismicmodel.SeismicModel method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -437,7 +463,11 @@
 </li>
         <li><a href="reference/index.html#module-dsmpy.utils.cmtcatalog">dsmpy.utils.cmtcatalog</a>
 </li>
+        <li><a href="reference/index.html#module-dsmpy.utils.modelutils">dsmpy.utils.modelutils</a>
+</li>
         <li><a href="reference/index.html#module-dsmpy.utils.scardec">dsmpy.utils.scardec</a>
+</li>
+        <li><a href="reference/index.html#module-dsmpy.utils.sklearnutils">dsmpy.utils.sklearnutils</a>
 </li>
         <li><a href="reference/index.html#module-dsmpy.window">dsmpy.window</a>
 </li>
@@ -543,6 +573,8 @@
       <li><a href="reference/index.html#dsmpy.dataset.Dataset.set_source_time_functions">set_source_time_functions() (dsmpy.dataset.Dataset method)</a>
 </li>
       <li><a href="reference/index.html#dsmpy.seismicmodel.SeismicModel.set_value">set_value() (dsmpy.seismicmodel.SeismicModel method)</a>
+</li>
+      <li><a href="reference/index.html#dsmpy.utils.modelutils.single_layer_dpp">single_layer_dpp() (in module dsmpy.utils.modelutils)</a>
 </li>
       <li><a href="reference/index.html#dsmpy.event.Event.source_time_function">source_time_function (dsmpy.event.Event attribute)</a>
 </li>

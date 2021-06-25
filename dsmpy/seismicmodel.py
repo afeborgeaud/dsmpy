@@ -110,6 +110,8 @@ class SeismicModel:
             mode='constant', constant_values=0)
     def get_model_id(self):
         return self._model_id
+    def get_model_params(self):
+        return self._model_params
 
     @classmethod
     def model_from_name(cls, model_name):
@@ -447,6 +449,7 @@ class SeismicModel:
                 ParameterType.RHO, ParameterType.QMU,
                 ParameterType.QKAPPA, ParameterType.ETA
             ]:
+                value_avg = model.compute_avg(indexes, type)
                 value_at_top = model.get_value_at(
                     model._vrmax[max(indexes)], type)
                 for izone in indexes:
@@ -456,7 +459,6 @@ class SeismicModel:
                     else:
                         model.set_value(
                             izone, type, value_at_top)
-        model._nzone = model._rho.shape[1]
         model._nzone = model._rho.shape[1]
         model._mesh_type = 'boxcar'
         model._model_params = model_parameters
@@ -675,8 +677,68 @@ class SeismicModel:
                     'Expect "boxcar", "triangle", or "lininterp"')
         return mesh
 
-    def lin_mod_layer(ilay, dr0, dr1, dy0, dy1):
-        pass
+    def gradient_models(self):
+        """Return a list of seismic models to compute the waveform
+        gradients with respect to model parameters using central
+        differences.
+
+        Returns:
+            list of SeismicModel: the first half of the list corresponds
+            to positive perturbations, the second half corresponds
+            to negative perturbations
+            list of float: corresponding perturbation vector
+
+        Examples:
+            >>> from dsmpy.dsm import compute_models_parallel
+            >>> model_params = ModelParameters(
+            ...        types=[ParameterType.VSH],
+            ...        radii=[3480., 3680.],
+            ...        mesh_type='boxcar')
+            >>> model = SeismicModel.prem().boxcar_mesh(model_params)
+            >>> grad_models, dxs = model.gradient_models()
+            >>> outputs = compute_models_parallel(
+            ...     dataset, grad_models, tlen=1638.4,
+            ...     nspc=256, sampling_hz=20, mode=0)
+            >>> n_params = len(grad_models) // 2
+            >>> n_evs = len(outputs[0])
+            >>> waveform_grads = []
+            >>> for i in range(n_params):
+            ...     waveform_grad_i = []
+            ...     for iev in range(len(outputs[0])):
+            ...         outputs[i][iev].to_time_domain()
+            ...         outputs[i + n_params][iev].to_time_domain()
+            ...         waveform_grad_i_iev = (outputs[i][iev].us
+            ...             - outputs[i + n_params][iev].us) / (dxs[i]
+            ...             - dxs[i + n_params])
+            ...         waveform_grad_i.append(waveform_grad_i_iev)
+            ...     waveform_grads.append(waveform_grad_i)
+            >>> _, itypes, igrds = model_params.get_free_all_indices()
+            >>> types = [model_params.types[i] for i in itypes]
+            >>> radii = [model_params.get_grd_params()[i]
+            ...          for i in igrds]
+
+        """
+        EPS = 1e-2
+        if self._model_params is None:
+            return None
+        indices, itypes, igrds = self._model_params.get_free_all_indices()
+        models = []
+        dxs = []
+        for count, i in enumerate(indices + indices):
+            values = np.zeros(self._model_params.get_shape_value_matrix())
+            type = self._model_params.get_types()[itypes[i]]
+            if type in {ParameterType.QMU, ParameterType.QKAPPA,
+                        ParameterType.RADIUS}:
+                dx = 100 * EPS
+            else:
+                dx = EPS
+            if count >= len(indices):
+                dx = -dx
+            values[igrds[i], type] = dx
+            model_updated = self.multiply(values)
+            models.append(model_updated)
+            dxs.append(dx)
+        return models, dxs
 
     def __add__(self, other):
         assert np.allclose(self._vrmin, other._vrmin)
@@ -976,8 +1038,8 @@ class SeismicModel:
             kwargs (dict):
 
         Returns:
-            fig
-            ax
+            Figure: matplotlib Figure object
+            Axes: matplotlib Axes object
 
         """
         rs, values = self.get_values(dr=dr)

@@ -66,11 +66,28 @@ class ModelParameters:
         The number of parameters depend on the mesh type:
             - boxcar: get_n_grd_params() = get_nodes() - 1
             - lininterp: get_n_grd_params() = get_nodes() * 2.
-              At each radial node, there is one parameter for the line
-              segment above the node, and one parameter for the line
-              segment below the node.
+                  At each radial node, there is one parameter for
+                  the line segment above the node, and one parameter
+                  for the line segment below the node.
         """
         return self._n_grd_params
+
+    def get_grd_params(self) -> np.ndarray:
+        if self._mesh_type == 'boxcar':
+            return (np.array(self._radii)[:-1]
+                    + np.array(self._radii)[1:]) / 2.
+        elif self._mesh_type == 'lininterp':
+            grd_params = np.zeros(self._n_grd_params)
+            grd_params[
+                [2 * i for i in range(len(self._radii))]] = self._radii
+            grd_params[
+                [2 * i + 1 for i in range(len(self._radii))]] = self._radii
+            return grd_params
+        elif self._mesh_type == 'triangle':
+            # TODO
+            return None
+        else:
+            return None
 
     def get_n_params(self) -> int:
         """Return the total number of parameters
@@ -102,9 +119,9 @@ class ModelParameters:
 
         Args:
             mask_dict (dict): keys are of type ParameterType,
-                values are boolean np.ndarray of shape (n_grd_params,)
+            values are boolean np.ndarray of shape (n_grd_params,)
             equal_dict (dict): keys are of type ParameterType,
-                values are integer np.ndarray of shape (n_grd_params,)
+            values are integer np.ndarray of shape (n_grd_params,)
             discon_arr (np.ndarray): boolean array of shape (n_nodes,)
 
         Examples:
@@ -155,10 +172,11 @@ class ModelParameters:
             int: index of the current type (get_types()[i])
             int: index of the current radial parameter
         """
+        MAX_PARAM = 3000
         found = False
         istop = 0
         seen_igrd = set()
-        while not found and istop < 1000:
+        while not found and istop < MAX_PARAM:
             self.it = self.it % self.get_n_params()
             itype = int(self.it // self._n_grd_params)
             igrd = (self.it % self._n_grd_params)
@@ -182,20 +200,37 @@ class ModelParameters:
     def get_free_indices(self) -> np.ndarray:
         """Return the indices of parameters without constraints.
         """
+        indices_lst, _, _ = self.get_free_indices()
+        return np.array(indices_lst)
+
+    def get_free_all_indices(self) -> (list, list, list):
+        """Return the generic, type, and grid indices of parameters
+        without constraints.
+
+        Returns:
+            list of int: counter-like monotonous indices
+            list of int: corresponding type index as in self.types
+            list of int: corresponding grd_param index as in
+            self.get_grd_params()
+        """
         indices_lst = []
+        itype_lst = []
+        igrd_lst = []
         it_0 = self.it
         self.it = 0
         i = 0
         stop = False
         while not stop:
-            i, _, _ = self.next()
+            i, itype, igrd = self.next()
             if i in indices_lst:
                 stop = True
             else:
                 indices_lst.append(i)
+                itype_lst.append(itype)
+                igrd_lst.append(igrd)
             self.it += 1
         self.it = it_0
-        return np.array(indices_lst)
+        return indices_lst, itype_lst, igrd_lst
 
     def apply_constraint(self, values: np.ndarray) -> np.ndarray:
         """Apply the model parameter constraints to the valye matrix.
@@ -224,10 +259,14 @@ class ModelParameters:
                         values_mat[i, key] = values_mat[j, key]
         return values_mat
 
+    def get_shape_value_matrix(self) -> (int, int):
+        """Return the shape of the value matrix"""
+        return (self._n_grd_params, 9)
+
     def get_values_matrix(
             self, values_dict: dict) -> np.ndarray:
         """Get the matrix used in Seismicmodel.multiply"""
-        values_mat = np.zeros((self._n_grd_params, 9), np.float64)
+        values_mat = np.zeros(self.get_shape_value_matrix(), np.float64)
         for key, values in values_dict.items():
             values_mat[:, key] = values
 
