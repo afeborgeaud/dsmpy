@@ -325,7 +325,8 @@ class Dataset:
 
         Args:
             windows (list of Window): time windows.
-            n_phase (int): number of distinct seismic phases in windows.
+            n_phase (int): number of distinct seismic phase-component
+                pairs: if ScS (SH) and ScS (SV), then n_phase=2.
             npts_max (int): number of time points in the longest window.
             buffer (float): default is 0.
             t_before_noise (float): default is 50.

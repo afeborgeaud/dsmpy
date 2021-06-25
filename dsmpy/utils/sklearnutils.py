@@ -20,28 +20,52 @@ from sklearn.decomposition import PCA
 def get_XY(
         model, dataset, windows, tlen, nspc,
         freq, freq2, filter_type='bandpass',
-        sampling_hz=20, mode=0) -> (np.ndarray, np.ndarray):
-    """
+        sampling_hz=5, mode=0) -> (np.ndarray, np.ndarray):
+    """Compute the feature matrix X and target vector y to be used
+    as input to scikit-learn linear models.
+
+    X and y are linked by the equation Xm = y, where m is the model
+    parameter vector. The order for m is given by the order in
+    SeismicModel.gradient_models(), and is:
+    [[radial_nodes_for_type_1] + [radial_nodes_for_type_2] + ...].
+
+    This method should be able to scale to large dataset, since
+    the computations are done in the frequency domain (typically approx.
+    256 to 512 np.Complex64 per synthetic), the transformation to time
+    domain is done event by event (the data is freed after), and the
+    gradient matrix X contains windowed time series with typically
+    a few hundreth to thousands of floats. Furthermore, only the
+    frequency-domain synthetics are replicated on all cores. All the
+    time domain operations, as well as X and y are defined on thread 0
+    only. For instance, 10,000 records sampled at 5 Hz for 50 s windows
+    for one seismic component with 100 model parameters should not take
+    more than approx. 1e4 * 5 * 50 * 101 * 6.4e-8 = 16.2 Gb.
 
     Args:
-        model:
-        dataset:
-        windows:
-        tlen:
-        nspc:
-        sampling_hz:
-        mode:
+        model (SeismicModel): model at which the gradient is evaluated.
+            Must be a mesh and have model._model_params not None.
+        dataset (Dataset): dataset
+        windows (list of Window): time windows
+        tlen (float): length of time series for synthetics
+        nspc (int): number of points in frequency domain for synthetics
+        sampling_hz (int): sampling frequency of synthetics in time
+            domain. Better to divide 20.
+        mode (int): commputation mode. 0: P-SV + SH, 1: P-SV, 2: SH
 
     Returns:
-        np.ndarray: X
-        np.ndarray: y
+        np.ndarray: X, the waveform gradient with respec to model.
+            The shape is (n_time_points, n_model_parameters).
+        np.ndarray: y, the waveform residual vector.
+            The shape is (n_time_points,).
     """
     if model.get_model_params() is None:
         return None, None
     grad_models, dxs = model.gradient_models()
     outputs = compute_models_parallel(
         dataset, grad_models + [model], tlen=tlen,
-        nspc=nspc, sampling_hz=sampling_hz, mode=mode)
+        nspc=nspc, sampling_hz=dataset.sampling_hz, mode=mode)
+
+    sample_skip = int(dataset.sampling_hz // sampling_hz)
 
     if MPI.COMM_WORLD.Get_rank() == 0:
         grad_outputs = outputs[:len(grad_models)]
@@ -80,7 +104,10 @@ def get_XY(
                         data_cut = dataset.data[
                                    iwin, icomp, ista, :]
                         grad_u /= np.abs(data_cut).max()
-                        x_imod.append(grad_u)
+                        x_imod.append(grad_u[::sample_skip])
+
+                output_plus.free()
+                output_minus.free()
             x.append(np.hstack(x_imod))
 
         y = []
@@ -112,7 +139,9 @@ def get_XY(
 
                     residual = data_cut - ref_u
                     residual /= np.abs(data_cut).max()
-                    y.append(residual)
+                    y.append(residual[::sample_skip])
+
+            ref_output.free()
 
         x = np.array(x).T
         y = np.hstack(y)
