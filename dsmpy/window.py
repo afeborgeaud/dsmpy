@@ -74,4 +74,10 @@ class Window:
         return '{} {} {:.2f} {} {}'.format(
             self.event, self.station, self.travel_time,
             self.phase_name, self.component.name)
+
+    def __hash__(self):
+        return (
+            event.event_id + str(station) + phase_name
+            + str(self.component)
+        )
         

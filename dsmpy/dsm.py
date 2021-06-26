@@ -1157,6 +1157,7 @@ def compute_parallel(
     return output
 
 # TODO check write_to_file
+# TODO URGENT returns NaN
 def compute_dataset_parallel(
         dataset, seismic_model,
         tlen, nspc, sampling_hz,
@@ -1176,11 +1177,11 @@ def compute_dataset_parallel(
 
     Examples:
         >>> dataset = Dataset.dataset_from_sac(
-                sac_files, headonly=False)
+        ...     sac_files, headonly=False)
         >>> model = SeismicModel.prem()
         >>> outputs = compute_dataset_parallel(
-                dataset, model, tlen=1638.4, nspc=256,
-                sampling_hz=20, mode=0)
+        ...     dataset, model, tlen=1638.4, nspc=256,
+        ...     sampling_hz=20, mode=0)
         >>> outputs[0].plot()
         >>> plt.show()
 
