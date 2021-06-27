@@ -12,9 +12,22 @@ from obspy import read
 import obspy.signal.filter
 import pandas as pd
 import matplotlib.pyplot as plt
+from mpi4py import MPI
+from collections import defaultdict
 
 class Dataset:
     """Represents a dataset of events and stations.
+
+    The data array is not None only if the dataset was defined using
+    Dataset.read_from_sac(headonly=False). In this case,
+    the data array is of shape (1, 3, n_records, npts),
+    where n_records is the number of seismic records,
+    or event-station pairs, and npts is the number of time points
+    for the longest record.
+    Dimension 1 corresponds to the 3 seismic components (Z, R, T).
+    Dimension 0 has length >= 1 only after dataset.apply_windows().
+    In this case, dimension 0 encodes the number of time windows (i.e.,
+    the number of different phases).
     
     Args:
         lats (ndarray): stations latitudes for each record (nr,).
@@ -161,11 +174,15 @@ class Dataset:
         With headonly=False, time series data from the sac_files
         will be stored in self.data.
 
+        For parallel applications using MPI, headonly=False (i.e.,
+        reading the data from sac files) only applies to rank 0, so
+        as not to saturate the memory.
+
         Args:
             sac_files (list of str): list of paths to sac files.
             verbose (int): 0: quiet, 1: debug.
-            headonly (bool): if True, read only header.
-                If False, include data.
+            headonly (bool): if True, read only the metadata.
+                If False, includes data.
 
         Returns:
             Dataset: dataset
@@ -176,8 +193,12 @@ class Dataset:
             ...        sac_files, headonly=False)
 
         """
-        traces = [read(sac_file, headonly=headonly)[0]
-                  for sac_file in sac_files]
+        if MPI.COMM_WORLD.Get_rank() == 0:
+            traces = [read(sac_file, headonly=headonly)[0]
+                      for sac_file in sac_files]
+        else:
+            traces = [read(sac_file, headonly=True)[0]
+                      for sac_file in sac_files]
 
         sampling_hz = int(traces[0].stats.sampling_rate)
 
@@ -202,7 +223,8 @@ class Dataset:
             eqlons_.append(tr.stats.sac.evlo)
             eqdeps_.append(tr.stats.sac.evdp)
             evids_.append(tr.stats.sac.kevnm)
-            data_.append(tr.data)
+            if MPI.COMM_WORLD.Get_rank() == 0:
+                data_.append(tr.data)
             components_.append(tr.stats.sac.kcmpnm)
         
         theta_phi = [_calthetaphi(stalat, stalon, eqlat, eqlon) 
@@ -268,55 +290,141 @@ class Dataset:
 
         # lons = np.array(lons_, dtype=np.float32)
         # lats = np.array(lats_, dtype=np.float32)
-        
-        npts = np.array([len(d) for d in data_], dtype=int).max()
-        data_arr = np.zeros((1, 3, nr, npts), dtype=np.float32)
-        for ista in range(len(dataset_info.indices.values)):
-            component = components_[dataset_info.indices.values[ista]]
-            icomp = Component.parse_component(component).value
-            try:
-                data_arr[0, icomp, ista] = data_[
-                    dataset_info.indices.values[ista]]
-            except:
-                n_tmp = len(data_[dataset_info.indices.values[ista]])
-                if n_tmp < npts:
-                    tmp_data = np.pad(
-                        data_[dataset_info.indices.values[ista]],
-                        (0,npts-n_tmp), mode='constant',
-                        constant_values=(0,0))
-                    data_arr[0, icomp, ista] = tmp_data
-                else:
-                    data_arr[0, icomp, ista] = (
-                        data_[dataset_info.indices.values[ista]][:npts])
+        if MPI.COMM_WORLD.Get_rank() == 0:
+            npts = np.array([len(d) for d in data_], dtype=int).max()
+            data_arr = np.zeros((1, 3, nr, npts), dtype=np.float32)
+            for ista in range(len(dataset_info.indices.values)):
+                component = components_[dataset_info.indices.values[ista]]
+                icomp = Component.parse_component(component).value
+                try:
+                    data_arr[0, icomp, ista] = data_[
+                        dataset_info.indices.values[ista]]
+                except:
+                    n_tmp = len(data_[dataset_info.indices.values[ista]])
+                    if n_tmp < npts:
+                        tmp_data = np.pad(
+                            data_[dataset_info.indices.values[ista]],
+                            (0,npts-n_tmp), mode='constant',
+                            constant_values=(0,0))
+                        data_arr[0, icomp, ista] = tmp_data
+                    else:
+                        data_arr[0, icomp, ista] = (
+                            data_[dataset_info.indices.values[ista]][:npts])
 
-        remaining_traces_indices = (set(indices_) 
-            - set(dataset_info.indices.values))
-        
-        for i in remaining_traces_indices:
-            dataset_filt = dataset_info[
-                (dataset_info.evids == evids_[i])
-                & (dataset_info.names == names_[i])
-                & (dataset_info.nets == nets_[i])]
-            j = dataset_filt.index.values[0]
-            component = components_[i]
-            icomp = Component.parse_component(component).value
-            try:
-                data_arr[0, icomp, j] = data_[i]
-            except:
-                n_tmp = len(data_[i])
-                if n_tmp < npts:
-                    tmp_data = np.pad(
-                        data_[i],
-                        (0,npts-n_tmp), mode='constant',
-                        constant_values=(0,0))
-                    data_arr[0, icomp, j] = tmp_data
-                else:
-                    data_arr[0, icomp, j] = (
-                        data_[i][:npts])
+            remaining_traces_indices = (set(indices_)
+                - set(dataset_info.indices.values))
+
+            for i in remaining_traces_indices:
+                dataset_filt = dataset_info[
+                    (dataset_info.evids == evids_[i])
+                    & (dataset_info.names == names_[i])
+                    & (dataset_info.nets == nets_[i])]
+                j = dataset_filt.index.values[0]
+                component = components_[i]
+                icomp = Component.parse_component(component).value
+                try:
+                    data_arr[0, icomp, j] = data_[i]
+                except:
+                    n_tmp = len(data_[i])
+                    if n_tmp < npts:
+                        tmp_data = np.pad(
+                            data_[i],
+                            (0,npts-n_tmp), mode='constant',
+                            constant_values=(0,0))
+                        data_arr[0, icomp, j] = tmp_data
+                    else:
+                        data_arr[0, icomp, j] = (
+                            data_[i][:npts])
 
         return cls(
             lats, lons, phis, thetas, eqlats, eqlons,
             r0s, mts, nrs, stations, events, data_arr, sampling_hz)
+
+    @classmethod
+    def dataset_from_sac_process(
+            cls, sac_files, windows,
+            freq, freq2, filter_type='bandpass',
+            verbose=0):
+        """Creates a dataset from a list of sac files.
+        Data are read from sac files, cut using the time windows,
+        and stored in self.data. The sac file data are read and cut
+        event by event, which allows to read large dataset.
+
+        This method should be used instead of dataset_from_sac()
+        when large amount of data is to be read. It has the same effect
+        of using dataset_from_sac() followed by apply_windows(), but
+        is much more memory efficient. For instance,10,000 3-components
+        records with 20 Hz sampling and 1 hour of
+        recording take approx. 138 Gb in memory. The same dataset cut
+        in 100 s windows around a single phase (e.g., ScS) takes
+        approx 1.9 Gb in memory.
+
+        Args:
+            sac_files (list of str): list of paths to sac files.
+            windows (list of Window): time windows
+            freq (float): minimum filter frequency
+            freq2 (float): maximum filter frequency
+            filter_type (str): 'bandpass' or 'lowpass'
+                (default is 'bandpass')
+            verbose (int): 0: quiet, 1: debug.
+
+        Returns:
+            Dataset: dataset
+
+        """
+
+        traces = [read(sac_file, headonly=True)[0]
+                  for sac_file in sac_files]
+
+        sac_files_by_event = defaultdict(list)
+        for sac_file, trace in zip(sac_files, traces):
+            sac_files_by_event[trace.stats.sac.kevnm].append(sac_file)
+
+        for i, (event_id, files) in enumerate(sac_files_by_event.items()):
+            if i == 0:
+                ds = Dataset.dataset_from_sac(
+                    files, verbose=verbose, headonly=False)
+                ds.filter(freq, freq2, filter_type)
+                n_phases = len(set([w.phase_name for w in windows]))
+                npts_max = int(
+                        max([w.get_length() for w in windows]) *
+                        ds.sampling_hz)
+                ds.apply_windows(windows, n_phases, npts_max)
+            else:
+                ds_tmp = Dataset.dataset_from_sac(
+                        files, verbose=verbose, headonly=False)
+                ds_tmp.filter(freq, freq2, filter_type)
+                n_phases = len(set([w.phase_name for w in windows]))
+                npts_max = int(
+                    max([w.get_length() for w in windows]) *
+                    ds.sampling_hz)
+                ds_tmp.apply_windows(windows, n_phases, npts_max)
+                ds.append(ds_tmp)
+
+        return ds
+
+    def append(self, dataset):
+        """Append dataset to self.
+        """
+        assert self.sampling_hz == dataset.sampling_hz
+        assert set([event.event_id for event in self.events]).isdisjoint(
+            set([event.event_id for event in dataset.events]))
+
+        self.lats = np.hstack([self.lats, dataset.lats])
+        self.lons = np.hstack([self.lons, dataset.lons])
+        self.phis = np.hstack([self.phis, dataset.phis])
+        self.thetas = np.hstack([self.thetas, dataset.thetas])
+        self.eqlats = np.hstack([self.eqlats, dataset.eqlats])
+        self.eqlons = np.hstack([self.eqlons, dataset.eqlons])
+        self.r0s = np.hstack([self.r0s, dataset.r0s])
+        self.mts = np.hstack([self.mts, dataset.mts])
+        self.nrs = np.hstack([self.nrs, dataset.nrs])
+        self.nr = len(self.lats) + len(dataset.lats)
+        self.stations = np.hstack([self.stations, dataset.stations])
+        self.events = np.hstack([self.events, dataset.events])
+        self.data = np.concatenate((self.data, dataset.data), axis=2)
+        # self.sampling_hz = sampling_hz
+        # self.is_cut = is_cut
 
     def apply_windows(
             self, windows, n_phase, npts_max, buffer=0.,
