@@ -16,7 +16,7 @@ def _get_u_pydsm():
     parameter_file = os.path.join(rootdsm_sh, 'AK135_SH_64.inf')
     inputs = dsm.PyDSMInput.input_from_file(
         parameter_file, sampling_hz=20,
-        source_time_function=None, mode=2)
+        source_time_function=None, file_mode=2)
     outputs = dsm.compute(inputs, mode=2)
     outputs.to_time_domain()
     return outputs
@@ -51,6 +51,9 @@ def test_spctime_sh():
     outputs = _get_u_pydsm()
     upydsms, ts = outputs.us, outputs.ts
     upydsm = upydsms[2, 0]
+    
+    print(udsm[:5])
+    print(upydsm[:5])
 
     assert (np.allclose(udsm, upydsm, rtol=1e-10))
 

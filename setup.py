@@ -64,7 +64,7 @@ if __name__ == '__main__':
             "pytest",
         ],
         ext_modules=[lib_tish, lib_tipsv],
-        python_requires='>=3.7',
+        python_requires='>=3.9',
         package_data={
             'dsmpy' : ['resources/scardec.pkl'],
         },

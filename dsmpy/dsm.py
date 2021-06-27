@@ -658,7 +658,7 @@ class DSMInput:
             re, ratc, ratl, tlen, nspc,
             omegai, imin, imax, nzone, vrmin, vrmax,
             rho, vpv, vph, vsv, vsh, eta, qmu, qkappa, r0, eqlat, eqlon,
-            mt, nr, theta, phi, lat, lon, output, mode)
+            mt, nr, theta, phi, lat, lon, output, file_mode)
 
     @classmethod
     def input_from_arrays(cls, event, stations,
@@ -818,21 +818,21 @@ class PyDSMInput(DSMInput):
     Args:
         dsm_input (DSMInput): input parameters for Fortran DSM.
         sampling_hz (int): sampling frequency for time-domain waveforms.
-        mode (int): 1: P-SV, 2: SH. (default is 1).
+        file_mode (int): 1: P-SV, 2: SH. (default is 1).
 
     """
 
     def __init__(
             self, dsm_input, sampling_hz=None,
-            mode=1):
+            file_mode=1):
         super().__init__(
             *dsm_input.get_inputs_for_tipsv())
         self.sampling_hz = self.find_optimal_sampling_hz(sampling_hz)
         self.stations = self._parse_stations()
         self.event = self._parse_event()
-        self.mode = mode
+        self.file_mode = file_mode
 
-        assert mode in {1, 2}
+        assert file_mode in {1, 2}
 
     @classmethod
     def input_from_file(cls, parameter_file,
@@ -853,7 +853,7 @@ class PyDSMInput(DSMInput):
 
         """
         dsm_input = DSMInput.input_from_file(parameter_file, file_mode)
-        pydsm_input = cls(dsm_input, sampling_hz, mode)
+        pydsm_input = cls(dsm_input, sampling_hz, file_mode)
         pydsm_input.set_source_time_function(source_time_function)
         return pydsm_input
 
@@ -882,7 +882,7 @@ class PyDSMInput(DSMInput):
         """
         dsm_input = DSMInput.input_from_arrays(event, stations,
                                                seismic_model, tlen, nspc)
-        pydsm_input = cls(dsm_input, sampling_hz, mode=1)
+        pydsm_input = cls(dsm_input, sampling_hz, file_mode=1)
         pydsm_input.set_source_time_function(event.source_time_function)
         return pydsm_input
 
