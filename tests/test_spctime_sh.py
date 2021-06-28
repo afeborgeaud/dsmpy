@@ -51,9 +51,6 @@ def test_spctime_sh():
     outputs = _get_u_pydsm()
     upydsms, ts = outputs.us, outputs.ts
     upydsm = upydsms[2, 0]
-    
-    print(udsm[:5])
-    print(upydsm[:5])
 
     assert (np.allclose(udsm, upydsm, rtol=1e-10))
 

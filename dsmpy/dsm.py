@@ -569,14 +569,15 @@ class DSMInput:
         lat (float):
         lon (float): 
         output (:obj:`ndarray`): 
-        mode (int): 
+        file_mode (int):
 
     """
 
     def __init__(
             self, re, ratc, ratl, tlen, nspc, omegai, imin, imax, nzone,
             vrmin, vrmax, rho, vpv, vph, vsv, vsh, eta, qmu, qkappa,
-            r0, eqlat, eqlon, mt, nr, theta, phi, lat, lon, output, mode=0):
+            r0, eqlat, eqlon, mt, nr, theta, phi, lat, lon, output,
+            file_mode=1):
         (self.re, self.ratc,
          self.ratl, self.omegai) = re, ratc, ratl, omegai
 
@@ -602,7 +603,7 @@ class DSMInput:
         self.mt[2, 0] = self.mt[0, 2]
         self.mt[2, 1] = self.mt[1, 2]
 
-        self.mode = mode
+        self.file_mode = file_mode
 
     def _get_scalar_dict(self):
         return dict(
@@ -618,13 +619,13 @@ class DSMInput:
 
         Args:
             parameter_file (str): path of a DSM input file
-            file_mode (int): 1: P-SV, 2: SH
+            mode (int): 1: P-SV, 2: SH
         Returns:
             DSMInput
 
         """
         if file_mode not in {1, 2}:
-            raise RuntimeError('file_mode should be 1 or 2')
+            raise RuntimeError('mode should be 1 or 2')
 
         if file_mode == 1:
             inputs = _pinput(parameter_file)
@@ -754,7 +755,7 @@ class DSMInput:
         return cls(re, ratc, ratl, tlen, nspc, omegai, imin, imax,
                    nzone, vrmin, vrmax, rho, vpv, vph, vsv, vsh,
                    eta, qmu, qkappa, r0, eqlat, eqlon, mt, nr, theta,
-                   phi, lat, lon, output, mode=0)
+                   phi, lat, lon, output, file_mode=0)
 
     @classmethod
     def input_from_dict_and_arrays(
@@ -774,7 +775,7 @@ class DSMInput:
     def get_inputs_for_tish(self):
         # TODO modify fortran? Else, have to take care of case
         # number of core layers != 2
-        if self.mode == 0 or self.mode == 1:
+        if self.file_mode == 0 or self.file_mode == 1:
             nzone = self.nzone - 2
             vrmin = np.pad(self.vrmin[2:], (0, 2), constant_values=0)
             vrmax = np.pad(self.vrmax[2:], (0, 2), constant_values=0)
@@ -818,7 +819,7 @@ class PyDSMInput(DSMInput):
     Args:
         dsm_input (DSMInput): input parameters for Fortran DSM.
         sampling_hz (int): sampling frequency for time-domain waveforms.
-        file_mode (int): 1: P-SV, 2: SH. (default is 1).
+        mode (int): 1: P-SV, 2: SH. (default is 1).
 
     """
 
