@@ -15,6 +15,8 @@ import matplotlib.pyplot as plt
 from mpi4py import MPI
 from collections import defaultdict
 
+DATA_FLOAT_PREC = np.float32
+
 class Dataset:
     """Represents a dataset of events and stations.
 
@@ -96,7 +98,7 @@ class Dataset:
             Dataset
 
         """
-        pydsm_inputs = [PyDSMInput.input_from_file(file, mode=file_mode)
+        pydsm_inputs = [PyDSMInput.input_from_file(file, file_mode=file_mode)
                             for file in parameter_files]
         
         lats = np.concatenate([input.lat[:input.nr]
@@ -148,8 +150,8 @@ class Dataset:
         lats = np.array([s.latitude for stas in stations for s in stas])
         lons = np.array([s.longitude for stas in stations for s in stas])
 
-        thetas = np.zeros(len(lats), dtype=np.float32)
-        phis = np.zeros(len(lats), dtype=np.float32)
+        thetas = np.zeros(len(lats), dtype=np.float64)
+        phis = np.zeros(len(lats), dtype=np.float64)
         count = 0
         for i in range(len(events)):
             for sta in stations[i]:
@@ -230,8 +232,8 @@ class Dataset:
         theta_phi = [_calthetaphi(stalat, stalon, eqlat, eqlon) 
                      for stalat, stalon, eqlat, eqlon 
                      in zip(lats_, lons_, eqlats_, eqlons_)]
-        thetas_ = np.array([x[0] for x in theta_phi], dtype=np.float32)
-        phis_ = np.array([x[1] for x in theta_phi], dtype=np.float32)
+        thetas_ = np.array([x[0] for x in theta_phi], dtype=np.float64)
+        phis_ = np.array([x[1] for x in theta_phi], dtype=np.float64)
 
         dataset_info = pd.DataFrame(dict(
             lats=lats_, lons=lons_, names=names_,
@@ -257,9 +259,9 @@ class Dataset:
         nrs = dataset_info.groupby('evids').count().lats.values
         dataset_event_info = dataset_info.drop_duplicates(['evids'])
         evids = dataset_event_info.evids.values
-        eqlats = dataset_event_info.eqlats.values.astype(np.float32)
-        eqlons = dataset_event_info.eqlons.values.astype(np.float32)
-        eqdeps = dataset_event_info.eqdeps.values.astype(np.float32)
+        eqlats = dataset_event_info.eqlats.values.astype(np.float64)
+        eqlons = dataset_event_info.eqlons.values.astype(np.float64)
+        eqdeps = dataset_event_info.eqdeps.values.astype(np.float64)
         r0s = 6371. - eqdeps
 
         # read event catalog
@@ -288,11 +290,9 @@ class Dataset:
         lons = dataset_info.lons.values
         lats = dataset_info.lats.values
 
-        # lons = np.array(lons_, dtype=np.float32)
-        # lats = np.array(lats_, dtype=np.float32)
         if MPI.COMM_WORLD.Get_rank() == 0:
             npts = np.array([len(d) for d in data_], dtype=int).max()
-            data_arr = np.zeros((1, 3, nr, npts), dtype=np.float32)
+            data_arr = np.zeros((1, 3, nr, npts), dtype=DATA_FLOAT_PREC)
             for ista in range(len(dataset_info.indices.values)):
                 component = components_[dataset_info.indices.values[ista]]
                 icomp = Component.parse_component(component).value
@@ -335,6 +335,8 @@ class Dataset:
                     else:
                         data_arr[0, icomp, j] = (
                             data_[i][:npts])
+        else:
+            data_arr = None
 
         return cls(
             lats, lons, phis, thetas, eqlats, eqlons,
@@ -454,9 +456,9 @@ class Dataset:
         npts_buffer = int(buffer * ds.sampling_hz)
         data_cut = np.zeros(
             (n_phase, 3, ds.nr, npts_max+2*npts_buffer),
-            dtype=np.float32)
-        ds.ts_start_end = np.zeros((n_phase, ds.nr, 2), dtype=np.float32)
-        ds.noise = np.zeros((n_phase, 3, ds.nr), dtype=np.float32)
+            dtype=DATA_FLOAT_PREC)
+        ds.ts_start_end = np.zeros((n_phase, ds.nr, 2), dtype=DATA_FLOAT_PREC)
+        ds.noise = np.zeros((n_phase, 3, ds.nr), dtype=DATA_FLOAT_PREC)
         for iev, event in enumerate(ds.events):
             start, end = ds.get_bounds_from_event_index(iev)
             for ista in range(start, end):

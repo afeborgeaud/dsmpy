@@ -755,7 +755,7 @@ class DSMInput:
         return cls(re, ratc, ratl, tlen, nspc, omegai, imin, imax,
                    nzone, vrmin, vrmax, rho, vpv, vph, vsv, vsh,
                    eta, qmu, qkappa, r0, eqlat, eqlon, mt, nr, theta,
-                   phi, lat, lon, output, file_mode=0)
+                   phi, lat, lon, output, file_mode=1)
 
     @classmethod
     def input_from_dict_and_arrays(
@@ -770,12 +770,14 @@ class DSMInput:
             scalar_dict['nzone'], vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa, scalar_dict['r0'],
             scalar_dict['eqlat'], scalar_dict['eqlon'], mt,
-            scalar_dict['nr'], theta, phi, lat, lon, output)
+            scalar_dict['nr'], theta, phi, lat, lon, output,
+            file_mode=1
+        )
 
     def get_inputs_for_tish(self):
         # TODO modify fortran? Else, have to take care of case
         # number of core layers != 2
-        if self.file_mode == 0 or self.file_mode == 1:
+        if self.file_mode == 1:
             nzone = self.nzone - 2
             vrmin = np.pad(self.vrmin[2:], (0, 2), constant_values=0)
             vrmax = np.pad(self.vrmax[2:], (0, 2), constant_values=0)
@@ -1367,7 +1369,7 @@ def compute_dataset_parallel(
     if log:
         log.write('rank {}: {} paths finished in {} s\n'
                   .format(rank, input_local.nr, end_time - start_time))
-    else:
+    elif scalar_dict['verbose'] >= 1:
         print('rank {}: {} paths finished in {} s'
               .format(rank, input_local.nr, end_time - start_time))
 
