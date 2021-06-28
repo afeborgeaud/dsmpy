@@ -452,7 +452,7 @@ class Dataset:
             Dataset: if inplace is True, else None.
 
         """
-        if ds.data is None:
+        if self.data is None:
             return None
         if not inplace:
             ds = self.copy()
