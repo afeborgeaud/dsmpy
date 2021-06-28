@@ -67,7 +67,10 @@ class Dataset:
         self.nr = len(self.lats)
         self.stations = stations
         self.events = events
-        self.data = np.array(data)
+        if data is not None:
+            self.data = np.array(data)
+        else:
+            self.data = None
         self.sampling_hz = sampling_hz
         self.is_cut = is_cut
 
@@ -563,12 +566,12 @@ class Dataset:
             Dataset: if inplace is True, else None
 
         """
+        if self.data is None:
+            return None
         if type == 'bandpass':
             assert freq2 > freq
-
         if type not in {'bandpass', 'lowpass'}:
             raise ValueError('Expect "bandpass" or "lowpass" for arg "type"')
-
         if self.data.shape[3] == 0:
             print('Do nothing')
             return
