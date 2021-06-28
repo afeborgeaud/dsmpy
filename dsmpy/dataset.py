@@ -385,7 +385,8 @@ class Dataset:
                 ds = Dataset.dataset_from_sac(
                     files, verbose=verbose, headonly=False)
                 ds.filter(freq, freq2, filter_type)
-                n_phases = len(set([w.phase_name for w in windows]))
+                n_phases = len(set(
+                    [(w.phase_name, w.component) for w in windows]))
                 npts_max = int(
                         max([w.get_length() for w in windows]) *
                         ds.sampling_hz)
@@ -394,7 +395,8 @@ class Dataset:
                 ds_tmp = Dataset.dataset_from_sac(
                         files, verbose=verbose, headonly=False)
                 ds_tmp.filter(freq, freq2, filter_type)
-                n_phases = len(set([w.phase_name for w in windows]))
+                n_phases = len(set(
+                    [(w.phase_name, w.component) for w in windows]))
                 npts_max = int(
                     max([w.get_length() for w in windows]) *
                     ds.sampling_hz)
