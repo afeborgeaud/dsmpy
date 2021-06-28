@@ -429,7 +429,8 @@ class Dataset:
         self.nr = len(self.lats) + len(dataset.lats)
         self.stations = np.hstack([self.stations, dataset.stations])
         self.events = np.hstack([self.events, dataset.events])
-        self.data = np.concatenate((self.data, dataset.data), axis=2)
+        if self.data is not None:
+            self.data = np.concatenate((self.data, dataset.data), axis=2)
         # self.sampling_hz = sampling_hz
         # self.is_cut = is_cut
 
