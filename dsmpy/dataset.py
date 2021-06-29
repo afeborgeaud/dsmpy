@@ -434,6 +434,51 @@ class Dataset:
         # self.sampling_hz = sampling_hz
         # self.is_cut = is_cut
 
+    def split(self, n: int):
+        """Split self into n datasets.
+
+        Args:
+            n: number of datasets into which to split
+
+        Returns:
+            list of Datastet: n datasets
+        """
+        n = int(n)
+
+        # event-related qtes
+        r0s = np.array_split(self.r0s, n)
+        mts = np.array_split(self.mts, n)
+        nrs = np.array_split(self.nrs, n)
+        eqlats = np.array_split(self.eqlats, n)
+        eqlons = np.array_split(self.eqlons, n)
+        events = np.array_split(self.events, n)
+        event_indices = np.array_split(np.arange(len(self.events),
+                                                 dtype='int'), n)
+
+        # record-related qtes
+        rec_indices = [(self.get_bounds_from_event_index(ievs[0])[0],
+                        self.get_bounds_from_event_index(ievs[-1])[1])
+                       for ievs in event_indices]
+        ll = 0
+        lats = [self.lats[i0:i1] for i0, i1 in rec_indices]
+        lons = [self.lons[i0:i1] for i0, i1 in rec_indices]
+        phis = [self.phis[i0:i1] for i0, i1 in rec_indices]
+        thetas = [self.thetas[i0:i1] for i0, i1 in rec_indices]
+        stations = [self.stations[i0:i1] for i0, i1 in rec_indices]
+
+        if self.data is not None:
+            data = [self.data[:, :, i0:i1, :] for i0, i1 in rec_indices]
+        else:
+            data = np.repeat(None, n)
+        return [
+            Dataset(
+                lats[i], lons[i], phis[i], thetas[i], eqlats[i], eqlons[i],
+                r0s[i], mts[i], nrs[i], stations[i], events[i], data[i],
+                self.sampling_hz, self.is_cut
+            )
+            for i in range(n)
+        ]
+
     def apply_windows(
             self, windows, n_phase, npts_max, buffer=0.,
             t_before_noise=100., inplace=True):

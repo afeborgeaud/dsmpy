@@ -24,6 +24,8 @@ import time
 import functools
 import warnings
 
+from sqlalchemy.sql.functions import rank
+
 default_params = dict(
     re=0.01, ratc=1e-10, ratl=1e-5, omegai=0.0014053864092981234)
 
@@ -1194,6 +1196,15 @@ def compute_dataset_parallel(
     n_cores = comm.Get_size()
 
     if rank == 0:
+        all_outputs = []
+        n_datasets = int(np.ceil(len(dataset.events) / n_cores))
+        datasets = dataset.split(n_datasets)
+    else:
+        all_outputs = None
+        n_datasets = None
+    n_datasets = comm.bcast(n_datasets, root=0)
+
+    if rank == 0:
         scalar_dict = dict(default_params)
         scalar_dict.update(tish_parameters)
         scalar_dict['tlen'] = tlen
@@ -1256,168 +1267,180 @@ def compute_dataset_parallel(
     comm.Bcast(vrmin, root=0)
     comm.Bcast(vrmax, root=0)
 
-    if rank == 0:
-        sendcounts_sta, displacements_sta = dataset.get_chunks_station(
-            n_cores, verbose=verbose)
-        sendcounts_eq, displacements_eq = dataset.get_chunks_eq(n_cores)
-        sendcounts_mt, displacements_mt = dataset.get_chunks_mt(n_cores)
-        lons = dataset.lons
-        lats = dataset.lats
-        phis = dataset.phis
-        thetas = dataset.thetas
-        eqlats = dataset.eqlats
-        eqlons = dataset.eqlons
-        r0s = dataset.r0s
-        mts = np.array([mt.to_array() for mt in dataset.mts])
-    else:
-        sendcounts_sta = None
-        displacements_sta = None
-        sendcounts_eq = None
-        displacements_eq = None
-        sendcounts_mt = None
-        displacements_mt = None
-        lons = None
-        lats = None
-        phis = None
-        thetas = None
-        eqlats = None
-        eqlons = None
-        r0s = None
-        mts = None
-
-    nr = np.empty(1, dtype=np.int64)
-    comm.Scatter(sendcounts_sta, nr, root=0)
-
-    if scalar_dict['verbose'] >= 1:
-        if log:
-            log.write('rank {}: nr={}\n'.format(rank, nr))
+    for id in range(n_datasets):
+        if rank == 0:
+            sendcounts_sta, displacements_sta = datasets[
+                id].get_chunks_station(
+                n_cores, verbose=verbose)
+            sendcounts_eq, displacements_eq = datasets[id].get_chunks_eq(
+                n_cores)
+            sendcounts_mt, displacements_mt = datasets[id].get_chunks_mt(
+                n_cores)
+            lons = datasets[id].lons
+            lats = datasets[id].lats
+            phis = datasets[id].phis
+            thetas = datasets[id].thetas
+            eqlats = datasets[id].eqlats
+            eqlons = datasets[id].eqlons
+            r0s = datasets[id].r0s
+            mts = np.array([mt.to_array() for mt in datasets[id].mts])
         else:
-            print('rank {}: nr={}'.format(rank, nr))
+            sendcounts_sta = None
+            displacements_sta = None
+            sendcounts_eq = None
+            displacements_eq = None
+            sendcounts_mt = None
+            displacements_mt = None
+            lons = None
+            lats = None
+            phis = None
+            thetas = None
+            eqlats = None
+            eqlons = None
+            r0s = None
+            mts = None
 
-    lon_local = np.empty(nr, dtype=np.float64)
-    lat_local = np.empty(nr, dtype=np.float64)
-    phi_local = np.empty(nr, dtype=np.float64)
-    theta_local = np.empty(nr, dtype=np.float64)
-    eqlon = np.empty((), np.float64)
-    eqlat = np.empty((), np.float64)
-    r0 = np.empty((), np.float64)
-    mt = np.empty((3, 3), np.float64)
+        nr = np.empty(1, dtype=np.int64)
+        comm.Scatter(sendcounts_sta, nr, root=0)
 
-    # stations
-    comm.Scatterv(
-        [lons, sendcounts_sta, displacements_sta, MPI.DOUBLE],
-        lon_local, root=0)
-    comm.Scatterv(
-        [lats, sendcounts_sta, displacements_sta, MPI.DOUBLE],
-        lat_local, root=0)
-    comm.Scatterv(
-        [phis, sendcounts_sta, displacements_sta, MPI.DOUBLE],
-        phi_local, root=0)
-    comm.Scatterv(
-        [thetas, sendcounts_sta, displacements_sta, MPI.DOUBLE],
-        theta_local, root=0)
-    # events
-    comm.Scatterv(
-        [eqlats, sendcounts_eq, displacements_eq, MPI.DOUBLE],
-        eqlat, root=0)
-    comm.Scatterv(
-        [eqlons, sendcounts_eq, displacements_eq, MPI.DOUBLE],
-        eqlon, root=0)
-    comm.Scatterv(
-        [r0s, sendcounts_eq, displacements_eq, MPI.DOUBLE],
-        r0, root=0)
-    # mts
-    comm.Scatterv(
-        [mts, sendcounts_mt, displacements_mt, MPI.DOUBLE],
-        mt, root=0)
+        if scalar_dict['verbose'] >= 1:
+            if log:
+                log.write('rank {}: nr={}\n'.format(rank, nr))
+            else:
+                print('rank {}: nr={}'.format(rank, nr))
 
-    lat_local = np.pad(lat_local, (0, scalar_dict['maxnr'] - nr[0]),
-                       mode='constant', constant_values=0)
-    lon_local = np.pad(lon_local, (0, scalar_dict['maxnr'] - nr[0]),
-                       mode='constant', constant_values=0)
-    phi_local = np.pad(phi_local, (0, scalar_dict['maxnr'] - nr[0]),
-                       mode='constant', constant_values=0)
-    theta_local = np.pad(theta_local, (0, scalar_dict['maxnr'] - nr[0]),
-                         mode='constant', constant_values=0)
+        lon_local = np.empty(nr, dtype=np.float64)
+        lat_local = np.empty(nr, dtype=np.float64)
+        phi_local = np.empty(nr, dtype=np.float64)
+        theta_local = np.empty(nr, dtype=np.float64)
+        eqlon = np.empty((), np.float64)
+        eqlat = np.empty((), np.float64)
+        r0 = np.empty((), np.float64)
+        mt = np.empty((3, 3), np.float64)
 
-    scalar_dict['nr'] = nr[0]
-    scalar_dict['eqlat'] = eqlat
-    scalar_dict['eqlon'] = eqlon
-    scalar_dict['r0'] = r0
-    input_local = DSMInput.input_from_dict_and_arrays(
-        scalar_dict, vrmin, vrmax, rho, vpv, vph,
-        vsv, vsh, eta, qmu, qkappa, mt, lat_local,
-        lon_local, phi_local, theta_local)
+        # stations
+        comm.Scatterv(
+            [lons, sendcounts_sta, displacements_sta, MPI.DOUBLE],
+            lon_local, root=0)
+        comm.Scatterv(
+            [lats, sendcounts_sta, displacements_sta, MPI.DOUBLE],
+            lat_local, root=0)
+        comm.Scatterv(
+            [phis, sendcounts_sta, displacements_sta, MPI.DOUBLE],
+            phi_local, root=0)
+        comm.Scatterv(
+            [thetas, sendcounts_sta, displacements_sta, MPI.DOUBLE],
+            theta_local, root=0)
+        # events
+        comm.Scatterv(
+            [eqlats, sendcounts_eq, displacements_eq, MPI.DOUBLE],
+            eqlat, root=0)
+        comm.Scatterv(
+            [eqlons, sendcounts_eq, displacements_eq, MPI.DOUBLE],
+            eqlon, root=0)
+        comm.Scatterv(
+            [r0s, sendcounts_eq, displacements_eq, MPI.DOUBLE],
+            r0, root=0)
+        # mts
+        comm.Scatterv(
+            [mts, sendcounts_mt, displacements_mt, MPI.DOUBLE],
+            mt, root=0)
 
-    start_time = time.time()
-    if scalar_dict['mode'] == 0:
-        spcs_local = _tipsv(
-            *input_local.get_inputs_for_tipsv(),
-            write_to_file=False)
-        spcs_local += _tish(
-            *input_local.get_inputs_for_tish(),
-            write_to_file=False)
-    elif scalar_dict['mode'] == 1:
-        spcs_local = _tipsv(
-            *input_local.get_inputs_for_tipsv(),
-            write_to_file=False)
-    else:
-        spcs_local = _tish(
-            *input_local.get_inputs_for_tish(),
-            write_to_file=False)
-    end_time = time.time()
-    if log:
-        log.write('rank {}: {} paths finished in {} s\n'
+        lat_local = np.pad(lat_local, (0, scalar_dict['maxnr'] - nr[0]),
+                           mode='constant', constant_values=0)
+        lon_local = np.pad(lon_local, (0, scalar_dict['maxnr'] - nr[0]),
+                           mode='constant', constant_values=0)
+        phi_local = np.pad(phi_local, (0, scalar_dict['maxnr'] - nr[0]),
+                           mode='constant', constant_values=0)
+        theta_local = np.pad(theta_local, (0, scalar_dict['maxnr'] - nr[0]),
+                             mode='constant', constant_values=0)
+
+        scalar_dict['nr'] = nr[0]
+        scalar_dict['eqlat'] = eqlat
+        scalar_dict['eqlon'] = eqlon
+        scalar_dict['r0'] = r0
+        input_local = DSMInput.input_from_dict_and_arrays(
+            scalar_dict, vrmin, vrmax, rho, vpv, vph,
+            vsv, vsh, eta, qmu, qkappa, mt, lat_local,
+            lon_local, phi_local, theta_local)
+
+        start_time = time.time()
+        if scalar_dict['mode'] == 0:
+            spcs_local = _tipsv(
+                *input_local.get_inputs_for_tipsv(),
+                write_to_file=False)
+            spcs_local += _tish(
+                *input_local.get_inputs_for_tish(),
+                write_to_file=False)
+        elif scalar_dict['mode'] == 1:
+            spcs_local = _tipsv(
+                *input_local.get_inputs_for_tipsv(),
+                write_to_file=False)
+        else:
+            spcs_local = _tish(
+                *input_local.get_inputs_for_tish(),
+                write_to_file=False)
+        end_time = time.time()
+        if log:
+            log.write('rank {}: {} paths finished in {} s\n'
+                      .format(rank, input_local.nr, end_time - start_time))
+        elif scalar_dict['verbose'] >= 1:
+            print('rank {}: {} paths finished in {} s'
                   .format(rank, input_local.nr, end_time - start_time))
-    elif scalar_dict['verbose'] >= 1:
-        print('rank {}: {} paths finished in {} s'
-              .format(rank, input_local.nr, end_time - start_time))
 
-    # TODO change the order of outputu in DSM 
-    # to have nr as the last dimension
-    spcs_local = np.array(
-        spcs_local.transpose(0, 2, 1), order='F', dtype=np.complex128)
+        # TODO change the order of outputu in DSM
+        # to have nr as the last dimension
+        spcs_local = np.array(
+            spcs_local.transpose(0, 2, 1), order='F', dtype=np.complex128)
+
+        if rank == 0:
+            nspc = scalar_dict['nspc']
+            spcs_gathered = np.empty((3, nspc + 1, datasets[id].nr),
+                                     dtype=np.complex128, order='F')
+        else:
+            spcs_gathered = None
+
+        if rank == 0:
+            counts_spcs = tuple([3 * size * (nspc + 1)
+                                 for size in sendcounts_sta])
+            displacements_spcs = tuple([3 * i * (nspc + 1)
+                                        for i in displacements_sta])
+        else:
+            counts_spcs = None
+            displacements_spcs = None
+
+        comm.Barrier()
+        comm.Gatherv(spcs_local,
+                     [spcs_gathered, counts_spcs, displacements_spcs,
+                      MPI.C_DOUBLE_COMPLEX],
+                     root=0)
+
+        if rank == 0:
+            splits = datasets[id].nrs.cumsum()
+            splits = np.concatenate([[0], splits])
+            outputs = []
+            for i in range(len(splits) - 1):
+                start, end = splits[i], splits[i + 1]
+                output = PyDSMOutput(
+                    spcs_gathered[:, :, start:end].transpose(0, 2, 1),
+                    datasets[id].stations[start:end],
+                    datasets[id].events[i],
+                    scalar_dict['sampling_hz'],
+                    scalar_dict['tlen'],
+                    scalar_dict['nspc'],
+                    scalar_dict['omegai'])
+                outputs.append(output)
+
+            all_outputs.append(outputs)
+        else:
+            outputs = None
+        comm.Barrier()
 
     if rank == 0:
-        nspc = scalar_dict['nspc']
-        spcs_gathered = np.empty((3, nspc + 1, dataset.nr),
-                                 dtype=np.complex128, order='F')
-    else:
-        spcs_gathered = None
-
-    if rank == 0:
-        counts_spcs = tuple([3 * size * (nspc + 1)
-                             for size in sendcounts_sta])
-        displacements_spcs = tuple([3 * i * (nspc + 1)
-                                    for i in displacements_sta])
-    else:
-        counts_spcs = None
-        displacements_spcs = None
-
-    comm.Barrier()
-    comm.Gatherv(spcs_local,
-                 [spcs_gathered, counts_spcs, displacements_spcs,
-                  MPI.C_DOUBLE_COMPLEX],
-                 root=0)
-
-    if rank == 0:
-        splits = dataset.nrs.cumsum()
-        splits = np.concatenate([[0], splits])
-        outputs = []
-        for i in range(len(splits) - 1):
-            start, end = splits[i], splits[i + 1]
-            output = PyDSMOutput(
-                spcs_gathered[:, :, start:end].transpose(0, 2, 1),
-                dataset.stations[start:end],
-                dataset.events[i],
-                scalar_dict['sampling_hz'],
-                scalar_dict['tlen'],
-                scalar_dict['nspc'],
-                scalar_dict['omegai'])
-            outputs.append(output)
+        outputs = [output for outputs in all_outputs
+            for output in outputs]
     else:
         outputs = None
-    comm.Barrier()
 
     return outputs
 
