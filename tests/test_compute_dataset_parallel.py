@@ -16,7 +16,7 @@ def test_compute_models_parallel():
     rank = comm.Get_rank()
 
     # Set the SAC file paths
-    sac_files = list(glob.iglob(os.path.join(root_sac, '*2017*T')))
+    sac_files = list(glob.iglob(os.path.join(root_sac, '*T')))
 
     # Create the dataset
     dataset = Dataset.dataset_from_sac(sac_files, headonly=False)
