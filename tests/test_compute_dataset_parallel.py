@@ -2,7 +2,7 @@ from dsmpy import dsm, rootdsm_psv
 from dsmpy.dataset import Dataset
 from dsmpy.seismicmodel import SeismicModel
 from dsmpy.component import Component
-from dsmpy import root_sac
+from dsmpy import root_sac, root_sac_2
 import os
 import numpy as np
 import time
@@ -16,7 +16,7 @@ def test_compute_models_parallel():
     rank = comm.Get_rank()
 
     # Set the SAC file paths
-    sac_files = list(glob.iglob(os.path.join(root_sac, '*T')))
+    sac_files = list(glob.iglob(os.path.join(root_sac_2, '*T')))
 
     # Create the dataset
     dataset = Dataset.dataset_from_sac(sac_files, headonly=False)
@@ -37,7 +37,8 @@ def test_compute_models_parallel():
         dataset, models[0], tlen, nspc, sampling_hz, mode)
 
     if rank == 0:
-        assert np.allclose(outputs_1[0][0].spcs, outputs_2[0].spcs)
+        for iev in range(len(dataset.events)):
+            assert np.allclose(outputs_1[0][iev].spcs, outputs_2[iev].spcs)
 
 if __name__ == '__main__':
     test_compute_models_parallel()

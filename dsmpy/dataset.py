@@ -452,8 +452,8 @@ class Dataset:
         eqlats = np.array_split(self.eqlats, n)
         eqlons = np.array_split(self.eqlons, n)
         events = np.array_split(self.events, n)
-        event_indices = np.array_split(np.arange(len(self.events),
-                                                 dtype='int'), n)
+        event_indices = np.array_split(
+            np.arange(len(self.events), dtype='int'), n)
 
         # record-related qtes
         rec_indices = [(self.get_bounds_from_event_index(ievs[0])[0],
@@ -559,7 +559,7 @@ class Dataset:
             return None
 
     def get_chunks_station(self, n_cores, verbose=0):
-        chunk_size = self.nr // n_cores
+        chunk_size = np.ceil(self.nr / n_cores)
         dividers = self.nrs / chunk_size
         dividers = Dataset._round_dividers(dividers, n_cores)
         assert np.sum(dividers) == n_cores
@@ -579,7 +579,7 @@ class Dataset:
         return counts, displacements
 
     def get_chunks_eq(self, n_cores):
-        chunk_size = self.nr // n_cores
+        chunk_size = np.ceil(self.nr / n_cores)
         dividers = self.nrs / chunk_size
         dividers = Dataset._round_dividers(dividers, n_cores)
         assert np.sum(dividers) == n_cores
@@ -751,7 +751,7 @@ class Dataset:
     
     @staticmethod
     def _round_dividers(dividers, n_cores):
-        dividers_rounded = np.round(dividers).astype(np.int64)
+        dividers_rounded = np.floor(dividers).astype(np.int64)
         if np.sum(dividers_rounded) < n_cores:
             dividers_fixed = np.where(
                 dividers_rounded == 0, 1, dividers_rounded)
