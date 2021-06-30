@@ -783,7 +783,7 @@ class Dataset:
         splits[-1] = size - (n-1) * int(chunk_size)
         return splits
 
-def filter_sac_files(sac_files, f):
+def filter_sac_files(sac_files, f) -> list:
     """Filter sac files using the boolean function f.
 
     Args:
@@ -798,6 +798,7 @@ def filter_sac_files(sac_files, f):
               for sac_file in sac_files]
 
     x = lambda tr: (get_event_id(tr), get_station(tr))
+    l = list(map(x, traces))
     mask = list(map(f, list(map(x, traces))))
 
     sac_files_filt = [sac_file for i, sac_file in enumerate(sac_files)

@@ -114,17 +114,73 @@ class WindowMaker:
         return windows
 
     @staticmethod
-    def set_limit(windows, t_before, t_after):
+    def trim_windows(windows, windows_trim):
+        """Trim windows using windows_trim. Used to exclude specific
+        phases from windows.
+
+        Args:
+            windows (list of Window):
+            windows_trim (list of Window):
+
+        Returns:
+            list of Window: trimmed time windows
+
+        """
+        trimmed_windows = []
+        for window in windows:
+            filt_window_trim = [
+                w for w in windows_trim
+                if (w.event == window.event
+                    and w.station == window.station
+                    and window.overlap(w))
+            ]
+            window_arr = window.to_array()
+            dt0s = [window_arr[0] - w.to_array()[1]
+                       for w in filt_window_trim
+                       if w.to_array()[0] < window_arr[0] < w.to_array()[1]
+                    ]
+            dt1s = [w.to_array()[0] - window_arr[1]
+                       for w in filt_window_trim
+                       if (window_arr[1] > w.to_array()[0] > window_arr[0])
+                    ]
+            dt0 = min(dt0s) if len(dt0s) > 0 else 0
+            dt1 = min(dt1s) if len(dt1s) > 0 else 0
+            t_before_trimmed = window.t_before + dt0
+            t_after_trimmed = window.t_after + dt1
+
+            if (t_before_trimmed >= 0 and t_after_trimmed > 0):
+                trimmed_windows.append(
+                    Window(
+                        window.travel_time, window.event, window.station,
+                        window.phase_name, window.component, t_before_trimmed,
+                        t_after_trimmed, window.t_shift
+                    )
+                )
+        return trimmed_windows
+
+
+    @staticmethod
+    def set_limit(windows, t_before, t_after, inplace=True):
         """Set t_before and t_after for all window in windows.
         
         Args:
             windows (list of Windows): time windows
             t_before (float): time before arrival (in seconds)
             t_after (float): time after arrival (in seconds)
+            inplace (bool): if True, modifies windows in-place,
+                else returns a modified copy of windows.
         """
-        for i in range(len(windows)):
-            windows[i].t_before = t_before
-            windows[i].t_after = t_after
+        if inplace:
+            for i in range(len(windows)):
+                windows[i].t_before = t_before
+                windows[i].t_after = t_after
+        else:
+            return [
+                Window(window.travel_time, window.event, window.station,
+                       window.phase_name, window.component,
+                       t_before, t_after)
+                for window in windows
+            ]
 
     @staticmethod
     def save(path, windows):
