@@ -205,6 +205,10 @@ class Dataset:
             traces = [read(sac_file, headonly=True)[0]
                       for sac_file in sac_files]
 
+        cat = read_catalog()
+        traces = [tr for tr in traces
+                  if (cat == tr.stats.sac.kevnm).any()]
+
         sampling_hz = int(traces[0].stats.sampling_rate)
 
         lats_ = []
@@ -269,7 +273,6 @@ class Dataset:
 
         # read event catalog
         # TODO case when event_id is not in the catalog
-        cat = read_catalog()
         events_ = cat[np.isin(cat, evids)]
         if len(events_) != len(evids):
             raise RuntimeError('Some events not in the catalog')
