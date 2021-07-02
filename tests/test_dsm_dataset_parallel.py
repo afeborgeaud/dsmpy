@@ -62,8 +62,7 @@ if __name__ == '__main__':
         print('DSM on {} cores finished in {} s'
               .format(n_cores, end_time - start_time))
 
-    if rank == 0 :
-
+    if rank == 0:
         fig, ax = outputs2[0].plot_component(Component.T, color='black')
         # plt.show()
         _, ax = outputs[0].plot_component(Component.T, ax=ax, color='red')

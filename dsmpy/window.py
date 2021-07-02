@@ -40,12 +40,24 @@ class Window:
     def get_length(self):
         return self.t_before + self.t_after
     
-    def to_array(self):
-        '''Returns an ndarray [t_start, t_end].'''
-        return np.array(
+    def to_array(self, shift=False):
+        """Returns an ndarray [t_start, t_end].
+
+        Args:
+            shift (bool): if True, add the time shift to the window
+                (default is True)
+
+        Returns:
+            np.ndarray: [time_start, time_end]
+
+        """
+        arr = np.array(
             [self.travel_time - self.t_before,
              self.travel_time + self.t_after],
-             dtype=np.float32) + self.t_shift
+             dtype=np.float32)
+        if shift:
+            arr = arr + self.t_shift
+        return arr
 
     def overlap(self, other) -> bool:
         """Returns True if self overlap with  other."""

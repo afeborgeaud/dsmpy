@@ -102,7 +102,7 @@ def get_XY(
                             - output_minus.us[icomp, jsta, i_start:i_end]
                         ) / (dxs[imod] - dxs[imod + n_params])
                         data_cut = dataset.data[
-                                   iwin, icomp, ista, :]
+                                   iwin, icomp, ista, :i_end - i_start]
                         grad_u /= np.abs(data_cut).max()
                         x_imod.append(grad_u[::sample_skip])
 
@@ -130,12 +130,12 @@ def get_XY(
                     i_end = int(window_arr[1] * dataset.sampling_hz)
                     ref_u = ref_output.us[icomp, jsta, i_start:i_end]
                     data_cut = dataset.data[
-                        iwin, icomp, ista, :]
+                        iwin, icomp, ista, :i_end - i_start]
 
-                    # plt.plot(ref_u, label='ref')
-                    # plt.plot(data_cut)
-                    # plt.legend()
-                    # plt.show()
+                    plt.plot(ref_u, label='ref')
+                    plt.plot(data_cut)
+                    plt.legend()
+                    plt.show()
 
                     residual = data_cut - ref_u
                     residual /= np.abs(data_cut).max()

@@ -174,7 +174,9 @@ class Dataset:
 
     @classmethod
     def dataset_from_sac(
-            cls, sac_files, verbose=0, headonly=True):
+            cls, sac_files, verbose=0, headonly=True,
+            broadcast_data=False
+    ):
         """Creates a dataset from a list of sac files.
         With headonly=False, time series data from the sac_files
         will be stored in self.data.
@@ -188,6 +190,7 @@ class Dataset:
             verbose (int): 0: quiet, 1: debug.
             headonly (bool): if True, read only the metadata.
                 If False, includes data.
+            broadcast_data (bool): default is False
 
         Returns:
             Dataset: dataset
@@ -198,7 +201,8 @@ class Dataset:
             ...        sac_files, headonly=False)
 
         """
-        if MPI.COMM_WORLD.Get_rank() == 0:
+
+        if MPI.COMM_WORLD.Get_rank() == 0 or broadcast_data:
             traces = [read(sac_file, headonly=headonly)[0]
                       for sac_file in sac_files]
         else:
@@ -232,7 +236,7 @@ class Dataset:
             eqlons_.append(tr.stats.sac.evlo)
             eqdeps_.append(tr.stats.sac.evdp)
             evids_.append(tr.stats.sac.kevnm)
-            if MPI.COMM_WORLD.Get_rank() == 0:
+            if MPI.COMM_WORLD.Get_rank() == 0 or broadcast_data:
                 data_.append(tr.data)
             components_.append(tr.stats.sac.kcmpnm)
         
@@ -296,7 +300,7 @@ class Dataset:
         lons = dataset_info.lons.values
         lats = dataset_info.lats.values
 
-        if MPI.COMM_WORLD.Get_rank() == 0:
+        if MPI.COMM_WORLD.Get_rank() == 0 or broadcast_data:
             npts = np.array([len(d) for d in data_], dtype=int).max()
             data_arr = np.zeros((1, 3, nr, npts), dtype=DATA_FLOAT_PREC)
             for ista in range(len(dataset_info.indices.values)):
@@ -335,7 +339,7 @@ class Dataset:
                     if n_tmp < npts:
                         tmp_data = np.pad(
                             data_[i],
-                            (0,npts-n_tmp), mode='constant',
+                            (0, npts-n_tmp), mode='constant',
                             constant_values=(0,0))
                         data_arr[0, icomp, j] = tmp_data
                     else:
@@ -352,7 +356,7 @@ class Dataset:
     def dataset_from_sac_process(
             cls, sac_files, windows,
             freq, freq2, filter_type='bandpass',
-            verbose=0):
+            shift=True, verbose=0):
         """Creates a dataset from a list of sac files.
         Data are read from sac files, cut using the time windows,
         and stored in self.data. The sac file data are read and cut
@@ -374,6 +378,8 @@ class Dataset:
             freq2 (float): maximum filter frequency
             filter_type (str): 'bandpass' or 'lowpass'
                 (default is 'bandpass')
+            shift (bool): use the time shift coded into time windows
+                (default is True)
             verbose (int): 0: quiet, 1: debug.
 
         Returns:
@@ -398,7 +404,7 @@ class Dataset:
                 npts_max = int(
                         max([w.get_length() for w in windows]) *
                         ds.sampling_hz)
-                ds.apply_windows(windows, n_phases, npts_max)
+                ds.apply_windows(windows, n_phases, npts_max, shift=shift)
             else:
                 ds_tmp = Dataset.dataset_from_sac(
                         files, verbose=verbose, headonly=False)
@@ -408,7 +414,7 @@ class Dataset:
                 npts_max = int(
                     max([w.get_length() for w in windows]) *
                     ds.sampling_hz)
-                ds_tmp.apply_windows(windows, n_phases, npts_max)
+                ds_tmp.apply_windows(windows, n_phases, npts_max, shift=shift)
                 ds.append(ds_tmp)
 
         return ds
@@ -484,7 +490,7 @@ class Dataset:
 
     def apply_windows(
             self, windows, n_phase, npts_max, buffer=0.,
-            t_before_noise=100., inplace=True):
+            t_before_noise=100., inplace=True, shift=True):
         """Cut the data using provided windows.
 
         Args:
@@ -496,6 +502,8 @@ class Dataset:
             t_before_noise (float): default is 50.
             inplace (bool): if True, performs the operation in-place
                 (i.e., modifies self.data)
+            shift (bool): use the time shift coded into time windows
+                (default is True).
 
         Returns:
             Dataset: if inplace is True, else None.
@@ -509,7 +517,7 @@ class Dataset:
             ds = self
         npts_buffer = int(buffer * ds.sampling_hz)
         data_cut = np.zeros(
-            (n_phase, 3, ds.nr, npts_max+2*npts_buffer),
+            (n_phase, 3, ds.nr, npts_max+1+2*npts_buffer),
             dtype=DATA_FLOAT_PREC)
         ds.ts_start_end = np.zeros((n_phase, ds.nr, 2), dtype=DATA_FLOAT_PREC)
         ds.noise = np.zeros((n_phase, 3, ds.nr), dtype=DATA_FLOAT_PREC)
@@ -539,16 +547,16 @@ class Dataset:
                 # windows_filt = windows_filt_onecomponent
 
                 for iwin, window in enumerate(windows_filt):
-                    window_arr = window.to_array()
+                    window_arr = window.to_array(shift=shift)
                     i_start = int((window_arr[0] - buffer) * ds.sampling_hz)
                     i_end = int((window_arr[1] + buffer) * ds.sampling_hz)
-                    data_cut[iwin, :, ista, :] = ds.data[0, :,
+                    data_cut[iwin, :, ista, :i_end - i_start] = ds.data[0, :,
                         ista, i_start:i_end]
                     ds.ts_start_end[iwin, ista] = window_arr
                     # compute noise
                     i_end_noise = (i_start
-                        - int(t_before_noise*ds.sampling_hz))
-                    i_start_noise = (i_end_noise - (i_end-i_start))
+                                   - int(t_before_noise * ds.sampling_hz))
+                    i_start_noise = (i_end_noise - (i_end - i_start))
                     noise_tr = ds.data[0, :, ista, i_start_noise:i_end_noise]
                     noise = np.sqrt(
                         np.sum(noise_tr**2, axis=1) / noise_tr.shape[1])
@@ -692,7 +700,7 @@ class Dataset:
     def plot_event(
             self, ievent, windows=None, align_zero=False,
             component=Component.T, ax=None,
-            dist_min=0, dist_max=360, **kwargs):
+            dist_min=0, dist_max=360, shift=True, **kwargs):
         """Plot a record section for event ievent.
 
         Args:
@@ -705,7 +713,8 @@ class Dataset:
                 (default is Component.T)
             ax (Axes): matplotlib Axes object
             dist_min (float): minimum epicentral distance (default is 0)
-            dist_max (float) maximum epicentral distances (default is 360)
+            dist_max (float): maximum epicentral distances (default is 360)
+            shift (bool): use shift coded into time windows (default is True)
             **kwargs: key-value arguments for the pyplot.plot function
 
         Returns:
@@ -733,7 +742,7 @@ class Dataset:
                     windows))
                 if not windows_tmp:
                     continue
-                window = windows_tmp[0].to_array()
+                window = windows_tmp[0].to_array(shift=shift)
                 i0 = int(window[0] * self.sampling_hz)
                 i1 = int(window[1] * self.sampling_hz)
 
@@ -785,6 +794,22 @@ class Dataset:
         splits.fill(int(chunk_size))
         splits[-1] = size - (n-1) * int(chunk_size)
         return splits
+
+
+def read_sac_meta(sac_files: list) -> list:
+    """
+
+    Args:
+        sac_files (list of str): list of paths to SAC files
+
+    Returns:
+        list of tuple: list of tuples (sac_file, trace)
+
+    """
+    traces = [read(sac_file, headonly=True)[0]
+              for sac_file in sac_files]
+    return list(zip(sac_files, traces))
+
 
 def filter_sac_files(sac_files, f) -> list:
     """Filter sac files using the boolean function f.

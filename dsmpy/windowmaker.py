@@ -137,11 +137,13 @@ class WindowMaker:
             window_arr = window.to_array()
             dt0s = [window_arr[0] - w.to_array()[1]
                        for w in filt_window_trim
-                       if w.to_array()[0] < window_arr[0] < w.to_array()[1]
+                       if (w.to_array()[0] < window_arr[0]
+                           < w.to_array()[1])
                     ]
             dt1s = [w.to_array()[0] - window_arr[1]
                        for w in filt_window_trim
-                       if (window_arr[1] > w.to_array()[0] > window_arr[0])
+                       if (window_arr[1] > w.to_array()[0]
+                           > window_arr[0])
                     ]
             dt0 = min(dt0s) if len(dt0s) > 0 else 0
             dt1 = min(dt1s) if len(dt1s) > 0 else 0
