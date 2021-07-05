@@ -387,11 +387,11 @@ class Dataset:
 
         """
 
-        traces = [read(sac_file, headonly=True)[0]
-                  for sac_file in sac_files]
+        traces_filt, sac_files_filt, windows_filt = read_sac_from_windows(
+            sac_files, windows, headonly=True)
 
         sac_files_by_event = defaultdict(list)
-        for sac_file, trace in zip(sac_files, traces):
+        for sac_file, trace in zip(sac_files_filt, traces_filt):
             sac_files_by_event[trace.stats.sac.kevnm].append(sac_file)
 
         for i, (event_id, files) in enumerate(sac_files_by_event.items()):
@@ -400,21 +400,23 @@ class Dataset:
                     files, verbose=verbose, headonly=False)
                 ds.filter(freq, freq2, filter_type)
                 n_phases = len(set(
-                    [(w.phase_name, w.component) for w in windows]))
+                    [(w.phase_name, w.component) for w in windows_filt]))
                 npts_max = int(
-                        max([w.get_length() for w in windows]) *
+                        max([w.get_length() for w in windows_filt]) *
                         ds.sampling_hz)
-                ds.apply_windows(windows, n_phases, npts_max, shift=shift)
+                ds.apply_windows(
+                    windows_filt, n_phases, npts_max, shift=shift)
             else:
                 ds_tmp = Dataset.dataset_from_sac(
                         files, verbose=verbose, headonly=False)
                 ds_tmp.filter(freq, freq2, filter_type)
                 n_phases = len(set(
-                    [(w.phase_name, w.component) for w in windows]))
+                    [(w.phase_name, w.component) for w in windows_filt]))
                 npts_max = int(
-                    max([w.get_length() for w in windows]) *
+                    max([w.get_length() for w in windows_filt]) *
                     ds.sampling_hz)
-                ds_tmp.apply_windows(windows, n_phases, npts_max, shift=shift)
+                ds_tmp.apply_windows(
+                    windows_filt, n_phases, npts_max, shift=shift)
                 ds.append(ds_tmp)
 
         return ds
@@ -686,7 +688,7 @@ class Dataset:
         if type == 'scardec':
             stf_catalog = STFCatalog.read_scardec()
         elif type == 'user':
-            if catalog_name is None:
+            if catalog_path is None:
                 raise ValueError(
                     'Expect a path to a catalog when type="user"')
             stf_catalog = STFCatalog.read_from_file(catalog_path)
@@ -796,8 +798,43 @@ class Dataset:
         return splits
 
 
-def read_sac_meta(sac_files: list) -> list:
+def read_sac_from_windows(
+        sac_files: list, windows: list, headonly=False) -> list:
     """
+
+    Args:
+        sac_files (list of str): paths to potential SAC files.
+            Only the files contained in windows will be read
+        windows (list of Window): time windows indicating which SAC
+            files should be read
+
+    Returns:
+        list of obspy traces: traces from SAC files contained in windows
+        list of str: SAC files contained in windows
+        windows: the windows which had SAC files
+
+    """
+    traces = [read(sac_file, headonly=headonly)[0]
+              for sac_file in sac_files]
+    traces_filt = []
+    windows_filt = []
+    sac_files_filt = []
+    for tr, sac_file in zip(traces, sac_files):
+        windows_tmp = [
+            w for w in windows
+            if (w.event.event_id == get_event_id(tr)
+                and w.station == get_station(tr))
+        ]
+        if windows_tmp:
+            traces_filt.append(tr)
+            sac_files_filt
+            windows_filt.extend(windows_tmp)
+    return traces_filt, sac_files_filt, windows_filt
+
+
+def read_sac_meta(sac_files: list) -> list:
+    """Return a list of obspy traces read from the sac files
+    without including waveform data.
 
     Args:
         sac_files (list of str): list of paths to SAC files
