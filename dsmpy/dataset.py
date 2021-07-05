@@ -827,7 +827,7 @@ def read_sac_from_windows(
         ]
         if windows_tmp:
             traces_filt.append(tr)
-            sac_files_filt
+            sac_files_filt.append(sac_file)
             windows_filt.extend(windows_tmp)
     return traces_filt, sac_files_filt, windows_filt
 
