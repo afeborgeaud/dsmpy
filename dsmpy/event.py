@@ -132,6 +132,9 @@ class Event:
     def __eq__(self, event_id):
         return self.event_id == event_id
 
+    def __hash__(self):
+        return hash(self.event_id)
+
 
 class MomentTensor:
     """Represent a point-source moment tensor.

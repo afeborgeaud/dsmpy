@@ -5,6 +5,7 @@ from dsmpy.component import Component
 import pickle
 from obspy.taup import TauPyModel
 import numpy as np
+from collections import defaultdict
 
 class WindowMaker:
     """Utility class to compute list of Windows.
@@ -12,7 +13,7 @@ class WindowMaker:
     """
 
     @staticmethod
-    def windows_from_obspy_traces(
+    def windows_from_obspy_trace(
             trace, model_name, phase_names,
             t_before=10., t_after=40.):
         event = Event(
@@ -32,6 +33,37 @@ class WindowMaker:
             event, [station], model_name, phase_names,
             [component], t_before, t_after)
         return windows
+
+
+    @staticmethod
+    def windows_from_obspy_traces(
+            traces, model_name, phase_names,
+            components, t_before=10., t_after=40.):
+        events = set()
+        stations = defaultdict(list)
+        for trace in traces:
+            event = Event(
+                trace.stats.sac.kevnm,
+                trace.stats.sac.evla,
+                trace.stats.sac.evlo,
+                trace.stats.sac.evdp,
+                None, None, None)
+            station = Station(
+                trace.stats.station,
+                trace.stats.network,
+                trace.stats.sac.stla,
+                trace.stats.sac.stlo)
+            events.add(event)
+            stations[event].append(station)
+
+        windows = []
+        for event in events:
+            tmp_windows = WindowMaker.compute(
+                event, stations[event], model_name, phase_names,
+                components, t_before, t_after)
+            windows += tmp_windows
+        return windows
+
 
     @staticmethod
     def windows_from_dataset(

@@ -6,6 +6,7 @@ from dsmpy.dataset import Dataset
 from dsmpy.dsm import compute_models_parallel
 from dsmpy import root_sac
 from pytomo.work.ca.params import get_dataset, get_model_syntest1_prem
+from pytomo.preproc.iterstack import find_best_shift
 import matplotlib.pyplot as plt
 import numpy as np
 import glob
@@ -15,12 +16,17 @@ from sklearn import linear_model
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+import logging
 
+# logging.basicConfig(
+#     level=logging.INFO, filename='sklearnutils.log', filemode='w')
 
 def get_XY(
         model, dataset, windows, tlen, nspc,
         freq, freq2, filter_type='bandpass',
-        sampling_hz=5, mode=0) -> (np.ndarray, np.ndarray):
+        sampling_hz=5, var=2.5, ratio=2.5, corr=0.,
+        phase_ref=None, buffer=10.,
+        mode=0) -> (np.ndarray, np.ndarray):
     """Compute the feature matrix X and target vector y to be used
     as input to scikit-learn linear models.
 
@@ -50,6 +56,17 @@ def get_XY(
         nspc (int): number of points in frequency domain for synthetics
         sampling_hz (int): sampling frequency of synthetics in time
             domain. Better to divide 20.
+        var (float): variance cutoff. Records with variance > var
+            will be excluded (default is 2.5).
+        ratio (float): amplitude ratio cutoff. Records with
+            1/(obs/syn) < ratio or obs/syn > ratio will be excluded
+            (default is 2.5).
+        corr (float): correlation coefficient cutoff. Records with
+            correlation < corr will be excluded (default is 0).
+        phase_ref (str): reference phase for static correction
+            (default is None).
+        buffer (float): time buffer in seconds for static
+            correction (default is 10).
         mode (int): commputation mode. 0: P-SV + SH, 1: P-SV, 2: SH
 
     Returns:
@@ -74,42 +91,11 @@ def get_XY(
         n_params = len(grad_models) // 2
         n_ev = len(dataset.events)
 
-        x = []
-        for imod in range(n_params):
-            x_imod = []
-            for iev in range(n_ev):
-                event = dataset.events[iev]
-                output_plus = grad_outputs[imod][iev]
-                output_minus = grad_outputs[imod + n_params][iev]
-                output_plus.filter(freq, freq2, filter_type)
-                output_minus.filter(freq, freq2, filter_type)
-                start, end = dataset.get_bounds_from_event_index(iev)
+        buffer_ = int(buffer * dataset.sampling_hz)
+        shift_dict = dict()
+        checked = set()
 
-                for ista in range(start, end):
-                    station = dataset.stations[ista]
-                    jsta = np.argwhere(output_plus.stations == station)[0][0]
-                    windows_filt = [
-                        window for window in windows
-                        if (window.station == station
-                            and window.event == event)]
-                    for iwin, window in enumerate(windows_filt):
-                        window_arr = window.to_array()
-                        icomp = window.component.value
-                        i_start = int(window_arr[0] * dataset.sampling_hz)
-                        i_end = int(window_arr[1] * dataset.sampling_hz)
-                        grad_u = (
-                            output_plus.us[icomp, jsta, i_start:i_end]
-                            - output_minus.us[icomp, jsta, i_start:i_end]
-                        ) / (dxs[imod] - dxs[imod + n_params])
-                        data_cut = dataset.data[
-                                   iwin, icomp, ista, :i_end - i_start]
-                        grad_u /= np.abs(data_cut).max()
-                        x_imod.append(grad_u[::sample_skip])
-
-                output_plus.free()
-                output_minus.free()
-            x.append(np.hstack(x_imod))
-
+        logging.info('Building y')
         y = []
         for iev in range(n_ev):
             event = dataset.events[iev]
@@ -123,33 +109,162 @@ def get_XY(
                     window for window in windows
                     if (window.station == station
                         and window.event == event)]
+
+                # shift window to maximize correlation
+                if phase_ref is not None:
+                    for iwin, window in enumerate(windows_filt):
+                        if window.phase_name == phase_ref:
+                            window_arr = window.to_array()
+                            icomp = window.component.value
+                            i_start = int(window_arr[0] * dataset.sampling_hz)
+                            i_end = int(window_arr[1] * dataset.sampling_hz)
+                            data_cut = dataset.data[
+                                       iwin, icomp, ista, :i_end - i_start]
+                            u_cut_buffer = ref_output.us[
+                                           icomp, jsta, i_start + buffer_:i_end - buffer_]
+                            shift, _ = find_best_shift(data_cut, u_cut_buffer, skip_freq=2)
+                            key = _get_shift_key(window, phase_ref)
+                            shift_dict[key] = shift
+
+                            # window_arr = window.to_array()
+                            # i_start_syn = int(window_arr[0] * dataset.sampling_hz) + buffer_
+                            # i_end_syn = int(window_arr[1] * dataset.sampling_hz) - buffer_
+                            # i_start_dat = shift_dict[key]
+                            # i_end_dat = i_start_dat + i_end_syn - i_start_syn
+                            # print(i_start_dat, i_end_dat)
+                            # u_cut = ref_output.us[
+                            #     icomp, jsta, i_start_syn:i_end_syn]
+                            # data_cut = dataset.data[
+                            #     iwin, icomp, ista, i_start_dat:i_end_dat]
+                            # plt.plot(u_cut, label='ref')
+                            # plt.plot(data_cut)
+                            # plt.legend()
+                            # plt.show()
+
                 for iwin, window in enumerate(windows_filt):
+                    if window.phase_name == phase_ref:
+                        continue
+                    key = _get_shift_key(window, phase_ref)
+                    if phase_ref is not None and key not in shift_dict:
+                        continue
+
                     window_arr = window.to_array()
-                    icomp = window.component.value
-                    i_start = int(window_arr[0] * dataset.sampling_hz)
-                    i_end = int(window_arr[1] * dataset.sampling_hz)
-                    ref_u = ref_output.us[icomp, jsta, i_start:i_end]
+                    i_start_syn = int(window_arr[0] * dataset.sampling_hz) + buffer_
+                    i_end_syn = int(window_arr[1] * dataset.sampling_hz) - buffer_
+                    i_start_dat = shift_dict[key]
+                    i_end_dat = i_start_dat + i_end_syn - i_start_syn
+                    ref_u = ref_output.us[
+                        icomp, jsta, i_start_syn:i_end_syn]
                     data_cut = dataset.data[
-                        iwin, icomp, ista, :i_end - i_start]
+                        iwin, icomp, ista, i_start_dat:i_end_dat]
 
-                    plt.plot(ref_u, label='ref')
-                    plt.plot(data_cut)
-                    plt.legend()
-                    plt.show()
+                    # plt.plot(ref_u, label='ref')
+                    # plt.plot(data_cut)
+                    # plt.legend()
+                    # plt.show()
 
-                    residual = data_cut - ref_u
-                    residual /= np.abs(data_cut).max()
-                    y.append(residual[::sample_skip])
+                    if check_data(data_cut, ref_u, var, corr, ratio):
+                        key = get_check_key(window)
+                        checked.add(key)
+                        residual = data_cut - ref_u
+                        residual /= np.abs(data_cut).max()
+                        y.append(residual[::sample_skip])
 
             ref_output.free()
+
+        logging.info('Building X')
+        x = []
+        for imod in range(n_params):
+            logging.info(f'model {imod}')
+            x_imod = []
+            for iev in range(n_ev):
+                event = dataset.events[iev]
+                output_plus = grad_outputs[imod][iev]
+                output_minus = grad_outputs[imod + n_params][iev]
+                output_plus.filter(freq, freq2, filter_type)
+                output_minus.filter(freq, freq2, filter_type)
+                start, end = dataset.get_bounds_from_event_index(iev)
+                for ista in range(start, end):
+                    station = dataset.stations[ista]
+                    jsta = np.argwhere(output_plus.stations == station)[0][0]
+                    windows_filt = [
+                        window for window in windows
+                        if (window.station == station
+                            and window.event == event)]
+
+                    for iwin, window in enumerate(windows_filt):
+                        if window.phase_name == phase_ref:
+                            continue
+                        key = _get_shift_key(window, phase_ref)
+                        if phase_ref is not None and key not in shift_dict:
+                            continue
+
+                        icomp = window.component.value
+                        window_arr = window.to_array()
+                        i_start_dat = shift_dict[key]
+                        i_end_dat = i_start_dat + i_end_syn - i_start_syn
+                        i_start_syn = int(window_arr[0] * dataset.sampling_hz) + buffer_
+                        i_end_syn = int(window_arr[1] * dataset.sampling_hz) - buffer_
+                        data_cut = dataset.data[
+                                   iwin, icomp, ista, i_start_dat:i_end_dat]
+
+                        check_key = get_check_key(window)
+                        if check_key in checked:
+                            grad_u = (
+                                output_plus.us[icomp, jsta, i_start_syn:i_end_syn]
+                                - output_minus.us[icomp, jsta, i_start_syn:i_end_syn]
+                            ) / (dxs[imod] - dxs[imod + n_params])
+                            grad_u /= np.abs(data_cut).max()
+                            x_imod.append(grad_u[::sample_skip])
+
+                output_plus.free()
+                output_minus.free()
+            x.append(np.hstack(x_imod))
 
         x = np.array(x).T
         y = np.hstack(y)
 
-        return x, y
+        return x, y, checked
     else:
-        return None, None
+        return None, None, None
 
+
+def _get_shift_key(window, phase_ref):
+    return str(window.station) + window.event.event_id + phase_ref
+
+def get_check_key(window):
+    return str(window.station) + window.event.event_id + window.phase_name + str(window.component)
+
+def misfits(data, syn):
+    """Returns variance, corr, ratio.
+    """
+    residual = data - syn
+    mean = np.mean(residual)
+    variance = np.dot(residual - mean, residual - mean)
+    if np.abs(data).max() > 0:
+        variance /= np.dot(data - data.mean(),
+                           data - data.mean())
+    else:
+        variance = np.nan
+    corr = np.corrcoef(data, syn)[0, 1]
+    if syn.max() > 0:
+        ratio = (data.max() - data.min()) / (
+                syn.max() - syn.min())
+    else:
+        ratio = np.nan
+    return variance, corr, ratio
+
+
+def check_data(data, syn, var, corr, ratio):
+    var_, corr_, ratio_ = misfits(data, syn)
+    return (
+            np.isfinite(var_)
+            and np.isfinite(corr_)
+            and np.isfinite(ratio_)
+            and var_ <= var
+            and corr_ >= corr
+            and 1 / ratio <= ratio_ <= ratio
+    )
 
 if __name__ == '__main__':
     types = [ParameterType.VSH]

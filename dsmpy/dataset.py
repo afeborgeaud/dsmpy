@@ -14,6 +14,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from mpi4py import MPI
 from collections import defaultdict
+import collections
 
 DATA_FLOAT_PREC = np.float32
 
@@ -394,6 +395,7 @@ class Dataset:
         for sac_file, trace in zip(sac_files_filt, traces_filt):
             sac_files_by_event[trace.stats.sac.kevnm].append(sac_file)
 
+        ds = None
         for i, (event_id, files) in enumerate(sac_files_by_event.items()):
             if i == 0:
                 ds = Dataset.dataset_from_sac(
@@ -832,7 +834,7 @@ def read_sac_from_windows(
     return traces_filt, sac_files_filt, windows_filt
 
 
-def read_sac_meta(sac_files: list) -> list:
+def read_traces(sac_files: list) -> list:
     """Return a list of obspy traces read from the sac files
     without including waveform data.
 
@@ -840,12 +842,49 @@ def read_sac_meta(sac_files: list) -> list:
         sac_files (list of str): list of paths to SAC files
 
     Returns:
-        list of tuple: list of tuples (sac_file, trace)
+        list of Trace: list of obspy traces without data
 
     """
     traces = [read(sac_file, headonly=True)[0]
               for sac_file in sac_files]
-    return list(zip(sac_files, traces))
+    return traces
+
+
+def read_sac_meta(sac_files: list) -> list:
+    """Returns a list of dict with SAC and other metadata.
+
+    The available keys are: 'stnm', 'netwk', 'stla', 'stlo',
+    'evnm', 'evla', 'evlo', 'evdp', 'stcount', 'evcount'.
+    evcount and stcount give, for each record, the number of
+    times that event appears in other records, and the number
+    of times that station appears in other records, respectively.
+
+    Args:
+        sac_files (list of str): list of paths to sac files.
+
+    Returns:
+        list of dict:
+        list of traces: list of obspy traces
+    """
+    traces = read_traces(sac_files)
+    count_event = collections.Counter([get_event_id(tr) for tr in traces])
+    count_station = collections.Counter([str(get_station(tr)) for tr in traces])
+    sac_meta = []
+    for tr in traces:
+        meta = {
+            'stnm': tr.stats.sac.kstnm,
+            'netwk': tr.stats.sac.knetwk,
+            'stla': tr.stats.sac.stla,
+            'stlo': tr.stats.sac.stlo,
+            'stcount': count_station[str(get_station(tr))],
+            'evnm': tr.stats.sac.kevnm,
+            'evla': tr.stats.sac.evla,
+            'evlo': tr.stats.sac.evlo,
+            'evdp': tr.stats.sac.evdp,
+            'evcount': count_event[tr.stats.sac.kevnm]
+        }
+        sac_meta.append(meta)
+    return sac_meta, traces
 
 
 def filter_sac_files(sac_files, f) -> list:

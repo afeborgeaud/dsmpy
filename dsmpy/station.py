@@ -25,6 +25,9 @@ class Station:
     def __repr__(self):
         return self.name + '_' + self.network
 
+    def __hash__(self):
+        return hash(self.name + '_' + self.network)
+
     def __eq__(self, other):
         if self.__repr__() == other:
             return True
