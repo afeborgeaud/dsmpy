@@ -727,9 +727,12 @@ class SeismicModel:
         for count, i in enumerate(indices + indices):
             values = np.zeros(self._model_params.get_shape_value_matrix())
             type = self._model_params.get_types()[itypes[i]]
-            if type in {ParameterType.QMU, ParameterType.QKAPPA,
-                        ParameterType.RADIUS}:
-                dx = 100 * EPS
+            if type in {ParameterType.RADIUS}:
+                dx = 6371 * EPS / 10.
+            elif type in {ParameterType.QMU}:
+                dx = 312 * EPS / 10. * 10   # factor 100 adjusts sensitivity
+            elif type in {ParameterType.QKAPPA}:
+                dx = 10000 * EPS / 10. * 100
             else:
                 dx = EPS
             if count >= len(indices):

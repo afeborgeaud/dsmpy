@@ -121,14 +121,17 @@ def get_XY(
                             data_cut = dataset.data[
                                        iwin, icomp, ista, :i_end - i_start]
                             u_cut_buffer = ref_output.us[
-                                           icomp, jsta, i_start + buffer_:i_end - buffer_]
-                            shift, _ = find_best_shift(data_cut, u_cut_buffer, skip_freq=2)
+                               icomp, jsta, i_start + buffer_:i_end - buffer_]
+                            shift, _ = find_best_shift(
+                                data_cut, u_cut_buffer, skip_freq=2)
                             key = _get_shift_key(window, phase_ref)
                             shift_dict[key] = shift
 
                             # window_arr = window.to_array()
-                            # i_start_syn = int(window_arr[0] * dataset.sampling_hz) + buffer_
-                            # i_end_syn = int(window_arr[1] * dataset.sampling_hz) - buffer_
+                            # i_start_syn = int(
+                            #     window_arr[0] * dataset.sampling_hz) + buffer_
+                            # i_end_syn = int(
+                            #     window_arr[1] * dataset.sampling_hz) - buffer_
                             # i_start_dat = shift_dict[key]
                             # i_end_dat = i_start_dat + i_end_syn - i_start_syn
                             # print(i_start_dat, i_end_dat)
@@ -149,8 +152,10 @@ def get_XY(
                         continue
 
                     window_arr = window.to_array()
-                    i_start_syn = int(window_arr[0] * dataset.sampling_hz) + buffer_
-                    i_end_syn = int(window_arr[1] * dataset.sampling_hz) - buffer_
+                    i_start_syn = int(
+                        window_arr[0] * dataset.sampling_hz) + buffer_
+                    i_end_syn = int(
+                        window_arr[1] * dataset.sampling_hz) - buffer_
                     i_start_dat = shift_dict[key]
                     i_end_dat = i_start_dat + i_end_syn - i_start_syn
                     ref_u = ref_output.us[
@@ -203,16 +208,20 @@ def get_XY(
                         window_arr = window.to_array()
                         i_start_dat = shift_dict[key]
                         i_end_dat = i_start_dat + i_end_syn - i_start_syn
-                        i_start_syn = int(window_arr[0] * dataset.sampling_hz) + buffer_
-                        i_end_syn = int(window_arr[1] * dataset.sampling_hz) - buffer_
+                        i_start_syn = int(
+                            window_arr[0] * dataset.sampling_hz) + buffer_
+                        i_end_syn = int(
+                            window_arr[1] * dataset.sampling_hz) - buffer_
                         data_cut = dataset.data[
                                    iwin, icomp, ista, i_start_dat:i_end_dat]
 
                         check_key = get_check_key(window)
                         if check_key in checked:
                             grad_u = (
-                                output_plus.us[icomp, jsta, i_start_syn:i_end_syn]
-                                - output_minus.us[icomp, jsta, i_start_syn:i_end_syn]
+                                output_plus.us[
+                                    icomp, jsta, i_start_syn:i_end_syn]
+                                - output_minus.us[
+                                    icomp, jsta, i_start_syn:i_end_syn]
                             ) / (dxs[imod] - dxs[imod + n_params])
                             grad_u /= np.abs(data_cut).max()
                             x_imod.append(grad_u[::sample_skip])
@@ -222,7 +231,7 @@ def get_XY(
             x.append(np.hstack(x_imod))
 
         x = np.array(x).T
-        y = np.hstack(y)
+        y = np.hstack(y).reshape((-1, 1))
 
         return x, y, checked
     else:
