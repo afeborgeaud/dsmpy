@@ -178,6 +178,11 @@ def get_XY(
             ref_output.free()
 
         logging.info('Building X')
+        _, itypes, iradii = model.get_model_params().get_free_all_indices()
+        types = [model.get_model_params().get_types()[i]
+                 for i in itypes]
+        radii = [model.get_model_params().get_grd_params()[i]
+                 for i in iradii]
         x = []
         for imod in range(n_params):
             logging.info(f'model {imod}')
@@ -224,6 +229,18 @@ def get_XY(
                                     icomp, jsta, i_start_syn:i_end_syn]
                             ) / (dxs[imod] - dxs[imod + n_params])
                             grad_u /= np.abs(data_cut).max()
+
+                            # if QMU or QKAPPA, compute gradient
+                            # with respect to 1/Q
+                            if types[imod] == ParameterType.QMU:
+                                r = radii[imod]
+                                Qmu = model.get_value_at(r, ParameterType.QMU)
+                                grad_u *= -Qmu * Qmu
+                            if types[imod] == ParameterType.QKAPPA:
+                                r = radii[imod]
+                                Qk = model.get_value_at(r, ParameterType.QKAPPA)
+                                grad_u *= -Qk * Qk
+
                             x_imod.append(grad_u[::sample_skip])
 
                 output_plus.free()

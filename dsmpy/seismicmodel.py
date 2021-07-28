@@ -730,9 +730,9 @@ class SeismicModel:
             if type in {ParameterType.RADIUS}:
                 dx = 6371 * EPS / 10.
             elif type in {ParameterType.QMU}:
-                dx = 312 * EPS / 10. * 10   # factor 100 adjusts sensitivity
+                dx = 312 * EPS / 10.
             elif type in {ParameterType.QKAPPA}:
-                dx = 10000 * EPS / 10. * 100
+                dx = 10000 * EPS / 10.
             else:
                 dx = EPS
             if count >= len(indices):
