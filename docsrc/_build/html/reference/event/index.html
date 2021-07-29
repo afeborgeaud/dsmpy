@@ -1,0 +1,319 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>event &#8212; pydsm  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">event</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-dsmpy.event">
+<span id="event"></span><h1>event<a class="headerlink" href="#module-dsmpy.event" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsmpy.event.Event">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.event.</span></span><span class="sig-name descname"><span class="pre">Event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centroid_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_time_function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.event.Event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represent an earthquake point-source.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event_id</strong> (<em>str</em>) – GCMT event name</p></li>
+<li><p><strong>latitude</strong> (<em>float</em>) – centroid geographic latitude
+[-90, 90] in degree</p></li>
+<li><p><strong>longitude</strong> (<em>float</em>) – centroid longitude
+[-180, 180] in degree</p></li>
+<li><p><strong>depth</strong> (<em>float</em>) – </p></li>
+<li><p><strong>mt</strong> (<a class="reference internal" href="../index.html#dsmpy.event.MomentTensor" title="dsmpy.event.MomentTensor"><em>MomentTensor</em></a>) – moment tensor</p></li>
+<li><p><strong>source_time_function</strong> (<a class="reference internal" href="../spc/index.html#dsmpy.spc.stf.SourceTimeFunction" title="dsmpy.spc.stf.SourceTimeFunction"><em>SourceTimeFunction</em></a>) – SourceTimeFunction</p></li>
+<li><p><strong>object</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsmpy.event.Event.event_id">
+<span class="sig-name descname"><span class="pre">event_id</span></span><a class="headerlink" href="#dsmpy.event.Event.event_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>GCMT event name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsmpy.event.Event.latitude">
+<span class="sig-name descname"><span class="pre">latitude</span></span><a class="headerlink" href="#dsmpy.event.Event.latitude" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">[-90,</span> <span class="pre">90]</span> <span class="pre">in</span> <span class="pre">degree</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsmpy.event.Event.longitude">
+<span class="sig-name descname"><span class="pre">longitude</span></span><a class="headerlink" href="#dsmpy.event.Event.longitude" title="Permalink to this definition">¶</a></dt>
+<dd><p>centroid longitude</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">[-180,</span> <span class="pre">180]</span> <span class="pre">in</span> <span class="pre">degree</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsmpy.event.Event.depth">
+<span class="sig-name descname"><span class="pre">depth</span></span><a class="headerlink" href="#dsmpy.event.Event.depth" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsmpy.event.Event.mt">
+<span class="sig-name descname"><span class="pre">mt</span></span><a class="headerlink" href="#dsmpy.event.Event.mt" title="Permalink to this definition">¶</a></dt>
+<dd><p>moment tensor</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="../index.html#dsmpy.event.MomentTensor" title="dsmpy.event.MomentTensor">MomentTensor</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsmpy.event.Event.source_time_function">
+<span class="sig-name descname"><span class="pre">source_time_function</span></span><a class="headerlink" href="#dsmpy.event.Event.source_time_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>SourceTimeFunction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="../spc/index.html#dsmpy.spc.stf.SourceTimeFunction" title="dsmpy.spc.stf.SourceTimeFunction">SourceTimeFunction</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsmpy.event.Event.object">
+<span class="sig-name descname"><span class="pre">object</span></span><a class="headerlink" href="#dsmpy.event.Event.object" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsmpy.event.Event.centroid_time">
+<span class="sig-name descname"><span class="pre">centroid_time</span></span><a class="headerlink" href="#dsmpy.event.Event.centroid_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>centroid time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.event.Event.event_from_catalog">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">event_from_catalog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.event.Event.event_from_catalog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build Event from GCMT catalog.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – event catalog.</p></li>
+<li><p><strong>pydsm.utils.cmtcatalog.read_catalog</strong><strong>(</strong><strong>)</strong><strong></strong> (<em>see</em>) – </p></li>
+<li><p><strong>event_id</strong> (<em>str</em>) – GCMT event identifier</p></li>
+<li><p><strong>(</strong><strong>e.g.</strong> – </p></li>
+<li><p><strong>'201906291959A'</strong><strong>)</strong><strong></strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Event object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>event (<a class="reference internal" href="../index.html#dsmpy.event.Event" title="dsmpy.event.Event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Event</span></code></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.event.Event.get_azimuth">
+<span class="sig-name descname"><span class="pre">get_azimuth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.event.Event.get_azimuth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the source-station azimuth in degrees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>station</strong> (<a class="reference internal" href="../station/index.html#dsmpy.station.Station" title="dsmpy.station.Station"><em>Station</em></a>) – seismic station</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>azimuth in degrees</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.event.Event.get_backazimuth">
+<span class="sig-name descname"><span class="pre">get_backazimuth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.event.Event.get_backazimuth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the station-source backazimuth in degrees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>station</strong> (<a class="reference internal" href="../station/index.html#dsmpy.station.Station" title="dsmpy.station.Station"><em>Station</em></a>) – seismic station</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>backazimuth in degrees</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.event.Event.get_epicentral_distance">
+<span class="sig-name descname"><span class="pre">get_epicentral_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.event.Event.get_epicentral_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the epicentral distance in degrees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>station</strong> (<a class="reference internal" href="../station/index.html#dsmpy.station.Station" title="dsmpy.station.Station"><em>Station</em></a>) – station</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>epicentral distance in degrees</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.event.Event.get_epicentral_distance_">
+<span class="sig-name descname"><span class="pre">get_epicentral_distance_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sta_lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sta_lon</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.event.Event.get_epicentral_distance_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the epicentral distance in degrees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sta_lat</strong> (<em>float</em>) – station latitude in degrees</p></li>
+<li><p><strong>sta_lon</strong> (<em>float</em>) – station longitude in degrees</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>epicentral distance in degrees</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dsmpy.event.MomentTensor">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.event.</span></span><span class="sig-name descname"><span class="pre">MomentTensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Mrr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mrt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mrp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mtt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mtp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mpp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.event.MomentTensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represent a point-source moment tensor.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.event.MomentTensor.from_dsm_array">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_dsm_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mt_arr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.event.MomentTensor.from_dsm_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a MomentTensor from the mt array from DSM pinput
+(assume the DSM order for mt component).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mt_arr</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – moment tensor array</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>moment tensor</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>mt (<a class="reference internal" href="../index.html#dsmpy.event.MomentTensor" title="dsmpy.event.MomentTensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MomentTensor</span></code></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/reference/event/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">event</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anselme Borgeaud, Kensuke Konishi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+    </div>
+  </body>
+</html>

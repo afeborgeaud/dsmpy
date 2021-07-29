@@ -1,0 +1,398 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>dsm &#8212; pydsm  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="event" href="../event/index.html" />
+    <link rel="prev" title="API reference" href="../index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../event/index.html" title="event"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="API reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">API reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">dsm</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-dsmpy.dsm">
+<span id="dsm"></span><h1>dsm<a class="headerlink" href="#module-dsmpy.dsm" title="Permalink to this headline">¶</a></h1>
+<p>Main module of dsmpy. Contains the classes for core dsmpy objects
+and the methods for serial and parallel computation
+of synthetic seismograms using the Fortran DSM.</p>
+<section id="compute-functions">
+<h2>Compute functions<a class="headerlink" href="#compute-functions" title="Permalink to this headline">¶</a></h2>
+<section id="compute">
+<h3>compute<a class="headerlink" href="#compute" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.dsm.compute">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.dsm.</span></span><span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pydsm_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_to_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute spectra using DSM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dsm_input</strong> (<a class="reference internal" href="#dsmpy.dsm.PyDSMInput" title="dsmpy.dsm.PyDSMInput"><em>PyDSMInput</em></a>) – inputs for DSM.</p></li>
+<li><p><strong>mode</strong> (<em>int</em>) – computation mode. 0: both, 1: P-SV, 2: SH.</p></li>
+<li><p><strong>write_to_file</strong> (<em>bool</em>) – write spetrum files to disk</p></li>
+<li><p><strong>specified in dsm_input.output.</strong> (<em>as</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>object containing spectra and</dt><dd><p>stations/source information.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#dsmpy.dsm.PyDSMOutput" title="dsmpy.dsm.PyDSMOutput">PyDSMOutput</a></p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>SH and P-SV spectra are summed by default. Using only P-SV
+or SH results in non-physical waves and should be avoided.
+See Kawai et al. (2006) for details.</p>
+</div>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">catalog</span> <span class="o">=</span> <span class="n">dsmpy</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">cmtcatalog</span><span class="o">.</span><span class="n">read_catalog</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">event</span> <span class="o">=</span> <span class="n">Event</span><span class="o">.</span><span class="n">event_from_catalog</span><span class="p">(</span>
+<span class="go">        catalog, &#39;200707211534A&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stations</span> <span class="o">=</span> <span class="p">[</span>
+<span class="go">        Station(</span>
+<span class="go">            name=&#39;FCC&#39;, network=&#39;CN&#39;,</span>
+<span class="go">            latitude=58.7592, longitude=-94.0884),</span>
+<span class="go">        ]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">SeismicModel</span><span class="o">.</span><span class="n">prem</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">input</span> <span class="o">=</span> <span class="n">PyDSMInput</span><span class="o">.</span><span class="n">input_from_arrays</span><span class="p">(</span>
+<span class="go">        event, stations,</span>
+<span class="go">        model, tlen=1638.4, nspc=256,</span>
+<span class="go">        sampling_hz=20)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">compute</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="compute-dataset-parallel">
+<h3>compute_dataset_parallel<a class="headerlink" href="#compute-dataset-parallel" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.dsm.compute_dataset_parallel">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.dsm.</span></span><span class="sig-name descname"><span class="pre">compute_dataset_parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seismic_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nspc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_hz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_to_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.compute_dataset_parallel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute spectra using DSM with data parallelization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> (<em>Dataset</em>) – dataset of events &amp; stations.</p></li>
+<li><p><strong>mode</strong> (<em>int</em>) – computation mode. 0: both, 1: P-SV, 2: SH.</p></li>
+<li><p><strong>write_to_file</strong> (<em>bool</em>) – write output in Kibrary format
+(default is False).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>list of PyDSMOutput objects with one</dt><dd><p>entry for each event in dataset.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of PyDSMOutput</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="o">.</span><span class="n">dataset_from_sac</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">sac_files</span><span class="p">,</span> <span class="n">headonly</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">SeismicModel</span><span class="o">.</span><span class="n">prem</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">compute_dataset_parallel</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">dataset</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">tlen</span><span class="o">=</span><span class="mf">1638.4</span><span class="p">,</span> <span class="n">nspc</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">sampling_hz</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="compute-models-parallel">
+<h3>compute_models_parallel<a class="headerlink" href="#compute-models-parallel" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.dsm.compute_models_parallel">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.dsm.</span></span><span class="sig-name descname"><span class="pre">compute_models_parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nspc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_hz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_to_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.compute_models_parallel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute synthetics for a list of models in parallel.</p>
+<p>At the moment, we must have len(models) % n_cores == 0.
+If this is not satisfied, the list of models will be padded to the
+closest larger integer that satisfies this relation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> (<em>Dataset</em>) – dataset.</p></li>
+<li><p><strong>models</strong> (<em>list of SeismicModel</em>) – the models</p></li>
+<li><p><strong>tlen</strong> (<em>float</em>) – duration of the synthetics (in seconds)
+(better to be 2**n/10)</p></li>
+<li><p><strong>nspc</strong> (<em>int</em>) – number of frequency points in the synthetics
+(better to be 2**n)</p></li>
+<li><p><strong>sampling_hz</strong> (<em>int</em>) – </p></li>
+<li><p><strong>mode</strong> (<em>int</em>) – computation mode.
+0: both, 1: P-SV, 2: SH (default is 0).</p></li>
+<li><p><strong>write_to_file</strong> (<em>bool</em>) – write output in Kibrary format
+(default is False).</p></li>
+<li><p><strong>verbose</strong> (<em>int</em>) – debugging parameter (default is 0).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Shape is (n_models, n_events).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of list of PyDSMOutput</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="o">.</span><span class="n">dataset_from_sac</span><span class="p">(</span>
+<span class="go">        sac_files, headonly=False)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">models</span> <span class="o">=</span> <span class="p">[</span><span class="n">SeismicModel</span><span class="o">.</span><span class="n">prem</span><span class="p">(),</span> <span class="n">SeismicModel</span><span class="o">.</span><span class="n">ak135</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">compute_models_parallel</span><span class="p">(</span>
+<span class="go">        dataset, models, tlen=1638.4, nspc=256,</span>
+<span class="go">        sampling_hz=20, mode=0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot_component</span><span class="p">(</span>
+<span class="go">        component=Component.T, ax=ax, label=&#39;prem&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot_component</span><span class="p">(</span>
+<span class="go">        component=Component.T, ax=ax, label=&#39;ak135&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="compute-parallel">
+<h3>compute_parallel<a class="headerlink" href="#compute-parallel" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.dsm.compute_parallel">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.dsm.</span></span><span class="sig-name descname"><span class="pre">compute_parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pydsm_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_to_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.compute_parallel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute spectra using DSM with data parallelization.</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="dsminput">
+<h2>DSMInput<a class="headerlink" href="#dsminput" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsmpy.dsm.DSMInput">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.dsm.</span></span><span class="sig-name descname"><span class="pre">DSMInput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">re</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ratc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ratl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nspc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omegai</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nzone</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vrmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vrmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vpv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vsv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vsh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qmu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qkappa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eqlat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eqlon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.DSMInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Input parameters used by the Fortran DSM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>re</strong> (<em>float</em>) – </p></li>
+<li><p><strong>ratc</strong> (<em>float</em>) – </p></li>
+<li><p><strong>ratl</strong> (<em>float</em>) – </p></li>
+<li><p><strong>tlen</strong> (<em>float</em>) – duration of the synthetics (in seconds)
+(must be 2**n/10)</p></li>
+<li><p><strong>nspc</strong> (<em>int</em>) – number of frequency points in the synthetics
+(must be 2**n)</p></li>
+<li><p><strong>omegai</strong> (<em>float</em>) – </p></li>
+<li><p><strong>imin</strong> (<em>int</em>) – </p></li>
+<li><p><strong>imax</strong> (<em>int</em>) – </p></li>
+<li><p><strong>nzone</strong> (<em>int</em>) – </p></li>
+<li><p><strong>vrmin</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – </p></li>
+<li><p><strong>vrmax</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – </p></li>
+<li><p><strong>rho</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – </p></li>
+<li><p><strong>vpv</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – </p></li>
+<li><p><strong>vph</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – </p></li>
+<li><p><strong>vsv</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – </p></li>
+<li><p><strong>vsh</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – </p></li>
+<li><p><strong>eta</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – </p></li>
+<li><p><strong>qmu</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – </p></li>
+<li><p><strong>qkappa</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – </p></li>
+<li><p><strong>r0</strong> (<em>float</em>) – </p></li>
+<li><p><strong>eqlat</strong> (<em>float</em>) – </p></li>
+<li><p><strong>eqlon</strong> (<em>float</em>) – </p></li>
+<li><p><strong>mt</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – </p></li>
+<li><p><strong>nr</strong> (<em>int</em>) – </p></li>
+<li><p><strong>theta</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – </p></li>
+<li><p><strong>phi</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – </p></li>
+<li><p><strong>lat</strong> (<em>float</em>) – </p></li>
+<li><p><strong>lon</strong> (<em>float</em>) – </p></li>
+<li><p><strong>output</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ndarray</span></code>) – </p></li>
+<li><p><strong>file_mode</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="pydsminputfile">
+<h2>PyDSMInputFile<a class="headerlink" href="#pydsminputfile" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMInputFile">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.dsm.</span></span><span class="sig-name descname"><span class="pre">PyDSMInputFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMInputFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Input file for dsmpy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input_file</strong> (<em>str</em>) – path of dsmpy input file</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="pydsmoutput">
+<h2>PyDSMOutput<a class="headerlink" href="#pydsmoutput" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.dsm.</span></span><span class="sig-name descname"><span class="pre">PyDSMOutput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spcs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_hz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nspc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omegai</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0014053864092981234</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output from dsmpy compute methods.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spcs</strong> (<em>ndarray</em>) – seismic spectra computed with DSM.
+Shape is (3, nr, nspc+1).</p></li>
+<li><p><strong>stations</strong> (<em>ndarray of Station</em>) – stations. Shape is (nr,)</p></li>
+<li><p><strong>event</strong> (<em>Event</em>) – seismic event (the source).</p></li>
+<li><p><strong>sampling_hz</strong> (<em>int</em>) – sampling frequency for time-domain waveforms</p></li>
+<li><p><strong>tlen</strong> (<em>float</em>) – duration of the synthetics (in seconds)
+(better to be 2**n/10)</p></li>
+<li><p><strong>nspc</strong> (<em>int</em>) – number of frequency points in the synthetics
+(better to be 2**n)</p></li>
+<li><p><strong>omegai</strong> (<em>float</em>) – numerical damping using in DSM.
+Default is default_params[‘omegai’].
+Better to leave it at its default value.</p></li>
+<li><p><strong>model_id</strong> (<em>str</em>) – seismic model identifier (e.g., ‘PREM’, ‘mod1’).
+(default is None).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="pydsminput">
+<h2>PyDSMInput<a class="headerlink" href="#pydsminput" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMInput">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.dsm.</span></span><span class="sig-name descname"><span class="pre">PyDSMInput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dsm_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Input parameters for dsmpy compute methods.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dsm_input</strong> (<a class="reference internal" href="#dsmpy.dsm.DSMInput" title="dsmpy.dsm.DSMInput"><em>DSMInput</em></a>) – input parameters for Fortran DSM.</p></li>
+<li><p><strong>sampling_hz</strong> (<em>int</em>) – sampling frequency for time-domain waveforms.</p></li>
+<li><p><strong>mode</strong> (<em>int</em>) – 1: P-SV, 2: SH. (default is 1).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">dsm</a><ul>
+<li><a class="reference internal" href="#compute-functions">Compute functions</a><ul>
+<li><a class="reference internal" href="#compute">compute</a></li>
+<li><a class="reference internal" href="#compute-dataset-parallel">compute_dataset_parallel</a></li>
+<li><a class="reference internal" href="#compute-models-parallel">compute_models_parallel</a></li>
+<li><a class="reference internal" href="#compute-parallel">compute_parallel</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dsminput">DSMInput</a></li>
+<li><a class="reference internal" href="#pydsminputfile">PyDSMInputFile</a></li>
+<li><a class="reference internal" href="#pydsmoutput">PyDSMOutput</a></li>
+<li><a class="reference internal" href="#pydsminput">PyDSMInput</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../index.html"
+                        title="previous chapter">API reference</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../event/index.html"
+                        title="next chapter">event</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/reference/dsm/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../event/index.html" title="event"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="API reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >API reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">dsm</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anselme Borgeaud, Kensuke Konishi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+    </div>
+  </body>
+</html>

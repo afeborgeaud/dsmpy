@@ -1,0 +1,314 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>modelparameters &#8212; pydsm  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">modelparameters</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-dsmpy.modelparameters">
+<span id="modelparameters"></span><h1>modelparameters<a class="headerlink" href="#module-dsmpy.modelparameters" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.modelparameters.</span></span><span class="sig-name descname"><span class="pre">ModelParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radii</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'boxcar'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represent parameters for a seismic model.</p>
+<dl class="simple">
+<dt>The parameters are specified by:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>their types: ParameterType.VSH, VSV, VPH, VPV, ETA, QMU,</dt><dd><p>QKAPPA</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>their radii (in km): the model parameters represent a layered</dt><dd><p>model, and the radii specify the boundaries of these layers.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>the mesh type:</dt><dd><ul>
+<li><p>‘boxcar’: constant properties in each layer</p></li>
+<li><p>‘lininterp’: discontinuous linear spline in each layer</p></li>
+<li><p>‘triangle’: still in development</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>types</strong> (<em>list of ParameterType</em>) – e.g., RHO, VSH</p></li>
+<li><p><strong>radii</strong> (<em>ndarray</em>) – radii of boundaries of perturbed layers</p></li>
+<li><p><strong>mesh_type</strong> (<em>str</em>) – ‘boxcar’, ‘triangle’, or ‘lininterp’</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.apply_constraint">
+<span class="sig-name descname"><span class="pre">apply_constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.apply_constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the model parameter constraints to the valye matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>values</strong> (<em>np.ndarray</em>) – (n_grd_params, 9)-matrix with model
+perturbations</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a copy of values with constraints applied</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.get_free_all_indices">
+<span class="sig-name descname"><span class="pre">get_free_all_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'list'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'list'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'list'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.get_free_all_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the generic, type, and grid indices of parameters
+without constraints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>counter-like monotonous indices
+list of int: corresponding type index as in self.types
+list of int: corresponding grd_param index as in
+self.get_grd_params()</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list of int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.get_free_indices">
+<span class="sig-name descname"><span class="pre">get_free_indices</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.get_free_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the indices of parameters without constraints.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.get_mesh_type">
+<span class="sig-name descname"><span class="pre">get_mesh_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.get_mesh_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the mesh type.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.get_n_grd_params">
+<span class="sig-name descname"><span class="pre">get_n_grd_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.get_n_grd_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of radial parameters at which structure
+parameters (e.g. ParameterType.VSH) can be set.</p>
+<dl class="simple">
+<dt>The number of parameters depend on the mesh type:</dt><dd><ul class="simple">
+<li><p>boxcar: get_n_grd_params() = get_nodes() - 1</p></li>
+<li><dl class="simple">
+<dt>lininterp: get_n_grd_params() = get_nodes() * 2.</dt><dd><p>At each radial node, there is one parameter for
+the line segment above the node, and one parameter
+for the line segment below the node.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.get_n_nodes">
+<span class="sig-name descname"><span class="pre">get_n_nodes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.get_n_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of radial grid nodes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.get_n_params">
+<span class="sig-name descname"><span class="pre">get_n_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.get_n_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the total number of parameters
+get_n_grd_params() * len(get_types()).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.get_nodes">
+<span class="sig-name descname"><span class="pre">get_nodes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.get_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an array of radial grid nodes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.get_shape_value_matrix">
+<span class="sig-name descname"><span class="pre">get_shape_value_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'int'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'int'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.get_shape_value_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the shape of the value matrix</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.get_types">
+<span class="sig-name descname"><span class="pre">get_types</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.get_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the parameter types</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.get_values_matrix">
+<span class="sig-name descname"><span class="pre">get_values_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.get_values_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the matrix used in Seismicmodel.multiply</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.next">
+<span class="sig-name descname"><span class="pre">next</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'int'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'int'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'int'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Increment and return the indices of the next model parameter.
+next() skips indices with constraints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>iteration counter
+int: index of the current type (get_types()[i])
+int: index of the current radial parameter</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ModelParameters.set_constraints">
+<span class="sig-name descname"><span class="pre">set_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equal_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discon_arr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.modelparameters.ModelParameters.set_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set constraints for model parameters at each grid point.</p>
+<p>Three types of constraits. mask_dict and equal_dict act on
+the n_grd_params grid parameters; discon_arr acts on the n_nodes
+radial nodes.</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>mask_dict: fix the value for a given ParameterType</dt><dd><p>and grid point (among n_grd_params)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>equal_dict: for a given ParameterType, an integer array</dt><dd><p>specify grid points that takes the same value</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>discon_arr: for each radial node, specify wether this node</dt><dd><p>is discontinuous or not</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mask_dict</strong> (<em>dict</em>) – keys are of type ParameterType,</p></li>
+<li><p><strong>are boolean np.ndarray of shape</strong> (<em>values</em>) – </p></li>
+<li><p><strong>equal_dict</strong> (<em>dict</em>) – keys are of type ParameterType,</p></li>
+<li><p><strong>are integer np.ndarray of shape</strong> (<em>values</em>) – </p></li>
+<li><p><strong>discon_arr</strong> (<em>np.ndarray</em>) – boolean array of shape (n_nodes,)</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mask_dict</span><span class="p">[</span><span class="n">ParameterType</span><span class="o">.</span><span class="n">VSH</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
+<span class="go">        model_params.get_n_grd_params(), dtype=&#39;bool&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">equal_dict</span><span class="p">[</span><span class="n">ParameterType</span><span class="o">.</span><span class="n">VSH</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
+<span class="go">        model_params.get_n_grd_params(), dtype=&#39;bool&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">discon_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
+<span class="go">        model_params.get_n_nodes(), dtype=&#39;bool&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_params</span><span class="o">.</span><span class="n">set_constraints</span><span class="p">(</span>
+<span class="go">        mask_dict, equal_dict, discon_arr)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ParameterType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.modelparameters.</span></span><span class="sig-name descname"><span class="pre">ParameterType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.modelparameters.ParameterType" title="Permalink to this definition">¶</a></dt>
+<dd><p>An enumeration.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.modelparameters.ParameterType.structure_types">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">structure_types</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">list</span><a class="headerlink" href="#dsmpy.modelparameters.ParameterType.structure_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of structural parameters:
+[RHO, VPV, VPH, VSV, VSH, ETA]</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/reference/modelparameters/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">modelparameters</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anselme Borgeaud, Kensuke Konishi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+    </div>
+  </body>
+</html>

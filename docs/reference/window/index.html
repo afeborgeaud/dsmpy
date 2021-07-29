@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>window &#8212; pydsm  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">window</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-dsmpy.window">
+<span id="window"></span><h1>window<a class="headerlink" href="#module-dsmpy.window" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsmpy.window.Window">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.window.</span></span><span class="sig-name descname"><span class="pre">Window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">travel_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_before</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_after</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.window.Window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time or frequency window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>travel_time</strong> (<em>float</em>) – arrival time in seconds</p></li>
+<li><p><strong>event</strong> (<a class="reference internal" href="../index.html#dsmpy.event.Event" title="dsmpy.event.Event"><em>Event</em></a>) – seismic event</p></li>
+<li><p><strong>station</strong> (<a class="reference internal" href="../station/index.html#dsmpy.station.Station" title="dsmpy.station.Station"><em>Station</em></a>) – seismic station</p></li>
+<li><p><strong>phaseName</strong> (<em>str</em>) – a TauP seismic phase</p></li>
+<li><p><strong>component</strong> (<a class="reference internal" href="../index.html#dsmpy.component.Component" title="dsmpy.component.Component"><em>Component</em></a>) – seismic component</p></li>
+<li><p><strong>t_before</strong> (<em>float</em>) – time before arrival in seconds
+(default is 10.)</p></li>
+<li><p><strong>t_after</strong> (<em>float</em>) – time after arrival in seconds (defaultis  40.)</p></li>
+<li><p><strong>t_shift</strong> (<em>float</em>) – time shift in seconds to shift the time window.
+Used to align synthetics with data. (default is 0.)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.window.Window.get_epicentral_distance">
+<span class="sig-name descname"><span class="pre">get_epicentral_distance</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.window.Window.get_epicentral_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the epicentral distance in degree.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.window.Window.get_gaussian_window_in_frequency_domain">
+<span class="sig-name descname"><span class="pre">get_gaussian_window_in_frequency_domain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nspc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_width</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.window.Window.get_gaussian_window_in_frequency_domain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute a gaussian window in the frequency domain.
+:param nspc: number of points in frequency domain
+:type nspc: int
+:param tlen: duration of synthetics (in seconds)
+:type tlen: float
+:param window_width: gaussian width (in seconds) = 2*sigma
+:type window_width: float
+:param omega_shift: omega shift
+:type omega_shift: float</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>list of gaussian windows</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>windows (list(ndarray))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.window.Window.overlap">
+<span class="sig-name descname"><span class="pre">overlap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#dsmpy.window.Window.overlap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if self overlap with  other.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.window.Window.to_array">
+<span class="sig-name descname"><span class="pre">to_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.window.Window.to_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an ndarray [t_start, t_end].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>shift</strong> (<em>bool</em>) – if True, add the time shift to the window
+(default is True)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[time_start, time_end]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/reference/window/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">window</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anselme Borgeaud, Kensuke Konishi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,247 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>utils &#8212; pydsm  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="spc" href="../spc/index.html" />
+    <link rel="prev" title="dataset" href="../dataset/index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../spc/index.html" title="spc"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../dataset/index.html" title="dataset"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">API reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">utils</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="utils">
+<h1>utils<a class="headerlink" href="#utils" title="Permalink to this headline">¶</a></h1>
+<section id="module-dsmpy.utils.cmtcatalog">
+<span id="cmtcatalog"></span><h2>cmtcatalog<a class="headerlink" href="#module-dsmpy.utils.cmtcatalog" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.utils.cmtcatalog.read_catalog">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.utils.cmtcatalog.</span></span><span class="sig-name descname"><span class="pre">read_catalog</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.utils.cmtcatalog.read_catalog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the GCMT catalog.
+:returns: ndarray of pydsm.Event objects
+:rtype: cat (ndarray)</p>
+</dd></dl>
+
+</section>
+<section id="module-dsmpy.utils.modelutils">
+<span id="modelutils"></span><h2>modelutils<a class="headerlink" href="#module-dsmpy.utils.modelutils" title="Permalink to this headline">¶</a></h2>
+<p>Utilities to build various model meshes.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.utils.modelutils.single_layer_dpp">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.utils.modelutils.</span></span><span class="sig-name descname"><span class="pre">single_layer_dpp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.utils.modelutils.single_layer_dpp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create objects for a single-layer D’’ model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>reference model
+ModelParameters: model parameters
+dict: range dict</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="../seismicmodel/index.html#dsmpy.seismicmodel.SeismicModel" title="dsmpy.seismicmodel.SeismicModel">SeismicModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-dsmpy.utils.scardec">
+<span id="scardec"></span><h2>scardec<a class="headerlink" href="#module-dsmpy.utils.scardec" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.utils.scardec.get_stf">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.utils.scardec.</span></span><span class="sig-name descname"><span class="pre">get_stf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.utils.scardec.get_stf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a source time function in time domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>Event</em>) – event</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>source time function, normalized so</dt><dd><p>that its integral is 1. The shape is (2, npts).</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-dsmpy.utils.sklearnutils">
+<span id="sklearnutils"></span><h2>sklearnutils<a class="headerlink" href="#module-dsmpy.utils.sklearnutils" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.utils.sklearnutils.get_XY">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.utils.sklearnutils.</span></span><span class="sig-name descname"><span class="pre">get_XY</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">model</span></em>, <em class="sig-param"><span class="pre">dataset</span></em>, <em class="sig-param"><span class="pre">windows</span></em>, <em class="sig-param"><span class="pre">tlen</span></em>, <em class="sig-param"><span class="pre">nspc</span></em>, <em class="sig-param"><span class="pre">freq</span></em>, <em class="sig-param"><span class="pre">freq2</span></em>, <em class="sig-param"><span class="pre">filter_type='bandpass'</span></em>, <em class="sig-param"><span class="pre">sampling_hz=5</span></em>, <em class="sig-param"><span class="pre">var=2.5</span></em>, <em class="sig-param"><span class="pre">ratio=2.5</span></em>, <em class="sig-param"><span class="pre">corr=0.0</span></em>, <em class="sig-param"><span class="pre">phase_ref=None</span></em>, <em class="sig-param"><span class="pre">buffer=10.0</span></em>, <em class="sig-param"><span class="pre">mode=0)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'numpy.ndarray'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'numpy.ndarray'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.utils.sklearnutils.get_XY" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the feature matrix X and target vector y to be used
+as input to scikit-learn linear models.</p>
+<p>X and y are linked by the equation Xm = y, where m is the model
+parameter vector. The order for m is given by the order in
+SeismicModel.gradient_models(), and is:
+[[radial_nodes_for_type_1] + [radial_nodes_for_type_2] + …].</p>
+<p>This method should be able to scale to large dataset, since
+the computations are done in the frequency domain (typically approx.
+256 to 512 np.Complex64 per synthetic), the transformation to time
+domain is done event by event (the data is freed after), and the
+gradient matrix X contains windowed time series with typically
+a few hundreth to thousands of floats. Furthermore, only the
+frequency-domain synthetics are replicated on all cores. All the
+time domain operations, as well as X and y are defined on thread 0
+only. For instance, 10,000 records sampled at 5 Hz for 50 s windows
+for one seismic component with 100 model parameters should not take
+more than approx. 1e4 * 5 * 50 * 101 * 6.4e-8 = 16.2 Gb.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<a class="reference internal" href="../seismicmodel/index.html#dsmpy.seismicmodel.SeismicModel" title="dsmpy.seismicmodel.SeismicModel"><em>SeismicModel</em></a>) – model at which the gradient is evaluated.
+Must be a mesh and have model._model_params not None.</p></li>
+<li><p><strong>dataset</strong> (<em>Dataset</em>) – dataset</p></li>
+<li><p><strong>windows</strong> (<em>list of Window</em>) – time windows</p></li>
+<li><p><strong>tlen</strong> (<em>float</em>) – length of time series for synthetics</p></li>
+<li><p><strong>nspc</strong> (<em>int</em>) – number of points in frequency domain for synthetics</p></li>
+<li><p><strong>sampling_hz</strong> (<em>int</em>) – sampling frequency of synthetics in time
+domain. Better to divide 20.</p></li>
+<li><p><strong>var</strong> (<em>float</em>) – variance cutoff. Records with variance &gt; var
+will be excluded (default is 2.5).</p></li>
+<li><p><strong>ratio</strong> (<em>float</em>) – amplitude ratio cutoff. Records with
+1/(obs/syn) &lt; ratio or obs/syn &gt; ratio will be excluded
+(default is 2.5).</p></li>
+<li><p><strong>corr</strong> (<em>float</em>) – correlation coefficient cutoff. Records with
+correlation &lt; corr will be excluded (default is 0).</p></li>
+<li><p><strong>phase_ref</strong> (<em>str</em>) – reference phase for static correction
+(default is None).</p></li>
+<li><p><strong>buffer</strong> (<em>float</em>) – time buffer in seconds for static
+correction (default is 10).</p></li>
+<li><p><strong>mode</strong> (<em>int</em>) – commputation mode. 0: P-SV + SH, 1: P-SV, 2: SH</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>X, the waveform gradient with respec to model.</dt><dd><p>The shape is (n_time_points, n_model_parameters).</p>
+</dd>
+<dt>np.ndarray: y, the waveform residual vector.</dt><dd><p>The shape is (n_time_points,).</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.utils.sklearnutils.misfits">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.utils.sklearnutils.</span></span><span class="sig-name descname"><span class="pre">misfits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">syn</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.utils.sklearnutils.misfits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns variance, corr, ratio.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">utils</a><ul>
+<li><a class="reference internal" href="#module-dsmpy.utils.cmtcatalog">cmtcatalog</a></li>
+<li><a class="reference internal" href="#module-dsmpy.utils.modelutils">modelutils</a></li>
+<li><a class="reference internal" href="#module-dsmpy.utils.scardec">scardec</a></li>
+<li><a class="reference internal" href="#module-dsmpy.utils.sklearnutils">sklearnutils</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../dataset/index.html"
+                        title="previous chapter">dataset</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../spc/index.html"
+                        title="next chapter">spc</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/reference/utils/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../spc/index.html" title="spc"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../dataset/index.html" title="dataset"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >API reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">utils</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anselme Borgeaud, Kensuke Konishi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+    </div>
+  </body>
+</html>

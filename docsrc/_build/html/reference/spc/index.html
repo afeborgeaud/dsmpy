@@ -1,0 +1,200 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>spc &#8212; pydsm  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">spc</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="spc">
+<h1>spc<a class="headerlink" href="#spc" title="Permalink to this headline">¶</a></h1>
+<section id="module-dsmpy.spc.spctime">
+<span id="spctime"></span><h2>spctime<a class="headerlink" href="#module-dsmpy.spc.spctime" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-dsmpy.spc.stf">
+<span id="stf"></span><h2>stf<a class="headerlink" href="#module-dsmpy.spc.stf" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsmpy.spc.stf.SourceTimeFunction">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.spc.stf.</span></span><span class="sig-name descname"><span class="pre">SourceTimeFunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">half_duration</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp_corr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.spc.stf.SourceTimeFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represent an earthquake source time function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> (<em>str</em>) – ‘triangle’ or ‘box car’</p></li>
+<li><p><strong>half_duration</strong> (<em>float</em>) – half duration of the source time function</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-dsmpy.spc.stfcatalog">
+<span id="stfcatalog"></span><h2>stfcatalog<a class="headerlink" href="#module-dsmpy.spc.stfcatalog" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsmpy.spc.stfcatalog.STFCatalog">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.spc.stfcatalog.</span></span><span class="sig-name descname"><span class="pre">STFCatalog</span></span><a class="headerlink" href="#dsmpy.spc.stfcatalog.STFCatalog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utility class to read and save catalog (dict) of
+source time functions with entries:
+event_id (str): SourceTimeFunction</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.spc.stfcatalog.STFCatalog.load">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.spc.stfcatalog.STFCatalog.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read path into a catalog using pickle.load().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – name of the file that contains a catalog.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>output (<a class="reference internal" href="../index.html#dsmpy.dsm.PyDSMOutput" title="dsmpy.dsm.PyDSMOutput">PyDSMOutput</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.spc.stfcatalog.STFCatalog.read_from_file">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">read_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.spc.stfcatalog.STFCatalog.read_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read source time functions from a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – path of a file containing source time function.</p></li>
+<li><p><strong>The first 3 columns of each row are</strong> (<em>informations.</em>) – </p></li>
+<li><p><strong>event_id</strong> (<em>(</em><em>1</em><em>)</em>) – </p></li>
+<li><p><strong>amplitude correction</strong> (<em>(</em><em>3</em><em>)</em>) – </p></li>
+<li><p><strong>columns will be ignored. Columns starting with '#'</strong> (<em>remaining</em>) – </p></li>
+<li><p><strong>be ignored.</strong> (<em>will</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>source time function catalog</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>catalog (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.spc.stfcatalog.STFCatalog.read_scardec">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">read_scardec</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.spc.stfcatalog.STFCatalog.read_scardec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the scardec source time function catalog.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>source time function catalog</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>catalog (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.spc.stfcatalog.STFCatalog.save">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">catalog</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.spc.stfcatalog.STFCatalog.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save catalog using pickle.dump().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – name of the output file.</p></li>
+<li><p><strong>catalog</strong> (<em>dict</em>) – source time function catalog.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">spc</a><ul>
+<li><a class="reference internal" href="#module-dsmpy.spc.spctime">spctime</a></li>
+<li><a class="reference internal" href="#module-dsmpy.spc.stf">stf</a></li>
+<li><a class="reference internal" href="#module-dsmpy.spc.stfcatalog">stfcatalog</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/reference/spc/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">spc</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anselme Borgeaud, Kensuke Konishi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+    </div>
+  </body>
+</html>

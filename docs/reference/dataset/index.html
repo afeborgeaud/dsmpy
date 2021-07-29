@@ -1,0 +1,538 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>dataset &#8212; pydsm  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">dataset</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-dsmpy.dataset">
+<span id="dataset"></span><h1>dataset<a class="headerlink" href="#module-dsmpy.dataset" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsmpy.dataset.Dataset">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.dataset.</span></span><span class="sig-name descname"><span class="pre">Dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thetas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eqlats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eqlons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r0s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_cut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents a dataset of events and stations.</p>
+<p>The data array is not None only if the dataset was defined using
+Dataset.read_from_sac(headonly=False). In this case,
+the data array is of shape (1, 3, n_records, npts),
+where n_records is the number of seismic records,
+or event-station pairs, and npts is the number of time points
+for the longest record.
+Dimension 1 corresponds to the 3 seismic components (Z, R, T).
+Dimension 0 has length &gt;= 1 only after dataset.apply_windows().
+In this case, dimension 0 encodes the number of time windows (i.e.,
+the number of different phases).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lats</strong> (<em>ndarray</em>) – stations latitudes for each record (nr,).</p></li>
+<li><p><strong>lons</strong> (<em>ndarray</em>) – stations longitudes for each record (nr,).</p></li>
+<li><p><strong>phis</strong> (<em>ndarray</em>) – stations phis for each record (nr,).</p></li>
+<li><p><strong>thetas</strong> (<em>ndarray</em>) – stations thetas for each record (nr,).</p></li>
+<li><p><strong>eqlats</strong> (<em>ndarray</em>) – centroids latitudes (nev,).</p></li>
+<li><p><strong>eqlons</strong> (<em>ndarray</em>) – centroids longitudes (nev,).</p></li>
+<li><p><strong>r0s</strong> (<em>ndarray</em>) – centroids radii (nev,).</p></li>
+<li><p><strong>mts</strong> (<em>ndarray of MomentTensor</em>) – array of moment tensors (nev,).</p></li>
+<li><p><strong>nrs</strong> (<em>ndarray of int</em>) – number of stations for each event (nev,).</p></li>
+<li><p><strong>nr</strong> (<em>int</em>) – total number of event-station pairs.</p></li>
+<li><p><strong>stations</strong> (<em>ndarray of Station</em>) – seismic stations (nr,).</p></li>
+<li><p><strong>events</strong> (<em>ndarray of Event</em><em>)</em>) – seismic events (nev,).</p></li>
+<li><p><strong>data</strong> (<em>ndarray</em>) – 3-components waveform data.</p></li>
+<li><p><strong>nw</strong> – number of windows used to cut the data (nw,3,nr,npts).
+If self.cut_data() hasn’t been called, then nw=1.</p></li>
+<li><p><strong>sampling_hz</strong> (<em>int</em>) – sampling frequency for data.
+Used for computation with pydsm.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dataset.Dataset.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append dataset to self.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dataset.Dataset.apply_windows">
+<span class="sig-name descname"><span class="pre">apply_windows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_phase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_before_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.apply_windows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cut the data using provided windows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>windows</strong> (<em>list of Window</em>) – time windows.</p></li>
+<li><p><strong>n_phase</strong> (<em>int</em>) – number of distinct seismic phase-component
+pairs: if ScS (SH) and ScS (SV), then n_phase=2.</p></li>
+<li><p><strong>npts_max</strong> (<em>int</em>) – number of time points in the longest window.</p></li>
+<li><p><strong>buffer</strong> (<em>float</em>) – default is 0.</p></li>
+<li><p><strong>t_before_noise</strong> (<em>float</em>) – default is 50.</p></li>
+<li><p><strong>inplace</strong> (<em>bool</em>) – if True, performs the operation in-place
+(i.e., modifies self.data)</p></li>
+<li><p><strong>shift</strong> (<em>bool</em>) – use the time shift coded into time windows
+(default is True).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>if inplace is True, else None.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="../index.html#dsmpy.dataset.Dataset" title="dsmpy.dataset.Dataset">Dataset</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dataset.Dataset.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a deep copy of self.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>deep copy of self</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="../index.html#dsmpy.dataset.Dataset" title="dsmpy.dataset.Dataset">Dataset</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dataset.Dataset.dataset_from_arrays">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">dataset_from_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">events</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.dataset_from_arrays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Dataset object from a list of events and stations.
+This dataset does not contain waveform data (self.data is None),
+and is used only to compute synthetics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>events</strong> (<em>iterable of Event</em>) – earthquake events</p></li>
+<li><p><strong>stations</strong> (<em>iterable of Station</em>) – seismic stations</p></li>
+<li><p><strong>sampling_hz</strong> (<em>float</em>) – waveform sampling that will be
+inherited by the synthetics (default is 20)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dataset</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dataset.Dataset.dataset_from_files">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">dataset_from_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.dataset_from_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Dataset object from a list of DSM input files.
+This dataset does not contain waveform data (self.data is None),
+and is used only to compute synthetics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameter_file</strong> (<em>str</em>) – path of a DSM input file.</p></li>
+<li><p><strong>file_mode</strong> (<em>int</em>) – The kind of DSM input file. 1: P-SV, 2: SH.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dataset</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dataset.Dataset.dataset_from_sac">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">dataset_from_sac</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sac_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headonly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">broadcast_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.dataset_from_sac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a dataset from a list of sac files.
+With headonly=False, time series data from the sac_files
+will be stored in self.data.</p>
+<p>For parallel applications using MPI, headonly=False (i.e.,
+reading the data from sac files) only applies to rank 0, so
+as not to saturate the memory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sac_files</strong> (<em>list of str</em>) – list of paths to sac files.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em>) – 0: quiet, 1: debug.</p></li>
+<li><p><strong>headonly</strong> (<em>bool</em>) – if True, read only the metadata.
+If False, includes data.</p></li>
+<li><p><strong>broadcast_data</strong> (<em>bool</em>) – default is False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dataset</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="../index.html#dsmpy.dataset.Dataset" title="dsmpy.dataset.Dataset">Dataset</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sac_files</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;FCC.CN.201205280204A.T&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="o">.</span><span class="n">dataset_from_sac</span><span class="p">(</span>
+<span class="gp">... </span>       <span class="n">sac_files</span><span class="p">,</span> <span class="n">headonly</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dataset.Dataset.dataset_from_sac_process">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">dataset_from_sac_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sac_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">windows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bandpass'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.dataset_from_sac_process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a dataset from a list of sac files.
+Data are read from sac files, cut using the time windows,
+and stored in self.data. The sac file data are read and cut
+event by event, which allows to read large dataset.</p>
+<p>This method should be used instead of dataset_from_sac()
+when large amount of data is to be read. It has the same effect
+of using dataset_from_sac() followed by apply_windows(), but
+is much more memory efficient. For instance,10,000 3-components
+records with 20 Hz sampling and 1 hour of
+recording take approx. 138 Gb in memory. The same dataset cut
+in 100 s windows around a single phase (e.g., ScS) takes
+approx 1.9 Gb in memory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sac_files</strong> (<em>list of str</em>) – list of paths to sac files.</p></li>
+<li><p><strong>windows</strong> (<em>list of Window</em>) – time windows</p></li>
+<li><p><strong>freq</strong> (<em>float</em>) – minimum filter frequency</p></li>
+<li><p><strong>freq2</strong> (<em>float</em>) – maximum filter frequency</p></li>
+<li><p><strong>filter_type</strong> (<em>str</em>) – ‘bandpass’ or ‘lowpass’
+(default is ‘bandpass’)</p></li>
+<li><p><strong>shift</strong> (<em>bool</em>) – use the time shift coded into time windows
+(default is True)</p></li>
+<li><p><strong>verbose</strong> (<em>int</em>) – 0: quiet, 1: debug.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dataset</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="../index.html#dsmpy.dataset.Dataset" title="dsmpy.dataset.Dataset">Dataset</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dataset.Dataset.filter">
+<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bandpass'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zerophase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter waveforms using obspy.signal.filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freq</strong> (<em>float</em>) – filter frequency.</p></li>
+<li><p><strong>freq2</strong> (<em>float</em>) – filter maximum frequency.
+For bandpass filters only.</p></li>
+<li><p><strong>type</strong> (<em>str</em>) – type of filter. ‘lowpass’ or ‘bandpass’.</p></li>
+<li><p><strong>zerophase</strong> (<em>bool</em>) – use zero phase filter.</p></li>
+<li><p><strong>inplace</strong> (<em>bool</em>) – if True, performs the operation in-place
+(i.e., modifies self.data).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>if inplace is True, else None</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="../index.html#dsmpy.dataset.Dataset" title="dsmpy.dataset.Dataset">Dataset</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dataset.Dataset.get_bounds_from_event_index">
+<span class="sig-name descname"><span class="pre">get_bounds_from_event_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">ievent:</span> <span class="pre">int)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'int'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'int'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.get_bounds_from_event_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the start, end indices to slice
+self.stations[start:end].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ievent</strong> (<em>int</em>) – index of the event as in self.events</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>index of the first station recording event ievent
+int: index of the last station</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dataset.Dataset.plot_event">
+<span class="sig-name descname"><span class="pre">plot_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">ievent</span></em>, <em class="sig-param"><span class="pre">windows=None</span></em>, <em class="sig-param"><span class="pre">align_zero=False</span></em>, <em class="sig-param"><span class="pre">component=&lt;Component.T:</span> <span class="pre">2&gt;</span></em>, <em class="sig-param"><span class="pre">ax=None</span></em>, <em class="sig-param"><span class="pre">dist_min=0</span></em>, <em class="sig-param"><span class="pre">dist_max=360</span></em>, <em class="sig-param"><span class="pre">shift=True</span></em>, <em class="sig-param"><span class="pre">**kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.plot_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a record section for event ievent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ievent</strong> (<em>int</em>) – index of the event as in self.events</p></li>
+<li><p><strong>windows</strong> (<em>list of Window</em>) – time windows used to cut the
+waveforms if specified (default is None)</p></li>
+<li><p><strong>align_zero</strong> (<em>bool</em>) – if True, set the start of time windows
+as t=0 (default is False)</p></li>
+<li><p><strong>component</strong> (<a class="reference internal" href="../index.html#dsmpy.component.Component" title="dsmpy.component.Component"><em>Component</em></a>) – seismic component
+(default is Component.T)</p></li>
+<li><p><strong>ax</strong> (<em>Axes</em>) – matplotlib Axes object</p></li>
+<li><p><strong>dist_min</strong> (<em>float</em>) – minimum epicentral distance (default is 0)</p></li>
+<li><p><strong>dist_max</strong> (<em>float</em>) – maximum epicentral distances (default is 360)</p></li>
+<li><p><strong>shift</strong> (<em>bool</em>) – use shift coded into time windows (default is True)</p></li>
+<li><p><strong>**kwargs</strong> – key-value arguments for the pyplot.plot function</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>matplotlib Figure object
+Axes: matplotlib Axes object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Figure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dataset.Dataset.set_source_time_functions">
+<span class="sig-name descname"><span class="pre">set_source_time_functions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">catalog_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.set_source_time_functions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the catalog for source time functions.
+By default, source time functions specified in the GCMT catalog
+are used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> (<em>str</em>) – ‘scardec’ or ‘user’</p></li>
+<li><p><strong>catalog_path</strong> – path to a custom catalog.
+Must be specified if type=’user’</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dataset.Dataset.split">
+<span class="sig-name descname"><span class="pre">split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.Dataset.split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split self into n datasets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>n</strong> – number of datasets into which to split</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>n datasets</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of Datastet</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.dataset.filter_abnormal_data">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.dataset.</span></span><span class="sig-name descname"><span class="pre">filter_abnormal_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sac_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.filter_abnormal_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter sac data using the boolean function f.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sac_files</strong> (<em>list of str</em>) – paths to sac files</p></li>
+<li><p><strong>f</strong> (<em>function</em>) – (event_id: str, station: Station) -&gt; bool</p></li>
+<li><p><strong>threshold</strong> (<em>float</em>) – number of standard deviations of
+the distribution of the log of max of data within which to
+keep the data (default is 5).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>filtered list of paths to sac files</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.dataset.filter_sac_files">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.dataset.</span></span><span class="sig-name descname"><span class="pre">filter_sac_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sac_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">list</span><a class="headerlink" href="#dsmpy.dataset.filter_sac_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter sac files using the boolean function f.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sac_files</strong> (<em>list of str</em>) – paths to sac files</p></li>
+<li><p><strong>f</strong> (<em>function</em>) – (event_id: str, station: Station) -&gt; bool</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>filtered list of paths to sac files</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.dataset.get_event_id">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.dataset.</span></span><span class="sig-name descname"><span class="pre">get_event_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.get_event_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return event GCMT ID from obspy Trace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>trace</strong> (<em>Trace</em>) – obspy Trace object</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>GCMT ID</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.dataset.get_station">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.dataset.</span></span><span class="sig-name descname"><span class="pre">get_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dataset.get_station" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return Station object from obspy Trace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>trace</strong> (<em>Trace</em>) – obspy Trace object</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>station</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="../station/index.html#dsmpy.station.Station" title="dsmpy.station.Station">Station</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.dataset.read_sac_from_windows">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.dataset.</span></span><span class="sig-name descname"><span class="pre">read_sac_from_windows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sac_files</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">windows</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headonly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">list</span><a class="headerlink" href="#dsmpy.dataset.read_sac_from_windows" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sac_files</strong> (<em>list of str</em>) – paths to potential SAC files.
+Only the files contained in windows will be read</p></li>
+<li><p><strong>windows</strong> (<em>list of Window</em>) – time windows indicating which SAC
+files should be read</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>traces from SAC files contained in windows
+list of str: SAC files contained in windows
+windows: the windows which had SAC files</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of obspy traces</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.dataset.read_sac_meta">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.dataset.</span></span><span class="sig-name descname"><span class="pre">read_sac_meta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sac_files</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">list</span><a class="headerlink" href="#dsmpy.dataset.read_sac_meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of dict with SAC and other metadata.</p>
+<p>The available keys are: ‘stnm’, ‘netwk’, ‘stla’, ‘stlo’,
+‘evnm’, ‘evla’, ‘evlo’, ‘evdp’, ‘stcount’, ‘evcount’.
+evcount and stcount give, for each record, the number of
+times that event appears in other records, and the number
+of times that station appears in other records, respectively.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sac_files</strong> (<em>list of str</em>) – list of paths to sac files.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of traces: list of obspy traces</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dsmpy.dataset.read_traces">
+<span class="sig-prename descclassname"><span class="pre">dsmpy.dataset.</span></span><span class="sig-name descname"><span class="pre">read_traces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sac_files</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">list</span><a class="headerlink" href="#dsmpy.dataset.read_traces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of obspy traces read from the sac files
+without including waveform data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sac_files</strong> (<em>list of str</em>) – list of paths to SAC files</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of obspy traces without data</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of Trace</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/reference/dataset/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">dataset</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anselme Borgeaud, Kensuke Konishi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+    </div>
+  </body>
+</html>

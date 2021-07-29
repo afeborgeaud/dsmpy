@@ -1,0 +1,434 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>seismicmodel &#8212; pydsm  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">seismicmodel</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-dsmpy.seismicmodel">
+<span id="seismicmodel"></span><h1>seismicmodel<a class="headerlink" href="#module-dsmpy.seismicmodel" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.seismicmodel.</span></span><span class="sig-name descname"><span class="pre">SeismicModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vrmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vrmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vpv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vsv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vsh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qmu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qkappa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discontinuous</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represent a seismic Earth model for computation using DSM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vrmin</strong> (<em>ndarray</em>) – 1D array containing
+lower bounds of layered structure [km]</p></li>
+<li><p><strong>vrmax</strong> (<em>ndarray</em>) – 1D array containing
+upper bounds of layered structure [km]</p></li>
+<li><p><strong>rho</strong> (<em>ndarray</em>) – 2D array specifying density using
+3-degree polynomials for each layer [g/cm^3]</p></li>
+<li><p><strong>vpv</strong> (<em>ndarray</em>) – 2D array specifying V_PV using
+3-degree polynomials for each layer [km/s]</p></li>
+<li><p><strong>vph</strong> (<em>ndarray</em>) – V_PH [km/s]</p></li>
+<li><p><strong>vsh</strong> (<em>ndarray</em>) – V_SH [km/s]</p></li>
+<li><p><strong>eta</strong> (<em>ndarray</em>) – radial anisotropy []</p></li>
+<li><p><strong>qmu</strong> (<em>ndarray</em>) – shear anelasic factor []</p></li>
+<li><p><strong>qkappa</strong> (<em>ndarray</em>) – bulk anelasic factor []</p></li>
+<li><p><strong>model_id</strong> (<em>str</em>) – model identifier (e.g., ‘prem’)</p></li>
+</ul>
+</dd>
+</dl>
+<p>Attributes:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.ak135">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">ak135</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.ak135" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return model AK135.</p>
+<p class="rubric">References</p>
+<p>Kennett et al. (1995)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.ak135_prime">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">ak135_prime</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.ak135_prime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return model AK135.</p>
+<p class="rubric">References</p>
+<p>Kennett et al. (1995)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.boxcar_mesh">
+<span class="sig-name descname"><span class="pre">boxcar_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.boxcar_mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a boxcar mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>nodes</strong> (<em>ndarray</em>) – nodes of the boxcar mesh</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>copy of self with added nodes
+mesh (SeismicModel): mesh with boxcar polynomials</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>model (<a class="reference internal" href="#dsmpy.seismicmodel.SeismicModel" title="dsmpy.seismicmodel.SeismicModel">SeismicModel</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.build_model">
+<span class="sig-name descname"><span class="pre">build_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.build_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience function to build an updated seismic model with model
+perturbations added.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<a class="reference internal" href="#dsmpy.seismicmodel.SeismicModel" title="dsmpy.seismicmodel.SeismicModel"><em>SeismicModel</em></a>) – the reference seismic model</p></li>
+<li><p><strong>model_params</strong> (<a class="reference internal" href="../modelparameters/index.html#dsmpy.modelparameters.ModelParameters" title="dsmpy.modelparameters.ModelParameters"><em>ModelParameters</em></a>) – model parameters</p></li>
+<li><p><strong>value_dict_p</strong> (<em>dict</em>) – dict of ParameterType:ndarray</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the updated seismic model</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#dsmpy.seismicmodel.SeismicModel" title="dsmpy.seismicmodel.SeismicModel">SeismicModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.compute_avg">
+<span class="sig-name descname"><span class="pre">compute_avg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">izones</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../modelparameters/index.html#dsmpy.modelparameters.ParameterType" title="dsmpy.modelparameters.ParameterType"><span class="pre">dsmpy.modelparameters.ParameterType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.compute_avg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the average value for type in layers izones.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.get_value">
+<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">izone</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../modelparameters/index.html#dsmpy.modelparameters.ParameterType" title="dsmpy.modelparameters.ParameterType"><span class="pre">dsmpy.modelparameters.ParameterType</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.get_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the polynomial coefficients for layer izone.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>izone</strong> (<em>int</em>) – index of the layer</p></li>
+<li><p><strong>type</strong> (<a class="reference internal" href="../modelparameters/index.html#dsmpy.modelparameters.ParameterType" title="dsmpy.modelparameters.ParameterType"><em>ParameterType</em></a>) – type (e.g., ParameterType.VSH)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>3-degree polynomial coefficients</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.get_value_at">
+<span class="sig-name descname"><span class="pre">get_value_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../modelparameters/index.html#dsmpy.modelparameters.ParameterType" title="dsmpy.modelparameters.ParameterType"><span class="pre">dsmpy.modelparameters.ParameterType</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.get_value_at" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return value at radius r.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>float</em>) – radius</p></li>
+<li><p><strong>type</strong> (<a class="reference internal" href="../modelparameters/index.html#dsmpy.modelparameters.ParameterType" title="dsmpy.modelparameters.ParameterType"><em>ParameterType</em></a>) – type (e.g., ParameterType.VSH)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>value for type at radius r</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.get_values">
+<span class="sig-name descname"><span class="pre">get_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">dr=1.0)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'numpy.ndarray'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'dict'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.get_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dict with values for each ParameterType.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dr</strong> (<em>float</em>) – radius increment in km (default: 1)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>radii
+dict: values. Keys are of type ParameterType</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.get_zone">
+<span class="sig-name descname"><span class="pre">get_zone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.get_zone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return index of layer that contains radius r
+(left inclusive, right exclusive).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.gradient_models">
+<span class="sig-name descname"><span class="pre">gradient_models</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.gradient_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of seismic models to compute the waveform
+gradients with respect to model parameters using central
+differences.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the first half of the list corresponds
+to positive perturbations, the second half corresponds
+to negative perturbations
+list of float: corresponding perturbation vector</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list of SeismicModel</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">dsmpy.dsm</span> <span class="kn">import</span> <span class="n">compute_models_parallel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_params</span> <span class="o">=</span> <span class="n">ModelParameters</span><span class="p">(</span>
+<span class="gp">... </span>       <span class="n">types</span><span class="o">=</span><span class="p">[</span><span class="n">ParameterType</span><span class="o">.</span><span class="n">VSH</span><span class="p">],</span>
+<span class="gp">... </span>       <span class="n">radii</span><span class="o">=</span><span class="p">[</span><span class="mf">3480.</span><span class="p">,</span> <span class="mf">3680.</span><span class="p">],</span>
+<span class="gp">... </span>       <span class="n">mesh_type</span><span class="o">=</span><span class="s1">&#39;boxcar&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">SeismicModel</span><span class="o">.</span><span class="n">prem</span><span class="p">()</span><span class="o">.</span><span class="n">boxcar_mesh</span><span class="p">(</span><span class="n">model_params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grad_models</span><span class="p">,</span> <span class="n">dxs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">gradient_models</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">compute_models_parallel</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">dataset</span><span class="p">,</span> <span class="n">grad_models</span><span class="p">,</span> <span class="n">tlen</span><span class="o">=</span><span class="mf">1638.4</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">nspc</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">sampling_hz</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n_params</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">grad_models</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n_evs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waveform_grads</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_params</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">waveform_grad_i</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">iev</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+<span class="gp">... </span>        <span class="n">outputs</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">iev</span><span class="p">]</span><span class="o">.</span><span class="n">to_time_domain</span><span class="p">()</span>
+<span class="gp">... </span>        <span class="n">outputs</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">n_params</span><span class="p">][</span><span class="n">iev</span><span class="p">]</span><span class="o">.</span><span class="n">to_time_domain</span><span class="p">()</span>
+<span class="gp">... </span>        <span class="n">waveform_grad_i_iev</span> <span class="o">=</span> <span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">iev</span><span class="p">]</span><span class="o">.</span><span class="n">us</span>
+<span class="gp">... </span>            <span class="o">-</span> <span class="n">outputs</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">n_params</span><span class="p">][</span><span class="n">iev</span><span class="p">]</span><span class="o">.</span><span class="n">us</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">dxs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="gp">... </span>            <span class="o">-</span> <span class="n">dxs</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">n_params</span><span class="p">])</span>
+<span class="gp">... </span>        <span class="n">waveform_grad_i</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">waveform_grad_i_iev</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">waveform_grads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">waveform_grad_i</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span><span class="p">,</span> <span class="n">itypes</span><span class="p">,</span> <span class="n">igrds</span> <span class="o">=</span> <span class="n">model_params</span><span class="o">.</span><span class="n">get_free_all_indices</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">types</span> <span class="o">=</span> <span class="p">[</span><span class="n">model_params</span><span class="o">.</span><span class="n">types</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">itypes</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">radii</span> <span class="o">=</span> <span class="p">[</span><span class="n">model_params</span><span class="o">.</span><span class="n">get_grd_params</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span>
+<span class="gp">... </span>         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">igrds</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.iasp91">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">iasp91</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.iasp91" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return model IAS91.</p>
+<p>References:</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.lininterp_mesh">
+<span class="sig-name descname"><span class="pre">lininterp_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discontinuous</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.lininterp_mesh" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>nodes</strong> (<em>ndarray</em>) – nodes of the boxcar mesh</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>copy of self with added nodes
+mesh (SeismicModel): mesh with boxcar polynomials</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>model (<a class="reference internal" href="#dsmpy.seismicmodel.SeismicModel" title="dsmpy.seismicmodel.SeismicModel">SeismicModel</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.model_from_name">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">model_from_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.model_from_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return SeismicModel from its identifier.
+Supported models are:
+- ak135
+- prem</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.multiply">
+<span class="sig-name descname"><span class="pre">multiply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.multiply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of self with the model perturbations in values
+added.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>values</strong> (<em>np.ndarray</em>) – perturbations to model parameters
+(see ModelParameter.get_values_matrix())</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>new mesh with added values</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#dsmpy.seismicmodel.SeismicModel" title="dsmpy.seismicmodel.SeismicModel">SeismicModel</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_params</span> <span class="o">=</span> <span class="n">ModelParameters</span><span class="p">(</span>
+<span class="go">        types=[ParameterType.VSH],</span>
+<span class="go">        radii=[3480., 3680.],</span>
+<span class="go">        mesh_type=&#39;boxcar&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">SeismicModel</span><span class="o">.</span><span class="n">prem</span><span class="p">()</span><span class="o">.</span><span class="n">boxcar_mesh</span><span class="p">(</span><span class="n">model_params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">values_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">ParameterType</span><span class="o">.</span><span class="n">VSH</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">]}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">values</span> <span class="o">=</span> <span class="n">model_params</span><span class="o">.</span><span class="n">get_values_matrix</span><span class="p">(</span><span class="n">values_dict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">updated_model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model_params</span> <span class="o">=</span> <span class="n">ModelParameters</span><span class="p">(</span>
+<span class="go">        types=[ParameterType.VSH],</span>
+<span class="go">        radii=[3480., 3680.],</span>
+<span class="go">        mesh_type=&#39;boxcar&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">SeismicModel</span><span class="o">.</span><span class="n">prem</span><span class="p">()</span><span class="o">.</span><span class="n">boxcar_mesh</span><span class="p">(</span><span class="n">model_params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span>
+<span class="go">        model_params.get_n_grd_params(), 9)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">updated_model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the seismicModel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dr</strong> (<em>float</em>) – depth increment (default is 1)</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.ax</em>) – ax</p></li>
+<li><p><strong>types</strong> (<em>ParameterTypes</em>) – e.g., RHO, VSH</p></li>
+<li><p><strong>color</strong> (<em>str</em>) – color</p></li>
+<li><p><strong>kwargs</strong> (<em>dict</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>matplotlib Figure object
+Axes: matplotlib Axes object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Figure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.prem">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">prem</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.prem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the Preliminary Reference Earth Model (PREM).</p>
+<p class="rubric">References</p>
+<p>Dziewonski and Anderson (1981)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.set_value">
+<span class="sig-name descname"><span class="pre">set_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">izone</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../modelparameters/index.html#dsmpy.modelparameters.ParameterType" title="dsmpy.modelparameters.ParameterType"><span class="pre">dsmpy.modelparameters.ParameterType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.set_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the polynomial coefficients for layer izone.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>izone</strong> (<em>int</em>) – index of the layer</p></li>
+<li><p><strong>type</strong> (<a class="reference internal" href="../modelparameters/index.html#dsmpy.modelparameters.ParameterType" title="dsmpy.modelparameters.ParameterType"><em>ParameterType</em></a>) – type (e.g., ParameterType.VSH)</p></li>
+<li><p><strong>values</strong> (<em>np.ndarray</em>) – 3-degree polynomial coefficient</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.seismicmodel.SeismicModel.triangle_mesh">
+<span class="sig-name descname"><span class="pre">triangle_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.seismicmodel.SeismicModel.triangle_mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a triangular mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>ndarray</em>) – nodes of the triangle mesh (defines the</p></li>
+<li><p><strong>of the triangles' peaks</strong><strong>)</strong><strong></strong> (<em>radii</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>copy of self with added nodes
+mesh (SeismicModel): mesh with boxcar polynomials</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>model (<a class="reference internal" href="#dsmpy.seismicmodel.SeismicModel" title="dsmpy.seismicmodel.SeismicModel">SeismicModel</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/reference/seismicmodel/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">seismicmodel</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anselme Borgeaud, Kensuke Konishi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,224 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>windowmaker &#8212; pydsm  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">windowmaker</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-dsmpy.windowmaker">
+<span id="windowmaker"></span><h1>windowmaker<a class="headerlink" href="#module-dsmpy.windowmaker" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsmpy.windowmaker.WindowMaker">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.windowmaker.</span></span><span class="sig-name descname"><span class="pre">WindowMaker</span></span><a class="headerlink" href="#dsmpy.windowmaker.WindowMaker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utility class to compute list of Windows.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.windowmaker.WindowMaker.compute">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_before</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_after</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.windowmaker.WindowMaker.compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute list of Windows using TauP.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> (<a class="reference internal" href="../index.html#dsmpy.event.Event" title="dsmpy.event.Event"><em>Event</em></a>) – seismic event</p></li>
+<li><p><strong>stations</strong> (<em>list of Station</em>) – seismic stations</p></li>
+<li><p><strong>model_name</strong> (<em>str</em>) – name of reference 1-D model</p></li>
+<li><p><strong>phase_names</strong> (<em>list of str</em>) – list of TauP phase names</p></li>
+<li><p><strong>components</strong> (<em>list of Component</em>) – seismic components</p></li>
+<li><p><strong>t_before</strong> (<em>float</em>) – time before arrival (default is 10)</p></li>
+<li><p><strong>t_after</strong> (<em>float</em>) – time after arrival (default is 40)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>time windows</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of Window</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.windowmaker.WindowMaker.load">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.windowmaker.WindowMaker.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read path into list of Window using pickle.load().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – path to the file that contains time windows</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>time windows</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>windows (list of Window))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.windowmaker.WindowMaker.save">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">windows</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.windowmaker.WindowMaker.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save windows using pickle.dump().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – name of the output file.</p></li>
+<li><p><strong>windows</strong> (<em>list of Window</em>) – time windows.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.windowmaker.WindowMaker.set_limit">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">set_limit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_before</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_after</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.windowmaker.WindowMaker.set_limit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set t_before and t_after for all window in windows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>windows</strong> (<em>list of Windows</em>) – time windows</p></li>
+<li><p><strong>t_before</strong> (<em>float</em>) – time before arrival (in seconds)</p></li>
+<li><p><strong>t_after</strong> (<em>float</em>) – time after arrival (in seconds)</p></li>
+<li><p><strong>inplace</strong> (<em>bool</em>) – if True, modifies windows in-place,
+else returns a modified copy of windows.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.windowmaker.WindowMaker.trim_windows">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">trim_windows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">windows_trim</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.windowmaker.WindowMaker.trim_windows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trim windows using windows_trim. Used to exclude specific
+phases from windows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>windows</strong> (<em>list of Window</em>) – </p></li>
+<li><p><strong>windows_trim</strong> (<em>list of Window</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>trimmed time windows</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of Window</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.windowmaker.WindowMaker.windows_from_dataset">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">windows_from_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_before</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_after</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.windowmaker.WindowMaker.windows_from_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute list of Windows from a Dataset using TauP.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> (<a class="reference internal" href="../index.html#dsmpy.dataset.Dataset" title="dsmpy.dataset.Dataset"><em>Dataset</em></a>) – dataset</p></li>
+<li><p><strong>model_name</strong> (<em>str</em>) – name of the 1-D reference model.
+The model name corresponds to that used in TauP.</p></li>
+<li><p><strong>phase_names</strong> (<em>list of str</em>) – name of seismic phases.
+The phase name corresponds to that used in TauP.</p></li>
+<li><p><strong>components</strong> (<em>list of Component</em>) – seismic components</p></li>
+<li><p><strong>t_before</strong> (<em>float</em>) – time before arrival (default: 10)</p></li>
+<li><p><strong>t_after</strong> (<em>float</em>) – time after arrival (default: 40)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of time windows</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of Window</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="o">.</span><span class="n">dataset_from_sac</span><span class="p">(</span>
+<span class="go">        sac_files, headonly=False)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">windows</span> <span class="o">=</span> <span class="n">WindowMaker</span><span class="o">.</span><span class="n">windows_from_dataset</span><span class="p">(</span>
+<span class="go">        dataset, &#39;prem&#39;, &#39;ScS&#39;, [Component.T],</span>
+<span class="go">        t_before=10., t_after=30.)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/reference/windowmaker/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pydsm  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">windowmaker</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Anselme Borgeaud, Kensuke Konishi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+    </div>
+  </body>
+</html>

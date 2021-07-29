@@ -127,6 +127,8 @@ def get_XY(
                             key = _get_shift_key(window, phase_ref)
                             shift_dict[key] = shift
 
+                            #--- Plot reference windows
+                            #--- to debug static corrections
                             # window_arr = window.to_array()
                             # i_start_syn = int(
                             #     window_arr[0] * dataset.sampling_hz) + buffer_
@@ -163,6 +165,8 @@ def get_XY(
                     data_cut = dataset.data[
                         iwin, icomp, ista, i_start_dat:i_end_dat]
 
+                    #--- plot windowed data
+                    #--- to debug data windowing
                     # plt.plot(ref_u, label='ref')
                     # plt.plot(data_cut)
                     # plt.legend()
@@ -230,16 +234,18 @@ def get_XY(
                             ) / (dxs[imod] - dxs[imod + n_params])
                             grad_u /= np.abs(data_cut).max()
 
-                            # if QMU or QKAPPA, compute gradient
-                            # with respect to 1/Q
-                            if types[imod] == ParameterType.QMU:
-                                r = radii[imod]
-                                Qmu = model.get_value_at(r, ParameterType.QMU)
-                                grad_u *= -Qmu * Qmu
-                            if types[imod] == ParameterType.QKAPPA:
-                                r = radii[imod]
-                                Qk = model.get_value_at(r, ParameterType.QKAPPA)
-                                grad_u *= -Qk * Qk
+                            #--- if QMU or QKAPPA, compute gradient
+                            #--- with respect to 1/Q
+                            # if types[imod] == ParameterType.QMU:
+                            #     r = radii[imod]
+                            #     Qmu = model.get_value_at(
+                            #         r, ParameterType.QMU)
+                            #     grad_u *= -Qmu**2
+                            # if types[imod] == ParameterType.QKAPPA:
+                            #     r = radii[imod]
+                            #     Qk = model.get_value_at(
+                            #         r, ParameterType.QKAPPA)
+                            #     grad_u *= -Qk**2
 
                             x_imod.append(grad_u[::sample_skip])
 

@@ -1,97 +1,20 @@
 API reference
 **************
 
-dsm
-~~~
-.. automodule:: dsmpy.dsm
-   :members:
+.. toctree::
+    :maxdepth: 2
 
-event
-~~~~~
-.. automodule:: dsmpy.event
-   :members:
-
-station
-~~~~~~~
-.. automodule:: dsmpy.station
-   :members:
-
-window
-~~~~~~
-.. automodule:: dsmpy.window
-   :members:
-
-windowmaker
-~~~~~~~~~~~
-.. automodule:: dsmpy.windowmaker
-   :members:
-
-seismicmodel
-~~~~~~~~~~~~
-.. automodule:: dsmpy.seismicmodel
-   :members:
-
-modelparameters
-~~~~~~~~~~~~~~~
-.. automodule:: dsmpy.modelparameters
-   :members:
-
-component
-~~~~~~~~~
-.. automodule:: dsmpy.component
-   :members:
-
-dataset
-~~~~~~~
-.. automodule:: dsmpy.dataset
-   :members:
-
-utils.cmtcatalog
-~~~~~~~~~~~~~~~~
-.. automodule:: dsmpy.utils.cmtcatalog
-   :members:
-
-utils.modelutils
-~~~~~~~~~~~~~~~~
-.. automodule:: dsmpy.utils.modelutils
-   :members:
-
-utils.scardec
-~~~~~~~~~~~~~
-.. automodule:: dsmpy.utils.scardec
-   :members:
-
-utils.sklearnutils
-~~~~~~~~~~~~~~~~~~
-.. automodule:: dsmpy.utils.sklearnutils
-   :members:
-
-spc.spctime
-~~~~~~~~~~~~~
-.. automodule:: dsmpy.spc.spctime
-   :members:
-
-spc.stf
-~~~~~~~
-.. automodule:: dsmpy.spc.stf
-   :members:
-
-spc.stfcatalog
-~~~~~~~~~~~~~~
-.. automodule:: dsmpy.spc.stfcatalog
-   :members:
-
-definitions
-~~~~~~~~~~~
-.. automodule:: dsmpy.definitions
-   :members:
-
-_tish
-~~~~~
-.. automodule:: dsmpy._tipsv
-   :members:
-
-_tipsv
-~~~~~~
-.. automodule:: dsmpy._tish
-   :members:
+    dsm/index
+    event/index
+    station/index
+    window/index
+    windowmaker/index
+    seismicmodel/index
+    modelparameters/index
+    component/index
+    dataset/index
+    utils/index
+    spc/index
+    definitions/index
+    _tish/index
+    _tipsv/index
