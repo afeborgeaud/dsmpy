@@ -24,15 +24,19 @@ compute_parallel
 DSMInput
 ~~~~~~~~
 .. autoclass:: dsmpy.dsm.DSMInput
+    :members:
 
 PyDSMInputFile
 ~~~~~~~~~~~~~~
 .. autoclass:: dsmpy.dsm.PyDSMInputFile
-
-PyDSMOutput
-~~~~~~~~~~~
-.. autoclass:: dsmpy.dsm.PyDSMOutput
+    :members:
 
 PyDSMInput
 ~~~~~~~~~~
 .. autoclass:: dsmpy.dsm.PyDSMInput
+    :members:
+
+PyDSMOutput
+~~~~~~~~~~~
+.. autoclass:: dsmpy.dsm.PyDSMOutput
+    :members:

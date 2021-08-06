@@ -177,11 +177,9 @@ class PyDSMOutput:
         requires a lot of memory.
 
         Examples:
-            output.to_time_domain()
-            # process output.us
-            # ...
-            output.free()
-
+        >>> output.to_time_domain()
+        >>> # do some operations on output.us
+        >>> output.free()
         """
         del self.us
         del self.ts
@@ -948,21 +946,20 @@ def compute(pydsm_input, write_to_file=False,
     Examples:
         >>> catalog = dsmpy.utils.cmtcatalog.read_catalog()
         >>> event = Event.event_from_catalog(
-                catalog, '200707211534A')
+        ...     catalog, '200707211534A')
         >>> stations = [
-                Station(
-                    name='FCC', network='CN',
-                    latitude=58.7592, longitude=-94.0884),
-                ]
+        ...     Station(
+        ...         name='FCC', network='CN',
+        ...         latitude=58.7592, longitude=-94.0884),
+        ...     ]
         >>> model = SeismicModel.prem()
         >>> input = PyDSMInput.input_from_arrays(
-                event, stations,
-                model, tlen=1638.4, nspc=256,
-                sampling_hz=20)
+        ...     event, stations,
+        ...     model, tlen=1638.4, nspc=256,
+        ...     sampling_hz=20)
         >>> output = compute(input, mode=0)
         >>> output.plot()
         >>> plt.show()
-
     """
     if mode not in {0, 1, 2}:
         raise RuntimeError('mode={} undefined. Should be 0, 1, or 2'
@@ -1168,7 +1165,11 @@ def compute_dataset_parallel(
         tlen, nspc, sampling_hz,
         mode=0, write_to_file=False,
         verbose=0, log=None):
-    """Compute spectra using DSM with data parallelization.
+    """Compute spectra using DSM with data parallelization
+    for a given seismic model.
+
+    This method scales to large dataset and many CPU cores,
+    since the dataset is split (scattered) between many cores.
 
     Args:
         dataset (Dataset): dataset of events & stations.
@@ -1485,6 +1486,11 @@ def compute_models_parallel(
     If this is not satisfied, the list of models will be padded to the
     closest larger integer that satisfies this relation.
 
+    Warning: When the dataset contains a large number of records,
+    and for a large number of seismic models, the memory usage
+    for this method can get large as it scales as
+    len(models) * dataset.nr.
+
     Args:
         dataset (Dataset): dataset.
         models (list of SeismicModel): the models
@@ -1504,16 +1510,16 @@ def compute_models_parallel(
 
     Examples:
         >>> dataset = Dataset.dataset_from_sac(
-                sac_files, headonly=False)
-        >>> models = [SeismicModel.prem(), SeismicModel.ak135]
+        ...     sac_files)
+        >>> models = [SeismicModel.prem(), SeismicModel.ak135()]
         >>> outputs = compute_models_parallel(
-                dataset, models, tlen=1638.4, nspc=256,
-                sampling_hz=20, mode=0)
+        ...     dataset, models, tlen=1638.4, nspc=256,
+        ...     sampling_hz=20, mode=0)
         >>> fig, ax = plt.subplots(1)
         >>> outputs[0][0].plot_component(
-                component=Component.T, ax=ax, label='prem')
+        ...     component=Component.T, ax=ax, label='prem')
         >>> outputs[1][0].plot_component(
-                component=Component.T, ax=ax, label='ak135')
+        ...     component=Component.T, ax=ax, label='ak135')
         >>> plt.show()
 
     """

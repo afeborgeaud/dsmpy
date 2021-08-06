@@ -88,17 +88,17 @@ See Kawai et al. (2006) for details.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">catalog</span> <span class="o">=</span> <span class="n">dsmpy</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">cmtcatalog</span><span class="o">.</span><span class="n">read_catalog</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">event</span> <span class="o">=</span> <span class="n">Event</span><span class="o">.</span><span class="n">event_from_catalog</span><span class="p">(</span>
-<span class="go">        catalog, &#39;200707211534A&#39;)</span>
+<span class="gp">... </span>    <span class="n">catalog</span><span class="p">,</span> <span class="s1">&#39;200707211534A&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">stations</span> <span class="o">=</span> <span class="p">[</span>
-<span class="go">        Station(</span>
-<span class="go">            name=&#39;FCC&#39;, network=&#39;CN&#39;,</span>
-<span class="go">            latitude=58.7592, longitude=-94.0884),</span>
-<span class="go">        ]</span>
+<span class="gp">... </span>    <span class="n">Station</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;FCC&#39;</span><span class="p">,</span> <span class="n">network</span><span class="o">=</span><span class="s1">&#39;CN&#39;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">latitude</span><span class="o">=</span><span class="mf">58.7592</span><span class="p">,</span> <span class="n">longitude</span><span class="o">=-</span><span class="mf">94.0884</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">SeismicModel</span><span class="o">.</span><span class="n">prem</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">input</span> <span class="o">=</span> <span class="n">PyDSMInput</span><span class="o">.</span><span class="n">input_from_arrays</span><span class="p">(</span>
-<span class="go">        event, stations,</span>
-<span class="go">        model, tlen=1638.4, nspc=256,</span>
-<span class="go">        sampling_hz=20)</span>
+<span class="gp">... </span>    <span class="n">event</span><span class="p">,</span> <span class="n">stations</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">model</span><span class="p">,</span> <span class="n">tlen</span><span class="o">=</span><span class="mf">1638.4</span><span class="p">,</span> <span class="n">nspc</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">sampling_hz</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">compute</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -112,11 +112,14 @@ See Kawai et al. (2006) for details.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="dsmpy.dsm.compute_dataset_parallel">
 <span class="sig-prename descclassname"><span class="pre">dsmpy.dsm.</span></span><span class="sig-name descname"><span class="pre">compute_dataset_parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seismic_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nspc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_hz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_to_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.compute_dataset_parallel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute spectra using DSM with data parallelization.</p>
+<dd><p>Compute spectra using DSM with data parallelization
+for a given seismic model.</p>
+<p>This method scales to large dataset and many CPU cores,
+since the dataset is split (scattered) between many cores.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dataset</strong> (<em>Dataset</em>) – dataset of events &amp; stations.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference internal" href="../dataset/index.html#dsmpy.dataset.Dataset" title="dsmpy.dataset.Dataset"><em>Dataset</em></a>) – dataset of events &amp; stations.</p></li>
 <li><p><strong>mode</strong> (<em>int</em>) – computation mode. 0: both, 1: P-SV, 2: SH.</p></li>
 <li><p><strong>write_to_file</strong> (<em>bool</em>) – write output in Kibrary format
 (default is False).</p></li>
@@ -156,10 +159,14 @@ See Kawai et al. (2006) for details.</p>
 <p>At the moment, we must have len(models) % n_cores == 0.
 If this is not satisfied, the list of models will be padded to the
 closest larger integer that satisfies this relation.</p>
+<p>Warning: When the dataset contains a large number of records,
+and for a large number of seismic models, the memory usage
+for this method can get large as it scales as
+len(models) * dataset.nr.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dataset</strong> (<em>Dataset</em>) – dataset.</p></li>
+<li><p><strong>dataset</strong> (<a class="reference internal" href="../dataset/index.html#dsmpy.dataset.Dataset" title="dsmpy.dataset.Dataset"><em>Dataset</em></a>) – dataset.</p></li>
 <li><p><strong>models</strong> (<em>list of SeismicModel</em>) – the models</p></li>
 <li><p><strong>tlen</strong> (<em>float</em>) – duration of the synthetics (in seconds)
 (better to be 2**n/10)</p></li>
@@ -182,16 +189,16 @@ closest larger integer that satisfies this relation.</p>
 </dl>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="o">.</span><span class="n">dataset_from_sac</span><span class="p">(</span>
-<span class="go">        sac_files, headonly=False)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">models</span> <span class="o">=</span> <span class="p">[</span><span class="n">SeismicModel</span><span class="o">.</span><span class="n">prem</span><span class="p">(),</span> <span class="n">SeismicModel</span><span class="o">.</span><span class="n">ak135</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="n">sac_files</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">models</span> <span class="o">=</span> <span class="p">[</span><span class="n">SeismicModel</span><span class="o">.</span><span class="n">prem</span><span class="p">(),</span> <span class="n">SeismicModel</span><span class="o">.</span><span class="n">ak135</span><span class="p">()]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">compute_models_parallel</span><span class="p">(</span>
-<span class="go">        dataset, models, tlen=1638.4, nspc=256,</span>
-<span class="go">        sampling_hz=20, mode=0)</span>
+<span class="gp">... </span>    <span class="n">dataset</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">tlen</span><span class="o">=</span><span class="mf">1638.4</span><span class="p">,</span> <span class="n">nspc</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">sampling_hz</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot_component</span><span class="p">(</span>
-<span class="go">        component=Component.T, ax=ax, label=&#39;prem&#39;)</span>
+<span class="gp">... </span>    <span class="n">component</span><span class="o">=</span><span class="n">Component</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;prem&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot_component</span><span class="p">(</span>
-<span class="go">        component=Component.T, ax=ax, label=&#39;ak135&#39;)</span>
+<span class="gp">... </span>    <span class="n">component</span><span class="o">=</span><span class="n">Component</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;ak135&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -252,6 +259,49 @@ closest larger integer that satisfies this relation.</p>
 </ul>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.DSMInput.input_from_arrays">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">input_from_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seismic_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nspc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.DSMInput.input_from_arrays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a DSMInput from user-friendly arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> (<a class="reference internal" href="../event/index.html#dsmpy.event.Event" title="dsmpy.event.Event"><em>Event</em></a>) – earthquake information.</p></li>
+<li><p><strong>stations</strong> (<em>list of Station</em>) – seismic stations.</p></li>
+<li><p><strong>seismic_model</strong> (<a class="reference internal" href="../seismicmodel/index.html#dsmpy.seismicmodel.SeismicModel" title="dsmpy.seismicmodel.SeismicModel"><em>SeismicModel</em></a>) – Earth structure model
+(e.g. PREM).</p></li>
+<li><p><strong>tlen</strong> (<em>float</em>) – duration of the synthetics (in seconds)
+(better to be 2**n/10)</p></li>
+<li><p><strong>nspc</strong> (<em>int</em>) – number of frequency points in the synthetics
+(better to be 2**n)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>DSMInput object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#dsmpy.dsm.DSMInput" title="dsmpy.dsm.DSMInput">DSMInput</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.DSMInput.input_from_file">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">input_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.DSMInput.input_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a DSMInput object from a DSM input file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameter_file</strong> (<em>str</em>) – path of a DSM input file</p></li>
+<li><p><strong>mode</strong> (<em>int</em>) – 1: P-SV, 2: SH</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>DSMInput</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -264,35 +314,6 @@ closest larger integer that satisfies this relation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>input_file</strong> (<em>str</em>) – path of dsmpy input file</p>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
-<section id="pydsmoutput">
-<h2>PyDSMOutput<a class="headerlink" href="#pydsmoutput" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.dsm.</span></span><span class="sig-name descname"><span class="pre">PyDSMOutput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spcs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_hz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nspc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omegai</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0014053864092981234</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput" title="Permalink to this definition">¶</a></dt>
-<dd><p>Output from dsmpy compute methods.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>spcs</strong> (<em>ndarray</em>) – seismic spectra computed with DSM.
-Shape is (3, nr, nspc+1).</p></li>
-<li><p><strong>stations</strong> (<em>ndarray of Station</em>) – stations. Shape is (nr,)</p></li>
-<li><p><strong>event</strong> (<em>Event</em>) – seismic event (the source).</p></li>
-<li><p><strong>sampling_hz</strong> (<em>int</em>) – sampling frequency for time-domain waveforms</p></li>
-<li><p><strong>tlen</strong> (<em>float</em>) – duration of the synthetics (in seconds)
-(better to be 2**n/10)</p></li>
-<li><p><strong>nspc</strong> (<em>int</em>) – number of frequency points in the synthetics
-(better to be 2**n)</p></li>
-<li><p><strong>omegai</strong> (<em>float</em>) – numerical damping using in DSM.
-Default is default_params[‘omegai’].
-Better to leave it at its default value.</p></li>
-<li><p><strong>model_id</strong> (<em>str</em>) – seismic model identifier (e.g., ‘PREM’, ‘mod1’).
-(default is None).</p></li>
-</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -313,6 +334,269 @@ Better to leave it at its default value.</p></li>
 </ul>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMInput.input_from_arrays">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">input_from_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seismic_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nspc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_hz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMInput.input_from_arrays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a PyDSMInput from user-friendly arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> (<a class="reference internal" href="../event/index.html#dsmpy.event.Event" title="dsmpy.event.Event"><em>Event</em></a>) – earthquake information.</p></li>
+<li><p><strong>stations</strong> (<em>list of Station</em>) – seismic stations.</p></li>
+<li><p><strong>seismic_model</strong> (<a class="reference internal" href="../seismicmodel/index.html#dsmpy.seismicmodel.SeismicModel" title="dsmpy.seismicmodel.SeismicModel"><em>SeismicModel</em></a>) – Earth structure model
+(e.g. PREM).</p></li>
+<li><p><strong>tlen</strong> (<em>float</em>) – duration of the synthetics (in seconds)
+(better to be 2**n/10)</p></li>
+<li><p><strong>nspc</strong> (<em>int</em>) – number of frequency points in the synthetics
+(better to be 2**n)</p></li>
+<li><p><strong>sampling_hz</strong> (<em>float</em>) – sampling frequency
+for time-domain synthetics.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>PyDSMInput object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#dsmpy.dsm.PyDSMInput" title="dsmpy.dsm.PyDSMInput">PyDSMInput</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMInput.input_from_file">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">input_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_time_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMInput.input_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a PyDSMInput object from a DSM input file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameter_file</strong> (<em>str</em>) – path of a DSM input file.</p></li>
+<li><p><strong>sampling_hz</strong> (<em>float</em>) – sampling frequency</p></li>
+<li><p><strong>time-domain waveforms.</strong> (<em>for</em>) – </p></li>
+<li><p><strong>source_time_function</strong> (<a class="reference internal" href="../spc/index.html#dsmpy.spc.stf.SourceTimeFunction" title="dsmpy.spc.stf.SourceTimeFunction"><em>SourceTimeFunction</em></a>) – </p></li>
+<li><p><strong>object.</strong> (<a class="reference internal" href="../spc/index.html#dsmpy.spc.stf.SourceTimeFunction" title="dsmpy.spc.stf.SourceTimeFunction"><em>SourceTimeFunction</em></a>) – </p></li>
+<li><p><strong>file_mode</strong> (<em>int</em>) – 1: P-SV, 2: SH.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>PyDSMInput object</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="pydsmoutput">
+<h2>PyDSMOutput<a class="headerlink" href="#pydsmoutput" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">dsmpy.dsm.</span></span><span class="sig-name descname"><span class="pre">PyDSMOutput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spcs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_hz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nspc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omegai</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0014053864092981234</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output from dsmpy compute methods.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spcs</strong> (<em>ndarray</em>) – seismic spectra computed with DSM.
+Shape is (3, nr, nspc+1).</p></li>
+<li><p><strong>stations</strong> (<em>ndarray of Station</em>) – stations. Shape is (nr,)</p></li>
+<li><p><strong>event</strong> (<a class="reference internal" href="../event/index.html#dsmpy.event.Event" title="dsmpy.event.Event"><em>Event</em></a>) – seismic event (the source).</p></li>
+<li><p><strong>sampling_hz</strong> (<em>int</em>) – sampling frequency for time-domain waveforms</p></li>
+<li><p><strong>tlen</strong> (<em>float</em>) – duration of the synthetics (in seconds)
+(better to be 2**n/10)</p></li>
+<li><p><strong>nspc</strong> (<em>int</em>) – number of frequency points in the synthetics
+(better to be 2**n)</p></li>
+<li><p><strong>omegai</strong> (<em>float</em>) – numerical damping using in DSM.
+Default is default_params[‘omegai’].
+Better to leave it at its default value.</p></li>
+<li><p><strong>model_id</strong> (<em>str</em>) – seismic model identifier (e.g., ‘PREM’, ‘mod1’).
+(default is None).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput.filter">
+<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lowpass'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zerophase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter time-domain waveforms using obspy.signal.filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freq</strong> (<em>float</em>) – filter frequency</p></li>
+<li><p><strong>freq2</strong> (<em>float</em>) – filter maximum frequency
+(for bandpass filters only)</p></li>
+<li><p><strong>type</strong> (<em>str</em>) – type of filter (‘lowpass’, ‘bandpass’).</p></li>
+<li><p><strong>zerophase</strong> (<em>bool</em>) – use zero-phase filter (default is False).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput.free">
+<span class="sig-name descname"><span class="pre">free</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput.free" title="Permalink to this definition">¶</a></dt>
+<dd><p>Free memory for the large fields self.us and self.ts.</p>
+<p>Can be used after processing the time-domain waveform in cases
+where a large number of waveforms are used, which can quickly
+requires a lot of memory.</p>
+<p>Examples:
+&gt;&gt;&gt; output.to_time_domain()
+&gt;&gt;&gt; # do some operations on output.us
+&gt;&gt;&gt; output.free()</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput.get_nr">
+<span class="sig-name descname"><span class="pre">get_nr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput.get_nr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of receivers (stations).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput.get_traces">
+<span class="sig-name descname"><span class="pre">get_traces</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput.get_traces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of obspy.Trace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>traces</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list ot obspy.Trace</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput.get_us_shape">
+<span class="sig-name descname"><span class="pre">get_us_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'int'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'int'&gt;</span></em>, <em class="sig-param"><span class="pre">&lt;class</span> <span class="pre">'int'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput.get_us_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the shape of self.us (without doing FFT).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput.load">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read file into self using pickle.load().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – name of the file that contains self.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the loaded PyDSMOutput object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#dsmpy.dsm.PyDSMOutput" title="dsmpy.dsm.PyDSMOutput">PyDSMOutput</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput.plot_component">
+<span class="sig-name descname"><span class="pre">plot_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">windows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">align_zero</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput.plot_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot waveforms for one seismic component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>component</strong> (<em>Component</em>) – seismic component.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>matplotlib figure object.
+Axes: matplotlib Axes object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>figure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput.plot_spc">
+<span class="sig-name descname"><span class="pre">plot_spc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'black'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'self'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput.plot_spc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a frequency-domain (spectra) record section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axes</strong> (<em>matplotlib.axes</em>) – ax on which to plot</p></li>
+<li><p><strong>distance_min</strong> (<em>float</em>) – minimum epicentral distance (deg)</p></li>
+<li><p><strong>distance_max</strong> (<em>float</em>) – maximum epicentral distance (deg)</p></li>
+<li><p><strong>label</strong> (<em>str</em>) – label for model name</p></li>
+<li><p><strong>normalize</strong> (<em>str</em>) – ‘self’ for self-normalization</p></li>
+<li><p><strong>'none' to see amplitude decay with distance</strong> (<em>or</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>matplotlib figure object.
+Axes: matplotlib Axes object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>figure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save self using pickle.dump().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – name of the output file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput.set_source_time_function">
+<span class="sig-name descname"><span class="pre">set_source_time_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_time_function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput.set_source_time_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the source time function for convolution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>source_time_function</strong> (<a class="reference internal" href="../spc/index.html#dsmpy.spc.stf.SourceTimeFunction" title="dsmpy.spc.stf.SourceTimeFunction"><em>SourceTimeFunction</em></a>) – source time function object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput.to_time_domain">
+<span class="sig-name descname"><span class="pre">to_time_domain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_time_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput.to_time_domain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute time domain waveforms from spetcra.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>source_time_function</strong> (<a class="reference internal" href="../spc/index.html#dsmpy.spc.stf.SourceTimeFunction" title="dsmpy.spc.stf.SourceTimeFunction"><em>SourceTimeFunction</em></a>) – source time function object (default is None).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput.window_spcs">
+<span class="sig-name descname"><span class="pre">window_spcs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_width</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput.window_spcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Window the spectra in the frequency domain
+using gaussian windows to isolate portions
+of time-domain waveforms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>windows</strong> (<em>list of Window</em>) – windows.</p></li>
+<li><p><strong>window_width</strong> (<em>float</em>) – duration (in seconds).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>windowed PyDSMOutput object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#dsmpy.dsm.PyDSMOutput" title="dsmpy.dsm.PyDSMOutput">PyDSMOutput</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsmpy.dsm.PyDSMOutput.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsmpy.dsm.PyDSMOutput.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write to file using obspy.io.write.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root_path</strong> (<em>str</em>) – path of root folder in which to write.</p></li>
+<li><p><strong>format</strong> (<em>str</em>) – output files format (‘sac’).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -337,8 +621,8 @@ Better to leave it at its default value.</p></li>
 </li>
 <li><a class="reference internal" href="#dsminput">DSMInput</a></li>
 <li><a class="reference internal" href="#pydsminputfile">PyDSMInputFile</a></li>
-<li><a class="reference internal" href="#pydsmoutput">PyDSMOutput</a></li>
 <li><a class="reference internal" href="#pydsminput">PyDSMInput</a></li>
+<li><a class="reference internal" href="#pydsmoutput">PyDSMOutput</a></li>
 </ul>
 </li>
 </ul>
