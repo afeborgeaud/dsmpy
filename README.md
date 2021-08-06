@@ -3,15 +3,33 @@
 [![PyPI version fury.io](https://d25lcipzij17d.cloudfront.net/badge.svg?id=py&type=6&v=1.0a4&x2=0)](https://test.pypi.org/project/dsmpy/)
 
 Python package for computation of synthetic waveforms in spherically homogeneous transversely isotropic (VTI) media using the Direct Solution Method (DSM; [Kawai et al. 2006](https://doi.org/10.1111/j.1365-246X.2005.02829.x)).<br/><br/>
-Documentation and tutorials can be found [here](https://afeborgeaud.github.io/dsmpy/).
+The documentation with several usage examples can be found [here](https://afeborgeaud.github.io/dsmpy/).
 
 # INSTALLATION
-## Requirements
-If you install dsmpy using conda, you can skip this step. Else, you will need
-1) As ```dsmpy``` relies on mpi4py, you need to have a working MPI implementation installed (see [mpi4py documentation](https://mpi4py.readthedocs.io/en/stable/appendix.html#building-mpi))
-2) gfotran>=4.8
+## Preferred method: dependencies using conda and building from source
+1) Clone the dsmpy repository
+```bash
+git clone https://github.com/afeborgeaud/dsmpy
+```
+2) Install conda-build in ```base```
+```bash
+conda install conda-build -y
+```
+3) Create the ```dsm``` conda environment using the ```environment.yml``` YAML file:
+```bash
+conda env create -f /path/to/dsmpy/environment.yml
+```
+4) Build dsmpy. ```/path/to/dsmpy/``` is the path to the local dsmpy git repository:
+```bash
+conda develop -n dsm -b /path/to/dsmpy/
+```
+5) Run tests. From /path/to/dsmpy/
+```bash
+conda activate dsm
+pytest
+```
 
-## Using conda
+## Using conda to install dsmpy conda package (currently not the latest version)
 We recommend using ```conda``` to install ```dsmpy```, as it takes care of the dependencies required to compile the Fortran sources in dsmpy. At the moment, dsmpy has been compiled for ```linux-64``` and ```osx-64``` platforms. <br>
 To install ```dsmpy``` using ```conda```:
 1) From a terminal, run
@@ -44,31 +62,7 @@ python -c "import dsmpy"
 - gfortran>=4.8 is required for succesful compilation, because of the optimization flag '-Ofast'
 - If you have gfortran<4.8, you should change the compiler flag from '-Ofast' to '-O3' in ```<path_of_dsmpy_folder>/pydsm/__init__.py```
 
-## Build from source
-### Using conda
-1) Clone the dsmpy repository
-```bash
-git clone https://github.com/afeborgeaud/dsmpy
-```
-2) Install conda-build in ```base```
-```bash
-conda install conda-build -y
-```
-3) Create the ```dsm``` conda environment using the ```environment.yml``` YAML file:
-```bash
-conda env create -f /path/to/dsmpy/environment.yml
-```
-4) Build dsmpy. ```/path/to/dsmpy/``` is the path to the local dsmpy git repository:
-```bash
-conda develop -n dsm -b /path/to/dsmpy/
-```
-5) Run tests. From /path/to/dsmpy/
-```bash
-conda activate dsm
-pytest
-```
-
-### Using pip
+## Build from source using pip
 1) Clone the dsmpy repository
 ```
 git clone https://github.com/afeborgeaud/dsmpy
@@ -94,9 +88,6 @@ or
 ```
 pip install dist/*.tar.gz
 ```
-
-# GETTING STARTED
-To get started, you should at least run ```python test_tipsv.py``` and ```python test_tish.psv``` located in in ```<path_of_pydsm_folder>/pydsm/tests```. These scripts check ```dsmpy``` against pre-computed synthetics using the DSM (Fortran).
 
 # EXAMPLES
 1) Running dsmpy using an input file (run on multiple CPUs).
