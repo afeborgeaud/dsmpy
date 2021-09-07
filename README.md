@@ -29,6 +29,7 @@ conda activate dsm
 
 Modified (might not be necessay for all, but for some systems):
 6) In case of the module absence error (tish, tipsv) during pytest
+```bash
 python build.py
 
 pytest
