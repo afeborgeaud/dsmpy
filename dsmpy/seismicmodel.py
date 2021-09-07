@@ -401,9 +401,6 @@ class SeismicModel:
         N_vrmax[3:model_length+2] = ini_model[0:model_length-1,0]
         N_vrmax[model_length+2] = 6371.0
 
-        for i in range(0,model_length+3):
-            print(i,N_vrmin[i],N_vrmax[i])
-
         N_eta[3::,:] = N_eta[2,:]
         N_qmu[3:] = N_qmu[2]
         N_qkappa[3:] = N_qkappa[2]
