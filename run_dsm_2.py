@@ -36,7 +36,7 @@ for i in range(1,9):
     u_Z_FCC = output['Z', f'FCC_CN']
     # to plot a three-component record section, use
     output.plot()
-    plt.savefig('a' + str(i), dpi=200)
+    plt.savefig(f'./data_directory/model_{i}',dpi=200)
     plt.clf()
     # to write synthetics to SAC files, use
-    output.write(root_path='.', format='sac')
+    output.write(root_path=f'./data_directory/',format='sac')
