@@ -27,8 +27,8 @@ conda develop -n dsm -b /path/to/dsmpy/
 ```bash
 conda activate dsm
 
-Modified (Nirmit) (might not be necessay for all, but required for my system):
-6) In case of the module absence error (tish, tipsv)
+Modified (might not be necessay for all, but for some systems):
+6) In case of the module absence error (tish, tipsv) during pytest
 python build.py
 
 pytest
