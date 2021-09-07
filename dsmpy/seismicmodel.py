@@ -353,7 +353,7 @@ class SeismicModel:
 
         ini_model_data = []
         ini_model = np.zeros((model_length,7))
-        ini_model_data.append(open(f"./models_directory/model_{model_num}.dat","r").readlines())
+        ini_model_data.append(open(f"./model_directory/model_{model_num}.dat","r").readlines())
         for i in range(0,model_length):
             for j in range(0,7):
                 ini_model[i,j] = np.asarray(ini_model_data[0][i].split())[j]
