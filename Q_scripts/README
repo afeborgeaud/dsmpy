@@ -1,0 +1,19 @@
+This directory contains the following datafiles and scripts:
+
+2d_convert_binary_to_ascii.m : This MATLAB file (which also works in Octave)
+converts perplex binary datafiles (as provided from Nakagawa / Tackley / StagYY)
+into ASCII files. One output ASCII file contains model properties along a
+single vertical profile.
+
+Users should change the first three lines of the file, which give the directory,
+root name and horizontal points for which output files should be created.
+
+add_attenuation.py :
+This file takes the output from the previous script and computes the anelastic
+properties (V_S, V_S, Q_S, Q_K, Q_P) according to an anelasticity model from
+Goes and coworkers.
+
+Goes_attenuation_models.py : File containing functions and other objects used
+by add_attenuation.py.
+
+prem.txt : PREM data file for depth -> pressure conversion.

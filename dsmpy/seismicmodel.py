@@ -342,7 +342,106 @@ class SeismicModel:
         return cls(
             vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa, model_id)
+    
+    @classmethod
+    def mod_prem(cls,model_num,model_length):
+        """
+        Return the Preliminary Reference Earth Model (PREM).
+        References:
+        Dziewonski and Anderson (1981)
+        """
 
+        ini_model_data = []
+        ini_model = np.zeros((model_length,7))
+        ini_model_data.append(open(f"./model_directory/model_{model_num}.dat","r").readlines())
+        for i in range(0,model_length):
+            for j in range(0,7):
+                ini_model[i,j] = np.asarray(ini_model_data[0][i].split())[j]
+
+        ini_vrmin = np.array([0,1221.5,3480,3630], dtype=np.float64)
+        ini_vrmax = np.array([1221.5,3480,3630], dtype=np.float64)
+        ini_rho = np.array([[13.0885,0,-8.8381,0],
+            [12.5815, -1.2638, -3.6426, -5.5281],
+            [7.9565, -6.4761, 5.5283, -3.0807]], dtype=np.float64)
+        ini_vpv = np.array([[11.2622, 0, -6.364, 0],
+            [11.0487, -4.0362, 4.8023, -13.5732],
+            [15.3891, -5.3181, 5.5242, -2.5514]], dtype=np.float64)
+        ini_vph = np.array([[11.2622, 0, -6.364, 0],
+            [11.0487, -4.0362, 4.8023, -13.5732],
+            [15.3891, -5.3181, 5.5242, -2.5514]], dtype=np.float64)
+        ini_vsv = np.array([[3.6678, 0, -4.4475, 0],
+            [0, 0, 0, 0],
+            [6.9254, 1.4672, -2.0834, 0.9783]], dtype=np.float64)
+        ini_vsh = np.array([[3.6678, 0, -4.4475, 0],
+            [0, 0, 0, 0],
+            [6.9254, 1.4672, -2.0834, 0.9783]], dtype=np.float64)
+        ini_eta = np.array([[1, 0, 0, 0],
+            [1, 0, 0, 0],
+            [1, 0, 0, 0]], dtype=np.float64)
+        ini_qmu = np.array([84.6, 1e12, 312], dtype=np.float64)
+        ini_qkappa = np.array([1327.7, 57823, 57823], dtype=np.float64)
+
+        N_vrmin = np.zeros((model_length+3), dtype=np.float64); 
+        N_vrmin[0:4] = ini_vrmin 
+        N_vrmax = np.zeros((model_length+3), dtype=np.float64); 
+        N_vrmax[0:3] = ini_vrmax
+        N_rho = np.zeros((model_length+3,4), dtype=np.float64)
+        N_vpv = np.zeros((model_length+3,4), dtype=np.float64)
+        N_vph = np.zeros((model_length+3,4), dtype=np.float64)
+        N_vsv = np.zeros((model_length+3,4), dtype=np.float64)
+        N_vsh = np.zeros((model_length+3,4), dtype=np.float64)
+        N_eta = np.zeros((model_length+3,4), dtype=np.float64); 
+        N_eta[0:3,:] = ini_eta
+        N_qmu = np.zeros((model_length+3), dtype=np.float64); 
+        N_qmu[0:3] = ini_qmu
+        N_qkappa = np.zeros((model_length+3), dtype=np.float64); 
+        N_qkappa[0:3] = ini_qkappa
+
+        N_vrmin[4:model_length+3] = ini_model[0:model_length-1,0]
+        N_vrmax[3:model_length+2] = ini_model[0:model_length-1,0]
+        N_vrmax[model_length+2] = 6371.0
+
+        N_eta[3::,:] = N_eta[2,:]
+        N_qmu[3:] = N_qmu[2]
+        N_qkappa[3:] = N_qkappa[2]
+
+        N_vpv[:3,:] = ini_vpv
+        N_vph[:3,:] = ini_vph
+        N_vsv[:3,:] = ini_vsv
+        N_vsh[:3,:] = ini_vsh
+        N_rho[:3,:] = ini_rho
+
+        for i in range(3,model_length+3):
+            N_vpv[i,0] = ini_model[i-4,1]; N_vpv[i,1] = ini_model[i-4,2]; 
+            N_vpv[i,3] = 0.0; N_vpv[i,3] = 0.0
+            N_vph[i,0] = ini_model[i-4,1]; N_vph[i,1] = ini_model[i-4,2]; 
+            N_vph[i,3] = 0.0; N_vph[i,3] = 0.0
+
+            N_vsv[i,0] = ini_model[i-4,3]; N_vsv[i,1] = ini_model[i-4,4]; 
+            N_vsv[i,3] = 0.0; N_vsv[i,3] = 0.0
+            N_vsh[i,0] = ini_model[i-4,3]; N_vsh[i,1] = ini_model[i-4,4]; 
+            N_vsh[i,3] = 0.0; N_vsh[i,3] = 0.0
+
+            N_rho[i,0] = ini_model[i-4,5]; N_rho[i,1] = ini_model[i-4,6]; 
+            N_rho[i,3] = 0.0; N_rho[i,3] = 0.0
+
+        vpv = N_vpv.T
+        vph = N_vph.T
+        vsv = N_vsv.T
+        vsh = N_vsh.T
+        rho = N_rho.T
+        eta = N_eta.T
+        
+        vrmin = N_vrmin
+        vrmax = N_vrmax
+        qmu = N_qmu
+        qkappa = N_qkappa
+
+        model_id = 'mod_prem'
+        return cls(
+            vrmin, vrmax, rho, vpv, vph,
+            vsv, vsh, eta, qmu, qkappa, model_id)
+    
     @classmethod
     def iasp91(cls): # TODO
         """Return model IAS91.
