@@ -1,3 +1,5 @@
+# credit to Bob
+
 import numpy as np
 from Goes_attenuation_models import anelastic_properties, Q7g, fn_pressure
 import matplotlib.pyplot as plt
