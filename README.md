@@ -19,6 +19,10 @@ conda install conda-build -y
 ```bash
 conda env create -f /path/to/dsmpy/environment.yml
 ```
+3bis) You can add the yml file to your environment by:
+````bash
+conda env update --prefix ./env --file environment.yml  --prune
+```
 4) Build dsmpy. ```/path/to/dsmpy/``` is the path to the local dsmpy git repository:
 ```bash
 conda develop -n dsm -b /path/to/dsmpy/
