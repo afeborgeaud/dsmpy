@@ -9,7 +9,7 @@ The documentation with several usage examples can be found [here](https://afebor
 ## Preferred method: dependencies using conda and building from source
 1) Clone the dsmpy repository
 ```bash
-git clone https://github.com/afeborgeaud/dsmpy
+git clone https://github.com/seismobassoon/dsmpy
 ```
 2) Install conda-build in ```base```
 ```bash

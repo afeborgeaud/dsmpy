@@ -1,4 +1,5 @@
-# credit to Bob
+# credit to Bob, Nirmit, Nobu
+# 2021 WaveSeLFiE team
 
 import numpy as np
 from Goes_attenuation_models import anelastic_properties, Q7g, fn_pressure
@@ -12,6 +13,8 @@ result_directory = "./result_directory"
 
 file_number = [37]
 areal_number = [1,128,256,384,512,640,758]
+
+
 
 for a in range(0,len(file_number)):
     for b in range(0,len(areal_number)):
