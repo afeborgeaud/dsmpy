@@ -1,4 +1,4 @@
-name: dsm
+name: selfie 
 dependencies:
   - python=3.8
   - pytest
