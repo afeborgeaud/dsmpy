@@ -20,8 +20,12 @@ conda install conda-build -y
 conda env create -f /path/to/dsmpy/environment.yml
 ```
 3bis) You can add the yml file to your environment by:
-````bash
+```bash
 conda env update --prefix ./env --file environment.yml  --prune
+```
+Anyways, be careful with the compatibility of fortran and c(lang) compilers: it's secured to install them via:
+```
+conda install -c conda-forge c-compiler
 ```
 4) Build dsmpy. ```/path/to/dsmpy/``` is the path to the local dsmpy git repository:
 ```bash
