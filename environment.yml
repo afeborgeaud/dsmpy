@@ -1,6 +1,6 @@
-name: dsm
+name: selfie
 dependencies:
-  - python=3.8
+  - python=3.10
   - pytest
   - numpy
   - mpi4py
@@ -9,3 +9,6 @@ dependencies:
   - conda-forge::obspy
   - conda-forge::geographiclib
   - cartopy
+  - jupyter
+  - conda-forge::c-compiler
+  - conda-forge::fortran-compiler

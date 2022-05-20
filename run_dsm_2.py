@@ -17,7 +17,7 @@ stations = [
 
 plt.figure(figsize=[20, 10])
 
-for i in range(1,9):
+for i in range(0,9):
     seismic_model = seismicmodel.SeismicModel.mod_prem(i,128)    
     tlen = 3276.8 # duration of synthetics (s)
     nspc = 256 # number of points in frequency domain
