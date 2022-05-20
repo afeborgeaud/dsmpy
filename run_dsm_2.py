@@ -1,3 +1,4 @@
+import os
 from dsmpy import dsm, seismicmodel
 from dsmpy.event import Event
 from dsmpy.station import Station
@@ -18,9 +19,17 @@ stations = [
 plt.figure(figsize=[20, 10])
 
 for i in range(0,9):
+<<<<<<< HEAD
     seismic_model = seismicmodel.SeismicModel.mod_prem(i,128)    
+=======
+    os.system(f'mkdir ./data_directory/model_{i}')
+    if i==0 :
+        seismic_model = seismicmodel.SeismicModel.prem()
+    else:
+        seismic_model = seismicmodel.SeismicModel.mod_prem(i,128)    
+>>>>>>> 81be46dd82bb3230c3306cf3213389669eb9d3ad
     tlen = 3276.8 # duration of synthetics (s)
-    nspc = 256 # number of points in frequency domain
+    nspc = 512 # number of points in frequency domain
     sampling_hz = 20 # sampling frequency for sythetics
     # create input parameters for pydsm
     print('seismic_model.Seismic')
@@ -29,7 +38,7 @@ for i in range(0,9):
     # compute synthetics in frequency domain calling DSM Fortran
     output = dsm.compute(input)
     output.to_time_domain() # perform inverse FFTAAAAAAAAAA')
-    output.filter(freq=0.04) # apply a 25 seconds low-pass filter
+    output.filter(freq=0.12) # apply a 25 seconds low-pass filter
     us = output.us # synthetics. us.shape = (3,nr,tlen)
     ts = output.ts # time points [0, tlen]
     # brackets can be used to access component and station
@@ -39,4 +48,4 @@ for i in range(0,9):
     plt.savefig(f'./data_directory/model_{i}',dpi=200)
     plt.clf()
     # to write synthetics to SAC files, use
-    output.write(root_path=f'./data_directory/',format='sac')
+    output.write(root_path=f'./data_directory/model_{i}',format='sac')

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 name: selfie
+=======
+name: selfie 
+>>>>>>> 81be46dd82bb3230c3306cf3213389669eb9d3ad
 dependencies:
   - python=3.10
   - pytest
