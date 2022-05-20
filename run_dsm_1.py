@@ -17,7 +17,7 @@ stations = [
 # load (anisotropic) PREM model
 seismic_model = seismicmodel.SeismicModel.prem()
 tlen = 3276.8 # duration of synthetics (s)
-nspc = 256 # number of points in frequency domain
+nspc = 128 # number of points in frequency domain
 sampling_hz = 20 # sampling frequency for sythetics
 # create input parameters for pydsm
 input = dsm.PyDSMInput.input_from_arrays(
