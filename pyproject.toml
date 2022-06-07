@@ -12,3 +12,8 @@ requires = [
     "numpy",
 ]
 build-backend = 'setuptools.build_meta'
+[tool.black]
+line_length=88
+
+[tool.isort]
+profile="black"
