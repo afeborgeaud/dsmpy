@@ -1,18 +1,14 @@
-<<<<<<< HEAD
-name: selfie
-=======
-name: selfie 
->>>>>>> 81be46dd82bb3230c3306cf3213389669eb9d3ad
+name: dsm 
 dependencies:
-  - python=3.10
+  - conda-forge::geographiclib
+  - conda-forge::obspy
+  - conda-forge::c-compiler
+  - conda-forge::fortran-compiler
+  - python
   - pytest
   - numpy
   - mpi4py
   - matplotlib
   - pandas
-  - conda-forge::obspy
-  - conda-forge::geographiclib
   - cartopy
   - jupyter
-  - conda-forge::c-compiler
-  - conda-forge::fortran-compiler
