@@ -32,7 +32,7 @@ conda install -c conda-forge c-compiler
 conda develop -n dsm -b /path/to/dsmpy/
 ```
 4b) OK if your conda cannot do this by reasons XYZ, try this:
-````python setup.py install```
+```python setup.py install```
 5) Run tests. From /path/to/dsmpy/
 ```bash
 conda activate dsm
