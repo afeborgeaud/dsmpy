@@ -23,8 +23,9 @@ def _get_u_pydsm():
 
 
 def _get_u_dsm():
-    u = np.loadtxt(os.path.join(rootdsm_sh,
-                                'sac_64/109C_TA.200702131456A.T.txt'))
+    u = np.loadtxt(
+        os.path.join(
+            rootdsm_sh, 'sac_64/109C_TA.200702131456A.T.txt'))
     return u
 
 

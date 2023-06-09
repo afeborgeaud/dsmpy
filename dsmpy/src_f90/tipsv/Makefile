@@ -1,6 +1,6 @@
 # makefile .fr tipsv
 PROGS = tipsv
-FC= gfortran
+FC = gfortran
 FFLAGS = -O
 SRC = parameters.f90 calmat.f90 trialf.f90 others.f90 rk3.f90 \
       glu2.f90  dcsymbdl.f90 tipsv.f90
