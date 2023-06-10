@@ -73,7 +73,11 @@ git clone https://github.com/afeborgeaud/dsmpy
 python3 -m venv venv
 source ./venv/bin/activate
 ```
-3) Install [*build*](https://pypi.org/project/build/), a PEP517 package builder
+3) Install requirements
+```
+python3 -m pip install -r requirements.txt
+```
+5) Install [*build*](https://pypi.org/project/build/), a PEP517 package builder
 ```
 pip install build
 ```
