@@ -2,8 +2,9 @@
 [![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-370/)
 [![PyPI version fury.io](https://d25lcipzij17d.cloudfront.net/badge.svg?id=py&type=6&v=1.0a4&x2=0)](https://test.pypi.org/project/dsmpy/)
 
-Python package for computation of synthetic waveforms in spherically homogeneous transversely isotropic (VTI) media using the Direct Solution Method (DSM; [Kawai et al. 2006](https://doi.org/10.1111/j.1365-246X.2005.02829.x)).<br/><br/>
-The documentation with several usage examples can be found [here](https://afeborgeaud.github.io/dsmpy/).
+Python package for computation of synthetic waveforms in spherically homogeneous transversely isotropic (VTI) media using the Direct Solution Method (DSM; [Kawai et al. 2006](https://doi.org/10.1111/j.1365-246X.2005.02829.x)).<br/>
+The original DSM softwares can be found on the [Github page of UT Global Seismology](https://github.com/UT-GlobalSeismology).<br/><br/>
+The documentation for dsmpy with several usage examples can be found [here](https://afeborgeaud.github.io/dsmpy/).
 
 # INSTALLATION
 ## Preferred method: dependencies using conda and building from source
@@ -86,7 +87,11 @@ git clone https://github.com/afeborgeaud/dsmpy
 python3 -m venv venv
 source ./venv/bin/activate
 ```
-3) Install [*build*](https://pypi.org/project/build/), a PEP517 package builder
+3) Install requirements
+```
+python3 -m pip install -r requirements.txt
+```
+5) Install [*build*](https://pypi.org/project/build/), a PEP517 package builder
 ```
 pip install build
 ```
