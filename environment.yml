@@ -1,14 +1,13 @@
-name: dsm 
+name: dsmpy 
 dependencies:
-  - conda-forge::geographiclib
-  - conda-forge::obspy
-  - conda-forge::c-compiler
-  - conda-forge::fortran-compiler
   - python
   - pytest
   - numpy
   - mpi4py
   - matplotlib
   - pandas
+  - conda-forge::geographiclib
+  - conda-forge::obspy
+  - conda-forge::c-compiler
+  - conda-forge::fortran-compiler
   - cartopy
-  - jupyter
