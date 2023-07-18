@@ -32,13 +32,16 @@ conda install -c conda-forge c-compiler
 ```bash
 conda develop -n dsm -b /path/to/dsmpy/
 ```
+
 4b) OK if your conda cannot do this by reasons XYZ, try this:
 ```python setup.py install```
 5) Run tests. From /path/to/dsmpy/
+
 ```bash
 conda activate dsm
-
-6) Modified (might not be necessay for all, but for some systems): In case of the module absence error (tish, tipsv) during pytest
+```
+6) Modified (might not be necessay for all, but for some systems): In case of the module absence error (tish, tipsv) during pytest:
+```
 python build.py
 
 pytest
