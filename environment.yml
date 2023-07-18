@@ -3,11 +3,19 @@ dependencies:
   - python
   - pytest
   - numpy
+  - openblas
+  - mpich
   - mpi4py
   - matplotlib
   - pandas
-  - conda-forge::geographiclib
-  - conda-forge::obspy
-  - conda-forge::c-compiler
-  - conda-forge::fortran-compiler
   - cartopy
+  - pip
+  - pip:
+    - geographiclib
+    - obspy
+#    - c-compiler
+#    - fortran-compiler
+#  - conda-forge::geographiclib
+#  - conda-forge::obspy
+  - conda-forge::fortran-compiler
+#  - cartopy

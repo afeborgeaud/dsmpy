@@ -39,8 +39,8 @@ if __name__ == '__main__':
     setup(
         name="dsmpy",
         version='1.0a4',
-        author='Anselme Borgeaud, Kensuke Konishi',
-        author_email='aborgeaud@gmail.com',
+        author='Anselme Borgeaud, Kensuke Konishi, Nobuaki Fuji',
+        author_email='nobuaki@ipgp.fr',
         license='MIT',
         description='Python wrapper for DSM',
         long_description=long_description,
