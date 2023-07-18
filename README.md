@@ -49,6 +49,12 @@ python build.py
 pytest
 ```
 
+6b) Or you should try:
+```
+python build.py
+python -m pytest tests
+```
+
 ## Using conda to install dsmpy conda package (currently not the latest version)
 We recommend using ```conda``` to install ```dsmpy```, as it takes care of the dependencies required to compile the Fortran sources in dsmpy. At the moment, dsmpy has been compiled for ```linux-64``` and ```osx-64``` platforms. <br>
 To install ```dsmpy``` using ```conda```:
