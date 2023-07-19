@@ -1,4 +1,6 @@
 name: dsmpy 
+channels:
+  - conda-forge
 dependencies:
   - python
   - pytest
@@ -6,6 +8,6 @@ dependencies:
   - mpi4py
   - matplotlib
   - pandas
-  - conda-forge::geographiclib
-  - conda-forge::obspy
-  - conda-forge::gfortran
+  - geographiclib
+  - obspy
+  - gfortran
