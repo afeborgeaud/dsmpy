@@ -7,6 +7,41 @@ The original DSM softwares can be found on the [Github page of UT Global Seismol
 The documentation for dsmpy with several usage examples can be found [here](https://afeborgeaud.github.io/dsmpy/).
 
 # INSTALLATION
+
+## A method that works with mac M1 (thanks to Kurama Okubo, 18/07/2023)
+
+1) Clone the dsmpy repository
+```bash
+git clone https://github.com/seismobassoon/dsmpy
+```
+
+2) Install conda-build in ```base```
+```bash
+conda install conda-build -y
+```
+
+3) Create the ```dsm``` conda environment using the ```environment.yml``` YAML file:
+```bash
+cd /path/to/dsmpy/
+conda env create -f environment.yml
+```
+
+4) Activate your environment:
+```bash
+conda activate dsmpy
+```
+
+5) Build your dsmpy:
+```bash
+conda develop -n dsmpy -b .
+```
+
+6) Run tests:
+
+```bash
+pytest
+```
+
 ## Preferred method: dependencies using conda and building from source
 1) Clone the dsmpy repository
 ```bash
