@@ -41,6 +41,92 @@ conda develop -n dsmpy -b .
 ```bash
 pytest
 ```
+
+# EXAMPLES
+1) Running dsmpy using an input file (run on multiple CPUs).
+A template input file is in ```<path_of_pydsm_folder>/dsmpy/tests/input_files/template.txt```:
+```shell
+sac_files ~/git/dsmpy/tests/sac_files/*T
+output_folder ~/git/dsmpy/tests/sac_files
+# duration of synthetics (in seconds)
+tlen 3276.8
+# number of points of frequency-domain synthetics
+# minimum period Tmin = tlen / nspc (s)
+nspc 256 
+# sampling frequency for time-domain synthetics
+sampling_hz 20
+# prem, ak135
+seismic_model prem 
+# 0: P-SV+SH, 1: P-SV, 2: SH (default: 0)
+mode 0
+# 0: quiet, 1: talkative, 2: debug (default: 0)
+verbose 0
+```
+
+To run this input file on 2 CPUs:
+1) open a Terminal 
+2) change the current directory to the dsmpy directory
+3) paste:
+```shell
+mpiexec -n 2 python pydsm/main.py tests/input_files/template.txt
+```
+
+2) Running dsmpy from a python script.
+Below is an example of python script using dsmpy to compute synthetics:
+```python
+from dsmpy import dsm, seismicmodel
+from dsmpy.event import Event
+from dsmpy.station import Station
+from dsmpy.utils.cmtcatalog import read_catalog
+# load gcmt catalog
+catalog = read_catalog()
+# get event from catalog
+event = Event.event_from_catalog(
+    catalog, '200707211534A')
+# define station FCC
+stations = [
+    Station(
+        name='FCC', network='CN',
+        latitude=58.7592, longitude=-94.0884), 
+    ]
+# load (anisotropic) PREM model
+seismic_model = seismicmodel.SeismicModel.prem()
+tlen = 3276.8 # duration of synthetics (s)
+nspc = 256 # number of points in frequency domain
+sampling_hz = 20 # sampling frequency for sythetics
+# create input parameters for pydsm
+input = dsm.PyDSMInput.input_from_arrays(
+    event, stations, seismic_model, tlen, nspc, sampling_hz)
+# compute synthetics in frequency domain calling DSM Fortran
+output = dsm.compute(input)
+output.to_time_domain() # perform inverse FFT
+output.filter(freq=0.04) # apply a 25 seconds low-pass filter
+us = output.us # synthetics. us.shape = (3,nr,tlen)
+ts = output.ts # time points [0, tlen]
+# brackets can be used to access component and station
+u_Z_FCC = output['Z', 'FCC_CN']
+# to plot a three-component record section, use
+output.plot()
+plt.show()
+# to write synthetics to SAC files, use
+output.write(root_path='.', format='sac')
+```
+
+3) Running dsmpy using a (Fortran) DSM input file.
+Methods are provided to run dsmpy using an input file for the (Fortran) DSM:
+```python
+from pydsm import dsm, rootdsm_sh
+parameter_file = rootdsm_sh + 'AK135_SH.inf'
+inputs = dsm.PyDSMInput.input_from_file(parameter_file, mode=2)
+outputs = dsm.compute(inputs, mode=2)
+outputs.to_time_domain()
+us = outputs.us    # us.shape = (3,nr,tlen)
+ts = outputs.ts    # len(ts) = tlen
+stations = outputs.stations        # len(stations) = nr
+components = outputs.components    # len(components) = 3
+```
+
+
 <!---
 ## Preferred method: dependencies using conda and building from source
 1) Clone the dsmpy repository
@@ -154,86 +240,4 @@ or
 pip install dist/*.tar.gz
 ```
 ---!>
-# EXAMPLES
-1) Running dsmpy using an input file (run on multiple CPUs).
-A template input file is in ```<path_of_pydsm_folder>/dsmpy/tests/input_files/template.txt```:
-```shell
-sac_files ~/git/dsmpy/tests/sac_files/*T
-output_folder ~/git/dsmpy/tests/sac_files
-# duration of synthetics (in seconds)
-tlen 3276.8
-# number of points of frequency-domain synthetics
-# minimum period Tmin = tlen / nspc (s)
-nspc 256 
-# sampling frequency for time-domain synthetics
-sampling_hz 20
-# prem, ak135
-seismic_model prem 
-# 0: P-SV+SH, 1: P-SV, 2: SH (default: 0)
-mode 0
-# 0: quiet, 1: talkative, 2: debug (default: 0)
-verbose 0
-```
 
-To run this input file on 2 CPUs:
-1) open a Terminal 
-2) change the current directory to the dsmpy directory
-3) paste:
-```shell
-mpiexec -n 2 python pydsm/main.py tests/input_files/template.txt
-```
-
-2) Running dsmpy from a python script.
-Below is an example of python script using dsmpy to compute synthetics:
-```python
-from dsmpy import dsm, seismicmodel
-from dsmpy.event import Event
-from dsmpy.station import Station
-from dsmpy.utils.cmtcatalog import read_catalog
-# load gcmt catalog
-catalog = read_catalog()
-# get event from catalog
-event = Event.event_from_catalog(
-    catalog, '200707211534A')
-# define station FCC
-stations = [
-    Station(
-        name='FCC', network='CN',
-        latitude=58.7592, longitude=-94.0884), 
-    ]
-# load (anisotropic) PREM model
-seismic_model = seismicmodel.SeismicModel.prem()
-tlen = 3276.8 # duration of synthetics (s)
-nspc = 256 # number of points in frequency domain
-sampling_hz = 20 # sampling frequency for sythetics
-# create input parameters for pydsm
-input = dsm.PyDSMInput.input_from_arrays(
-    event, stations, seismic_model, tlen, nspc, sampling_hz)
-# compute synthetics in frequency domain calling DSM Fortran
-output = dsm.compute(input)
-output.to_time_domain() # perform inverse FFT
-output.filter(freq=0.04) # apply a 25 seconds low-pass filter
-us = output.us # synthetics. us.shape = (3,nr,tlen)
-ts = output.ts # time points [0, tlen]
-# brackets can be used to access component and station
-u_Z_FCC = output['Z', 'FCC_CN']
-# to plot a three-component record section, use
-output.plot()
-plt.show()
-# to write synthetics to SAC files, use
-output.write(root_path='.', format='sac')
-```
-
-3) Running dsmpy using a (Fortran) DSM input file.
-Methods are provided to run dsmpy using an input file for the (Fortran) DSM:
-```python
-from pydsm import dsm, rootdsm_sh
-parameter_file = rootdsm_sh + 'AK135_SH.inf'
-inputs = dsm.PyDSMInput.input_from_file(parameter_file, mode=2)
-outputs = dsm.compute(inputs, mode=2)
-outputs.to_time_domain()
-us = outputs.us    # us.shape = (3,nr,tlen)
-ts = outputs.ts    # len(ts) = tlen
-stations = outputs.stations        # len(stations) = nr
-components = outputs.components    # len(components) = 3
-```
