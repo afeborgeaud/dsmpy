@@ -41,7 +41,7 @@ conda develop -n dsmpy -b .
 ```bash
 pytest
 ```
-
+<!---
 ## Preferred method: dependencies using conda and building from source
 1) Clone the dsmpy repository
 ```bash
@@ -153,7 +153,7 @@ or
 ```
 pip install dist/*.tar.gz
 ```
-
+---!>
 # EXAMPLES
 1) Running dsmpy using an input file (run on multiple CPUs).
 A template input file is in ```<path_of_pydsm_folder>/dsmpy/tests/input_files/template.txt```:
