@@ -8,12 +8,15 @@ The documentation for dsmpy with several usage examples can be found [here](http
 
 # INSTALLATION
 
-## A method that works with mac M1 (thanks to Kurama Okubo, 18/07/2023)
+## A method that works with mac M1 (thanks to Kurama Okubo, 20/07/2023)
 
 1) Clone the dsmpy repository
 ```bash
+conda update --all
 git clone https://github.com/seismobassoon/dsmpy
 ```
+
+
 
 2) Install conda-build in ```base```
 ```bash
