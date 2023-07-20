@@ -40,7 +40,9 @@ conda develop -n dsmpy-py38 -b .
 ```
 
 5b) OK if your conda cannot do this by reasons XYZ, try this:
-```python setup.py install```
+```bash
+python setup.py install
+```
 
 6) Run tests:
 
