@@ -31,12 +31,12 @@ conda env create -f environment.yml
 
 4) Activate your environment:
 ```bash
-conda activate dsmpy
+conda activate dsmpy-py38
 ```
 
 5) Build your dsmpy:
 ```bash
-conda develop -n dsmpy -b .
+conda develop -n dsmpy-py38 -b .
 ```
 
 6) Run tests:
