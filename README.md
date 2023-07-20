@@ -81,6 +81,7 @@ from dsmpy import dsm, seismicmodel
 from dsmpy.event import Event
 from dsmpy.station import Station
 from dsmpy.utils.cmtcatalog import read_catalog
+import matplotlib as plt
 # load gcmt catalog
 catalog = read_catalog()
 # get event from catalog
