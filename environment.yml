@@ -2,9 +2,9 @@ name: dsmpy
 channels:
   - conda-forge
 dependencies:
-  - python
+  - python=3.8
   - pytest
-  - numpy
+  - numpy=1.22.3
   - mpi4py
   - matplotlib
   - pandas
@@ -12,3 +12,4 @@ dependencies:
   - obspy
   - clang
   - gfortran
+  - conda-build
