@@ -295,7 +295,8 @@ class PyDSMOutput:
                     e=self.tlen, npts=len(data), evdp=self.event.depth,
                     evla=self.event.latitude, evlo=self.event.longitude,
                     kevnm=self.event.event_id, knetwk=station.network,
-                    kstnm=station.name, gcarc=0.))
+                    kstnm=station.name, stla=station.latitude,
+                    stlo=station.longitude))
                 stats.sac = sac_header
                 trace = Trace(data=data, header=stats)
                 traces.append(trace)

@@ -1,11 +1,15 @@
-name: dsm
+name: dsmpy 
+channels:
+  - conda-forge
 dependencies:
   - python=3.8
   - pytest
-  - numpy
+  - numpy=1.22.3
   - mpi4py
   - matplotlib
   - pandas
-  - conda-forge::obspy
-  - conda-forge::geographiclib
-  - cartopy
+  - geographiclib
+  - obspy
+  - clang
+  - gfortran
+  - conda-build

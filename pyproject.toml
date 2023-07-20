@@ -1,6 +1,8 @@
 [build-system]
 requires = [
     "setuptools",
+    "setuptools-scm",
+    "mypy",
     "wheel",
     'obspy',
     'mpi4py',
@@ -10,3 +12,8 @@ requires = [
     "numpy",
 ]
 build-backend = 'setuptools.build_meta'
+[tool.black]
+line_length=88
+
+[tool.isort]
+profile="black"
