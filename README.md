@@ -26,7 +26,7 @@ conda install conda-build -y
 3) Create the ```dsm``` conda environment using the ```environment.yml``` YAML file:
 ```bash
 cd /path/to/dsmpy/
-conda env create -f environment.yml
+conda env create -n dsmpy-py38 -f environment.yml
 ```
 
 4) Activate your environment:
