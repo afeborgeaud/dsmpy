@@ -1,0 +1,10 @@
+setuptools
+wheel
+obspy
+mpi4py
+pandas
+matplotlib
+geographiclib
+numpy
+cartopy
+joblib

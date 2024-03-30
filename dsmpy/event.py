@@ -15,6 +15,7 @@ class Event:
             [-180, 180] in degree
         depth (float) centroid depth in km
         mt (MomentTensor): moment tensor
+        centroid_time (DateTime): centroid time
         source_time_function (SourceTimeFunction): SourceTimeFunction
         object
     

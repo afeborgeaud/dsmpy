@@ -2,10 +2,12 @@ import numpy as np
 from dsmpy._tish import _tish, _pinput
 from dsmpy import rootdsm_sh
 import time
+import os
 
 
 def test_tish():
-    parameter_file = rootdsm_sh + 'AK135_SH_64.inf'
+    # parameter_file = rootdsm_sh + 'AK135_SH_64.inf'
+    parameter_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'input_files/AK135_SH_64.inf')
     inputs = _pinput(parameter_file)
     write_to_file = False
     start = time.time()

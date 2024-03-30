@@ -212,7 +212,7 @@ class Dataset:
 
         cat = read_catalog()
         traces = [tr for tr in traces
-                  if (cat == tr.stats.sac.kevnm).any()]
+                  if tr.stats.sac.kevnm in cat]
 
         sampling_hz = int(traces[0].stats.sampling_rate)
 
@@ -278,7 +278,7 @@ class Dataset:
 
         # read event catalog
         # TODO case when event_id is not in the catalog
-        events_ = cat[np.isin(cat, evids)]
+        events_ = [x for x in cat if x in evids]
         if len(events_) != len(evids):
             raise RuntimeError('Some events not in the catalog')
         mts = np.array([e.mt for e in events_])
@@ -662,7 +662,7 @@ class Dataset:
         else:
             return None
 
-    def get_bounds_from_event_index(self, ievent: int) -> (int, int):
+    def get_bounds_from_event_index(self, ievent: int) -> tuple:
         """Return the start, end indices to slice
         self.stations[start:end].
 

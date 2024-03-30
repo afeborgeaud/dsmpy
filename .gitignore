@@ -19,3 +19,5 @@ venv
 **.swp
 pip-wheel-metadata
 **/*.pyc
+.venvs
+*.joblib

@@ -3,8 +3,9 @@ import os
 import subprocess
 import shutil
 import glob
-from dsmpy.definitions import ROOT_DIR
 
+
+ROOT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dsmpy/')
 
 def build_module(module_name='tish'):
     libroot = os.path.join(ROOT_DIR, 'flib/')

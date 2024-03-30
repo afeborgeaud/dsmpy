@@ -734,15 +734,15 @@ class DSMInput:
         phi = np.pad(phi, (0, maxnr - nr),
                      mode='constant', constant_values=0)
 
-        output = np.empty((tish_parameters['maxnr'], 80), dtype='S1')
+        output = np.empty(tish_parameters['maxnr'], dtype='|S80')
         for i, station in enumerate(stations):
             string = (station.name + '_' + station.network
                       + '.' + event.event_id + 'SH.spc')
-            arr = np.array([e for e in string], dtype='S1')
-            arr = np.pad(
-                arr, (0, 80 - len(arr)),
-                mode='constant', constant_values='')
-            output[i, :] = arr
+            # arr = np.array([e for e in string], dtype='S1')
+            # arr = np.pad(
+            #     arr, (0, 80 - len(arr)),
+            #     mode='constant', constant_values='')
+            output[i] = string.ljust(80)
 
         # parameters for DSM computation (advanced)
         re = default_params['re']
@@ -761,7 +761,7 @@ class DSMInput:
     def input_from_dict_and_arrays(
             cls, scalar_dict, vrmin, vrmax, rho, vpv, vph,
             vsv, vsh, eta, qmu, qkappa, mt, lat, lon, phi, theta):
-        output = np.empty((len(theta), 80), dtype='|S1')
+        output = np.empty(len(theta), dtype='|S80')
         return cls(
             scalar_dict['re'], scalar_dict['ratc'],
             scalar_dict['ratl'], scalar_dict['tlen'],

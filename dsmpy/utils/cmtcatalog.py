@@ -7,11 +7,11 @@ import warnings
 from datetime import date
 import re
 import requests
+import joblib
+import os
 
 def convert_catalog(cat):
-    #cat = read_events(root_resources + 'gcmt.ndk')
-    #mts = np.zeros((cat.count(), 6), dtype=np.float32)
-    events = np.empty(cat.count(), dtype=np.object)
+    lst = []
     for i, event in enumerate(cat):
         tensor = event.preferred_focal_mechanism().moment_tensor.tensor
         mw = [m for m in event.magnitudes 
@@ -30,8 +30,9 @@ def convert_catalog(cat):
                            if e.type == 'earthquake name'][0][1:]
         event = Event(event_id, lat, lon, depth, mt,
                       centroid_time, source_time_function)
-        events[i] = event
-    np.save(root_resources + 'gcmt', events)
+        lst.append(event)
+    print('Saving GCMT catalog into ' + os.path.join(root_resources, 'gcmt.joblib'))
+    joblib.dump(lst, os.path.join(root_resources, 'gcmt.joblib'))
 
 def _mt_from_tensor(tensor, Mw):
     m_rr = tensor.m_rr * 1e-18
@@ -50,7 +51,7 @@ def read_catalog():
         cat (ndarray): ndarray of pydsm.Event objects
     """
     try:
-        cat = np.load(root_resources + 'gcmt.npy', allow_pickle=True)
+        cat = joblib.load(os.path.join(root_resources, 'gcmt.joblib'))
     except:
         print('Dowloading gcmt catalog.\n'
               + 'Takes a few minutes. Done only once.')
@@ -58,7 +59,7 @@ def read_catalog():
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             convert_catalog(cat)
-        cat = np.load(root_resources + 'gcmt.npy', allow_pickle=True)
+        cat = joblib.load(os.path.join(root_resources, 'gcmt.joblib'))
     return cat
 
 def _download_gcmt_catalog():

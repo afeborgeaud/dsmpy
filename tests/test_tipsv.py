@@ -2,10 +2,12 @@ import numpy as np
 from dsmpy._tipsv import _tipsv, _pinput
 from dsmpy import rootdsm_psv
 import time
+import os
 
 
 def test_tipsv():
-    parameter_file = rootdsm_psv + 'test1.inf'
+    # parameter_file = rootdsm_psv + 'test1.inf'
+    parameter_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'input_files/test1.inf')
     inputs = _pinput(parameter_file)
     write_to_file = False
     start = time.time()

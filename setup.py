@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     setup(
         name="dsmpy",
-        version='1.0a4',
+        version='1.0a5',
         author='Anselme Borgeaud, Kensuke Konishi',
         author_email='aborgeaud@gmail.com',
         license='MIT',
@@ -62,6 +62,7 @@ if __name__ == '__main__':
             'geographiclib',
             "numpy",
             "pytest",
+            "joblib"
         ],
         ext_modules=[lib_tish, lib_tipsv],
         python_requires='>=3.9',
