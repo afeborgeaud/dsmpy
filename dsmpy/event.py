@@ -59,7 +59,7 @@ class Event:
         """
         event = None
         try:
-            event = cat[cat == event_id][0]
+            event = [x for x in cat if event_id == x.event_id][0]
         except:
             warnings.warn('Event {} not found'.format(event_id))
         return event
