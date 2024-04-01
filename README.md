@@ -22,7 +22,12 @@ A quick summary to set up the environment tested:
 ```
 wsl --install
 ```
-This should install a ubuntu distribution by default, and launch a Ubuntu bash terminal 
+This should install a ubuntu distribution by default, and launch a Ubuntu bash terminal.
+
+(Optional) to start the ubuntu terminal again after closing the PowerShell, open a new PowerShell and type
+```
+ubuntu
+```
 
 3) From the Ubuntu terminal, install python, gcc and openmpi
 ```
