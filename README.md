@@ -12,7 +12,7 @@ Currently, dsmpy has been tested with gcc.
 
 # For Windows users
 At installation, dsmpy needs to compile Fortran and C librairies, and needs openmpi for parallel computing.
-The installation on Windows machines has been tested on [WSL](https://learn.microsoft.com/en-us/windows/wsl/install])
+The installation on Windows machines has been tested on [WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
 
 A quick summary to set up the environment tested:
 
