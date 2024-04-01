@@ -80,8 +80,6 @@ subroutine tish(re,ratc,ratl,tlen,np,omegai,imin,imax, &
 
     complex(dp), intent(out) :: outputu(3,nr,imin:imax)
 
-    write(*,*) 'Start tish'
-
 ! --- computing the required parameters ---
 ! computing and checking the parameters
     rmin = vrmin(1)

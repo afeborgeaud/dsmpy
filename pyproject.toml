@@ -8,5 +8,26 @@ requires = [
     'matplotlib',
     'geographiclib',
     "numpy",
+    "joblib",
 ]
 build-backend = 'setuptools.build_meta'
+
+[project]
+name = "dsmpy"
+version = "1.0a5"
+authors = [
+  { name="Anselme Borgeaud", email="aborgeaud@gmail.com" },
+  { name="Kensuke Konishi", email="" },
+]
+description = "Python wrapper for DSM"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/afeborgeaud/dsmpy"
+
