@@ -6,62 +6,53 @@ Python package for computation of synthetic waveforms in spherically homogeneous
 The original DSM softwares can be found on the [Github page of UT Global Seismology](https://github.com/UT-GlobalSeismology).<br/><br/>
 The documentation for dsmpy with several usage examples can be found [here](https://afeborgeaud.github.io/dsmpy/).
 
+# For Linux users
+At installation, dsmpy needs to compile Fortran and C librairies, and needs openmpi for parallel computing.
+Currently, dsmpy has been tested with gcc.
+
+# For Windows users
+At installation, dsmpy needs to compile Fortran and C librairies, and needs openmpi for parallel computing.
+The installation on Windows machines has been tested on [WSL](https://learn.microsoft.com/en-us/windows/wsl/install])
+
+A quick summary to set up the environment tested:
+
+1) Open a PowerShell (in admin mode)
+
+2) In the PowerShell, type
+```
+wsl --install
+```
+This should install a ubuntu distribution by default, and launch a Ubuntu bash terminal 
+
+3) From the Ubuntu terminal, install python, gcc and openmpi
+```
+sudo apt-get update && apt-get install -y python3 python3-pip
+sudo apt install python-is-python3
+sudo apt-get install gcc
+sudo apt-get install -y openmpi-bin libopenmpi-dev
+```
+
+4) Create a directory for your python project (here we assume you have a ```git``` folder in your home directory), and open it in Visual Studio Code
+```
+cd ~/git
+mkdir my_project
+# open my_project in VS Code
+code my_project
+```
+Your are ready to proceed to the installation of dsmpy
+
+
 # INSTALLATION
-## Preferred method: dependencies using conda and building from source
-1) Clone the dsmpy repository
-```bash
-git clone https://github.com/afeborgeaud/dsmpy
+## Prefererd method: install using pip from github
+1) (Optional) You may want to install dsmpy in the virtual environment [env_name]. If so, from your project in a terminal:
 ```
-2) Install conda-build in ```base```
-```bash
-conda install conda-build -y
+python3 -m venv .venvs/[env_name]
+source .venvs/bin/[env_name]/activate
 ```
-3) Create the ```dsm``` conda environment using the ```environment.yml``` YAML file:
-```bash
-conda env create -f /path/to/dsmpy/environment.yml
+2)
 ```
-4) Build dsmpy. ```/path/to/dsmpy/``` is the path to the local dsmpy git repository:
-```bash
-conda develop -n dsm -b /path/to/dsmpy/
+pip install dsmpy@git+https://github.com/afeborgeaud/dsmpy@v1.0a5
 ```
-5) Run tests. From /path/to/dsmpy/
-```bash
-conda activate dsm
-pytest
-```
-
-## Using conda to install dsmpy conda package (currently not the latest version)
-We recommend using ```conda``` to install ```dsmpy```, as it takes care of the dependencies required to compile the Fortran sources in dsmpy. At the moment, dsmpy has been compiled for ```linux-64``` and ```osx-64``` platforms. <br>
-To install ```dsmpy``` using ```conda```:
-1) From a terminal, run
-```bash
-conda create -n dsmpy
-conda install -n dsmpy -c afeborgeaud -c conda-forge dsmpy
-```
-
-## Using pip (TestPyPI)
-1) (Optional) You may want to install dsmpy in a virtual environment. If so, do
-```
-python3 -m venv venv
-source ./venv/bin/activate
-```
-2) Install [*build*](https://pypi.org/project/build/), a PEP517 package builder
-```
-pip install build
-```
-3) In a shell, type
-```
-pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple dsmpy
-```
-This will download the dsmpy package from the TestPyPI respository and the required dependencies from the PyPI repository.
-
-4) Check that dsmpy has been installed succesfully:
-```
-python -c "import dsmpy"
-```
-**Note:** Fortran sources for the DSM will be compiled during the installation (using numpy.f2py and the GNU Fortran compiler). If you get compilation errors, check the following:
-- gfortran>=4.8 is required for succesful compilation, because of the optimization flag '-Ofast'
-- If you have gfortran<4.8, you should change the compiler flag from '-Ofast' to '-O3' in ```<path_of_dsmpy_folder>/pydsm/__init__.py```
 
 ## Build from source using pip
 1) Clone the dsmpy repository
@@ -158,7 +149,7 @@ ts = output.ts # time points [0, tlen]
 # brackets can be used to access component and station
 u_Z_FCC = output['Z', 'FCC_CN']
 # to plot a three-component record section, use
-output.plot()
+plt.savefig('output.png')
 plt.show()
 # to write synthetics to SAC files, use
 output.write(root_path='.', format='sac')
