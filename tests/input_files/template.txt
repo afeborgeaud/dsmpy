@@ -4,7 +4,7 @@ output_folder ~/git/dsmpy/tests/sac_files
 tlen 3276.8
 # number of points of frequency-domain synthetics
 # minimum period Tmin = tlen / nspc (s)
-nspc 256 
+nspc 256
 # sampling frequency for time-domain synthetics
 sampling_hz 20
 # prem, ak135

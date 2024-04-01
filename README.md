@@ -111,7 +111,7 @@ To run this input file on 2 CPUs:
 2) change the current directory to the dsmpy directory
 3) paste:
 ```shell
-mpiexec -n 2 python pydsm/main.py tests/input_files/template.txt
+mpiexec -n 2 python dsmpy/main.py tests/input_files/template.txt
 ```
 
 2) Running dsmpy from a python script.
